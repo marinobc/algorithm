@@ -40,11 +40,7 @@ class BaseAlgorithmCard extends StatelessWidget {
             // Standardized Header Row
             Row(
               children: [
-                Icon(
-                  icon,
-                  color: colorScheme.primary,
-                  size: 20,
-                ),
+                Icon(icon, color: colorScheme.primary, size: 20),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
@@ -65,7 +61,10 @@ class BaseAlgorithmCard extends StatelessWidget {
                   icon: const Icon(Icons.close_rounded, size: 18),
                   tooltip: 'Salir del Algoritmo',
                   padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                  constraints: const BoxConstraints(
+                    minWidth: 28,
+                    minHeight: 28,
+                  ),
                   onPressed: onClose,
                 ),
               ],
@@ -78,10 +77,7 @@ class BaseAlgorithmCard extends StatelessWidget {
             ],
 
             // Optional Custom Content Body (e.g., assignment chips or path nodes)
-            if (body != null) ...[
-              const SizedBox(height: 8),
-              body!,
-            ],
+            if (body != null) ...[const SizedBox(height: 8), body!],
           ],
         ),
       ),

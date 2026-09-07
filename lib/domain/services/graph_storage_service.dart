@@ -1,5 +1,7 @@
 import 'dart:convert';
+
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../models/grafo.dart';
 import 'graph_share_service.dart';
 
@@ -89,7 +91,8 @@ class SavedGraphItem {
       nodoCount: json['nodoCount'] as int? ?? 0,
       conexionCount: json['conexionCount'] as int? ?? 0,
       jsonContent: json['jsonContent'] as String,
-      currentVersion: json['currentVersion'] as int? ??
+      currentVersion:
+          json['currentVersion'] as int? ??
           (historyList.isNotEmpty ? historyList.last.versionNumber : 1),
       history: historyList,
       thumbnailBase64: json['thumbnailBase64'] as String?,
@@ -108,7 +111,9 @@ class GraphStorageService {
   static Grafo importFromJson(String jsonStr) {
     final dynamic decoded = jsonDecode(jsonStr);
     if (decoded is! Map<String, dynamic>) {
-      throw const FormatException('El formato del JSON no corresponde a un mapa de grafo válido.');
+      throw const FormatException(
+        'El formato del JSON no corresponde a un mapa de grafo válido.',
+      );
     }
     return Grafo.fromJson(decoded);
   }
@@ -133,7 +138,9 @@ class GraphStorageService {
     List<SavedGraphItem> existingItems, {
     String? excludeId,
   }) {
-    final cleanName = baseName.trim().isEmpty ? 'Grafo Guardado' : baseName.trim();
+    final cleanName = baseName.trim().isEmpty
+        ? 'Grafo Guardado'
+        : baseName.trim();
     final otherNames = existingItems
         .where((item) => item.id != excludeId)
         .map((item) => item.nombre.trim())
@@ -163,7 +170,9 @@ class GraphStorageService {
         '${now.day.toString().padLeft(2, '0')}/${now.month.toString().padLeft(2, '0')}/${now.year} ${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
 
     final jsonStr = jsonEncode(graph.toJson());
-    final thumbnailBase64 = await GraphShareService.generateThumbnailBase64(graph);
+    final thumbnailBase64 = await GraphShareService.generateThumbnailBase64(
+      graph,
+    );
     final initialVersion = GraphVersion(
       versionNumber: 1,
       fecha: dateStr,
@@ -208,7 +217,9 @@ class GraphStorageService {
 
     final nextVersionNumber = (existingItem?.currentVersion ?? 0) + 1;
     final jsonStr = jsonEncode(graph.toJson());
-    final thumbnailBase64 = await GraphShareService.generateThumbnailBase64(graph);
+    final thumbnailBase64 = await GraphShareService.generateThumbnailBase64(
+      graph,
+    );
 
     final newVersion = GraphVersion(
       versionNumber: nextVersionNumber,
@@ -218,19 +229,20 @@ class GraphStorageService {
       jsonContent: jsonStr,
     );
 
-    final existingHistory = existingItem != null && existingItem.history.isNotEmpty
+    final existingHistory =
+        existingItem != null && existingItem.history.isNotEmpty
         ? existingItem.history
         : (existingItem != null
-            ? [
-                GraphVersion(
-                  versionNumber: 1,
-                  fecha: existingItem.fecha,
-                  nodoCount: existingItem.nodoCount,
-                  conexionCount: existingItem.conexionCount,
-                  jsonContent: existingItem.jsonContent,
-                )
-              ]
-            : <GraphVersion>[]);
+              ? [
+                  GraphVersion(
+                    versionNumber: 1,
+                    fecha: existingItem.fecha,
+                    nodoCount: existingItem.nodoCount,
+                    conexionCount: existingItem.conexionCount,
+                    jsonContent: existingItem.jsonContent,
+                  ),
+                ]
+              : <GraphVersion>[]);
 
     final updatedHistory = [...existingHistory, newVersion];
 
@@ -256,7 +268,10 @@ class GraphStorageService {
     return updatedItem;
   }
 
-  static Future<SavedGraphItem?> findExistingGraphByName(String name, {String? excludeId}) async {
+  static Future<SavedGraphItem?> findExistingGraphByName(
+    String name, {
+    String? excludeId,
+  }) async {
     final items = await getSavedGraphs();
     final clean = name.trim().toLowerCase();
     for (final item in items) {
@@ -267,7 +282,10 @@ class GraphStorageService {
     return null;
   }
 
-  static Future<SavedGraphItem> renameSavedGraphSlot(String id, String newName) async {
+  static Future<SavedGraphItem> renameSavedGraphSlot(
+    String id,
+    String newName,
+  ) async {
     final prefs = await SharedPreferences.getInstance();
     final items = await getSavedGraphs();
     final index = items.indexWhere((item) => item.id == id);
@@ -292,7 +310,10 @@ class GraphStorageService {
     return updated;
   }
 
-  static Future<void> updateItemThumbnail(String id, String thumbnailBase64) async {
+  static Future<void> updateItemThumbnail(
+    String id,
+    String thumbnailBase64,
+  ) async {
     final prefs = await SharedPreferences.getInstance();
     final items = await getSavedGraphs();
     final index = items.indexWhere((item) => item.id == id);

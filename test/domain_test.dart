@@ -13,12 +13,7 @@ import 'package:nodos/domain/services/graph_validation.dart';
 void main() {
   group('Domain - GraphGeometry', () {
     test('get12ConnectionPoints produces 12 points at 30 degree intervals', () {
-      const node = Nodo(
-        id: 'n1',
-        colorValue: 0xFF2196F3,
-        x: 100,
-        y: 100,
-      );
+      const node = Nodo(id: 'n1', colorValue: 0xFF2196F3, x: 100, y: 100);
 
       final points = GraphGeometry.get12ConnectionPoints(node);
       expect(points.length, equals(12));
@@ -41,44 +36,51 @@ void main() {
       expect(bestDown.index, equals(3));
     });
 
-    test('isValidNodePosition enforces minimum distance of 1 node diameter', () {
-      const existing = [
-        Nodo(id: 'n1', colorValue: 0xFF2196F3, x: 0, y: 0),
-      ];
+    test(
+      'isValidNodePosition enforces minimum distance of 1 node diameter',
+      () {
+        const existing = [Nodo(id: 'n1', colorValue: 0xFF2196F3, x: 0, y: 0)];
 
-      // Center-to-center distance < 100.0 (2 * diameter requirement)
-      expect(
-        GraphGeometry.isValidNodePosition(
-          candidateX: 50.0,
-          candidateY: 0.0,
-          candidateId: 'n2',
-          existingNodes: existing,
-        ),
-        isFalse,
-      );
+        // Center-to-center distance < 100.0 (2 * diameter requirement)
+        expect(
+          GraphGeometry.isValidNodePosition(
+            candidateX: 50.0,
+            candidateY: 0.0,
+            candidateId: 'n2',
+            existingNodes: existing,
+          ),
+          isFalse,
+        );
 
-      // Distance >= 100.0
-      expect(
-        GraphGeometry.isValidNodePosition(
-          candidateX: 100.0,
-          candidateY: 0.0,
-          candidateId: 'n2',
-          existingNodes: existing,
-        ),
-        isTrue,
-      );
-    });
+        // Distance >= 100.0
+        expect(
+          GraphGeometry.isValidNodePosition(
+            candidateX: 100.0,
+            candidateY: 0.0,
+            candidateId: 'n2',
+            existingNodes: existing,
+          ),
+          isTrue,
+        );
+      },
+    );
 
-    test('calculateBezierCurve for self-loop produces loop curve above node', () {
-      const node = Nodo(id: 'n1', colorValue: 0xFF2196F3, x: 0, y: 0);
-      final curve = GraphGeometry.calculateBezierCurve(origen: node, destino: node);
+    test(
+      'calculateBezierCurve for self-loop produces loop curve above node',
+      () {
+        const node = Nodo(id: 'n1', colorValue: 0xFF2196F3, x: 0, y: 0);
+        final curve = GraphGeometry.calculateBezierCurve(
+          origen: node,
+          destino: node,
+        );
 
-      expect(curve.start, isNotNull);
-      expect(curve.end, isNotNull);
-      // Control points loop above node (negative Y)
-      expect(curve.control1.y, lessThan(0));
-      expect(curve.control2.y, lessThan(0));
-    });
+        expect(curve.start, isNotNull);
+        expect(curve.end, isNotNull);
+        // Control points loop above node (negative Y)
+        expect(curve.control1.y, lessThan(0));
+        expect(curve.control2.y, lessThan(0));
+      },
+    );
 
     test('getNearestValidPosition uses multi-pass solver to prevent cascading collisions', () {
       const existing = [
@@ -109,9 +111,7 @@ void main() {
   group('Domain - GraphValidation', () {
     test('Single node graph is connected', () {
       const grafo = Grafo(
-        nodos: {
-          'n1': Nodo(id: 'n1', colorValue: 0xFF2196F3, x: 0, y: 0),
-        },
+        nodos: {'n1': Nodo(id: 'n1', colorValue: 0xFF2196F3, x: 0, y: 0)},
       );
 
       final disconnected = GraphValidation.findDisconnectedNodes(grafo);
@@ -193,7 +193,11 @@ void main() {
       final c2 = created[1];
 
       // Update c1's curve offset
-      notifier.actualizarConexion(c1.id, offsetControlX: 45.0, offsetControlY: -30.0);
+      notifier.actualizarConexion(
+        c1.id,
+        offsetControlX: 45.0,
+        offsetControlY: -30.0,
+      );
 
       expect(notifier.state.conexiones[c1.id]?.offsetControlX, equals(45.0));
       expect(notifier.state.conexiones[c1.id]?.offsetControlY, equals(-30.0));
@@ -225,8 +229,14 @@ void main() {
       expect(notifier.state.conexiones.length, equals(1));
       expect(notifier.state.conexiones.containsKey(c1.id), isFalse);
       expect(notifier.state.conexiones.containsKey(c2.id), isTrue);
-      expect(notifier.state.conexiones[c2.id]?.nodoOrigenId, equals(nodeIds[1]));
-      expect(notifier.state.conexiones[c2.id]?.nodoDestinoId, equals(nodeIds[0]));
+      expect(
+        notifier.state.conexiones[c2.id]?.nodoOrigenId,
+        equals(nodeIds[1]),
+      );
+      expect(
+        notifier.state.conexiones[c2.id]?.nodoDestinoId,
+        equals(nodeIds[0]),
+      );
     });
 
     test('Connection constraints: max 1 pair between nodes and max 1 self-loop per node', () {
@@ -239,20 +249,36 @@ void main() {
       final nodeIds = notifier.state.nodos.keys.toList();
 
       // Create bidirectional pair between A and B (2 lines)
-      final pair = notifier.agregarConexion(nodeIds[0], nodeIds[1], Direccion.bidireccional);
+      final pair = notifier.agregarConexion(
+        nodeIds[0],
+        nodeIds[1],
+        Direccion.bidireccional,
+      );
       expect(pair.length, equals(2));
 
       // Attempting to add a 3rd connection between A and B is rejected
-      final rejected3rd = notifier.agregarConexion(nodeIds[0], nodeIds[1], Direccion.unidireccional);
+      final rejected3rd = notifier.agregarConexion(
+        nodeIds[0],
+        nodeIds[1],
+        Direccion.unidireccional,
+      );
       expect(rejected3rd, isEmpty);
       expect(notifier.state.conexiones.length, equals(2));
 
       // Add self-loop on Node A
-      final loop1 = notifier.agregarConexion(nodeIds[0], nodeIds[0], Direccion.unidireccional);
+      final loop1 = notifier.agregarConexion(
+        nodeIds[0],
+        nodeIds[0],
+        Direccion.unidireccional,
+      );
       expect(loop1.length, equals(1));
 
       // Attempting to add a 2nd self-loop on Node A is rejected
-      final loop2 = notifier.agregarConexion(nodeIds[0], nodeIds[0], Direccion.unidireccional);
+      final loop2 = notifier.agregarConexion(
+        nodeIds[0],
+        nodeIds[0],
+        Direccion.unidireccional,
+      );
       expect(loop2, isEmpty);
     });
 
@@ -262,11 +288,18 @@ void main() {
 
       expect(container.read(tipoObjetivoProvider), equals(TipoObjetivo.nodo));
 
-      container.read(tipoObjetivoProvider.notifier).seleccionarTipo(TipoObjetivo.conexion);
-      expect(container.read(tipoObjetivoProvider), equals(TipoObjetivo.conexion));
+      container
+          .read(tipoObjetivoProvider.notifier)
+          .seleccionarTipo(TipoObjetivo.conexion);
+      expect(
+        container.read(tipoObjetivoProvider),
+        equals(TipoObjetivo.conexion),
+      );
 
       // Selecting a new mode resets target selection back to nodo
-      container.read(modoActivoProvider.notifier).seleccionarModo(ModoActivo.modificar);
+      container
+          .read(modoActivoProvider.notifier)
+          .seleccionarModo(ModoActivo.modificar);
       expect(container.read(tipoObjetivoProvider), equals(TipoObjetivo.nodo));
     });
 
@@ -306,17 +339,32 @@ void main() {
       addTearDown(container.dispose);
 
       final creacionNotifier = container.read(estadoCreacionProvider.notifier);
-      expect(container.read(estadoCreacionProvider).primerNodoSeleccionado, isNull);
+      expect(
+        container.read(estadoCreacionProvider).primerNodoSeleccionado,
+        isNull,
+      );
 
       creacionNotifier.seleccionarPrimerNodo('n1');
-      expect(container.read(estadoCreacionProvider).primerNodoSeleccionado, equals('n1'));
+      expect(
+        container.read(estadoCreacionProvider).primerNodoSeleccionado,
+        equals('n1'),
+      );
 
       creacionNotifier.seleccionarSegundoNodo('n2');
-      expect(container.read(estadoCreacionProvider).segundoNodoSeleccionado, equals('n2'));
+      expect(
+        container.read(estadoCreacionProvider).segundoNodoSeleccionado,
+        equals('n2'),
+      );
 
       creacionNotifier.reset();
-      expect(container.read(estadoCreacionProvider).primerNodoSeleccionado, isNull);
-      expect(container.read(estadoCreacionProvider).segundoNodoSeleccionado, isNull);
+      expect(
+        container.read(estadoCreacionProvider).primerNodoSeleccionado,
+        isNull,
+      );
+      expect(
+        container.read(estadoCreacionProvider).segundoNodoSeleccionado,
+        isNull,
+      );
     });
 
     test('REGRESSION TEST - 2D offsetControlX and offsetControlY curve control points', () {
@@ -337,30 +385,32 @@ void main() {
       expect(curve.control2.y, greaterThan(50.0));
     });
 
-    test('vaciarGrafo clears nodes and connections while preserving undo history', () {
-      final container = ProviderContainer();
-      addTearDown(container.dispose);
+    test(
+      'vaciarGrafo clears nodes and connections while preserving undo history',
+      () {
+        final container = ProviderContainer();
+        addTearDown(container.dispose);
 
-      final notifier = container.read(grafoProvider.notifier);
-      final n1 = notifier.agregarNodo(0, 0, nombre: 'A');
-      final n2 = notifier.agregarNodo(100, 100, nombre: 'B');
-      notifier.agregarConexion(n1.id, n2.id);
+        final notifier = container.read(grafoProvider.notifier);
+        final n1 = notifier.agregarNodo(0, 0, nombre: 'A');
+        final n2 = notifier.agregarNodo(100, 100, nombre: 'B');
+        notifier.agregarConexion(n1.id, n2.id);
 
-      expect(notifier.state.nodos.length, equals(2));
-      expect(notifier.state.conexiones.length, equals(1));
+        expect(notifier.state.nodos.length, equals(2));
+        expect(notifier.state.conexiones.length, equals(1));
 
-      // Vaciar grafo
-      notifier.vaciarGrafo();
+        // Vaciar grafo
+        notifier.vaciarGrafo();
 
-      expect(notifier.state.nodos, isEmpty);
-      expect(notifier.state.conexiones, isEmpty);
-      expect(notifier.puedeDeshacer, isTrue);
+        expect(notifier.state.nodos, isEmpty);
+        expect(notifier.state.conexiones, isEmpty);
+        expect(notifier.puedeDeshacer, isTrue);
 
-      // Undo restores the graph before vaciarGrafo
-      notifier.deshacer();
-      expect(notifier.state.nodos.length, equals(2));
-      expect(notifier.state.conexiones.length, equals(1));
-    });
+        // Undo restores the graph before vaciarGrafo
+        notifier.deshacer();
+        expect(notifier.state.nodos.length, equals(2));
+        expect(notifier.state.conexiones.length, equals(1));
+      },
+    );
   });
 }
-

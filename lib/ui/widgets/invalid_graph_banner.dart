@@ -20,11 +20,7 @@ class InvalidGraphBanner extends ConsumerWidget {
     if (!esInvalido) return const SizedBox.shrink();
 
     return IconButton(
-      icon: Icon(
-        Icons.gpp_maybe_rounded,
-        color: colorScheme.error,
-        size: 24,
-      ),
+      icon: Icon(Icons.gpp_maybe_rounded, color: colorScheme.error, size: 24),
       tooltip: 'Grafo Inválido',
       onPressed: () {
         ScaffoldMessenger.of(context).hideCurrentSnackBar();

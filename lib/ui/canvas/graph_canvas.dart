@@ -39,7 +39,8 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
   static const double nodeDiameter = 64.0; // 1 Node unit (U)
   static const double worldGridNodes =
       100.0; // 100x100 node world grid (6400 x 6400 px)
-  static const double baseViewNodes = 8.0; // Default mode view starts zoomed-in (~8x8 nodes)
+  static const double baseViewNodes =
+      8.0; // Default mode view starts zoomed-in (~8x8 nodes)
   static const double minViewNodes = 5.0; // Max zoom in displays ~5x5 nodes
   static const double maxViewNodes = 40.0; // Max zoom out displays ~40x40 nodes
 
@@ -115,7 +116,6 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
 
   Matrix4 get transform => _transform;
 
-
   void _ensureValidTransform() {
     final storage = _transform.storage;
     bool corrupt = false;
@@ -145,7 +145,9 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
     if (screenSize.width <= 0 || screenSize.height <= 0) return;
 
     final minDim = min(screenSize.width, screenSize.height);
-    final baseScale = minDim > 0 ? (minDim / (baseViewNodes * nodeDiameter)) : 1.0;
+    final baseScale = minDim > 0
+        ? (minDim / (baseViewNodes * nodeDiameter))
+        : 1.0;
     final minScale = baseScale * (baseViewNodes / maxViewNodes);
     final maxScale = baseScale * (baseViewNodes / minViewNodes);
 
@@ -211,7 +213,6 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
     final inverted = Matrix4.inverted(_transform);
     return MatrixUtils.transformPoint(inverted, screenPos);
   }
-
 
   DateTime? _lastTapTime;
   String? _lastTapNodeId;
@@ -295,7 +296,11 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
 
     final worldPos = _screenToWorld(details.localFocalPoint);
     final grafo = ref.read(grafoProvider);
-    final touchedNode = GraphHitTester.hitTestNode(worldPos, grafo.nodos.values, scale: _getXYScale());
+    final touchedNode = GraphHitTester.hitTestNode(
+      worldPos,
+      grafo.nodos.values,
+      scale: _getXYScale(),
+    );
 
     if (touchedNode != null) {
       _draggedNodeId = touchedNode.id;
@@ -327,7 +332,11 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
       _dragConnectingCurrentPos = null;
       _dragConnectingTargetNodeId = null;
 
-      final touchedConn = GraphHitTester.hitTestConnection(worldPos, grafo, _getXYScale());
+      final touchedConn = GraphHitTester.hitTestConnection(
+        worldPos,
+        grafo,
+        _getXYScale(),
+      );
       if (touchedConn != null) {
         _draggedNodeId = null;
         _draggedConnId = touchedConn.id;
@@ -349,7 +358,9 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
     }
 
     // 2-Finger Pinch Zoom (scale centred at focal point)
-    if (details.pointerCount >= 2 || _maxPointerCountDuringGesture >= 2 || _isZoomLockoutActive) {
+    if (details.pointerCount >= 2 ||
+        _maxPointerCountDuringGesture >= 2 ||
+        _isZoomLockoutActive) {
       _triggerZoomLockout();
 
       final focalPoint = details.localFocalPoint;
@@ -423,7 +434,11 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
     } else if (_dragConnectingStartNodeId != null && screenDelta > 6.0) {
       // Instant drag from node -> Live direction connection line to target!
       final grafo = ref.read(grafoProvider);
-      final targetNode = GraphHitTester.hitTestNode(worldPos, grafo.nodos.values, scale: _getXYScale());
+      final targetNode = GraphHitTester.hitTestNode(
+        worldPos,
+        grafo.nodos.values,
+        scale: _getXYScale(),
+      );
 
       setState(() {
         _dragConnectingCurrentPos = worldPos;
@@ -439,23 +454,40 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
           final destino = grafo.nodos[conn.nodoDestinoId];
           if (origen != null && destino != null) {
             if (origen.id == destino.id) {
-              final angle = atan2(worldPos.dy - origen.y, worldPos.dx - origen.x);
+              final angle = atan2(
+                worldPos.dy - origen.y,
+                worldPos.dx - origen.x,
+              );
               final distFromCenter = sqrt(
                 (worldPos.dx - origen.x) * (worldPos.dx - origen.x) +
-                (worldPos.dy - origen.y) * (worldPos.dy - origen.y),
+                    (worldPos.dy - origen.y) * (worldPos.dy - origen.y),
               );
               final textLength = (origen.nombre ?? origen.id).length;
-              final nodeOuterRadius = max(origen.radius, (textLength * 8.0 + 24.0) / 2.0);
-              final newCurvatura = max(0.0, (distFromCenter - nodeOuterRadius * 1.1) / (nodeOuterRadius * 0.8)).clamp(0.0, 5.0);
+              final nodeOuterRadius = max(
+                origen.radius,
+                (textLength * 8.0 + 24.0) / 2.0,
+              );
+              final newCurvatura = max(
+                0.0,
+                (distFromCenter - nodeOuterRadius * 1.1) /
+                    (nodeOuterRadius * 0.8),
+              ).clamp(0.0, 5.0);
               ref
                   .read(grafoProvider.notifier)
-                  .actualizarConexion(_draggedConnId!, loopAngle: angle, curvatura: newCurvatura, recordUndo: false);
+                  .actualizarConexion(
+                    _draggedConnId!,
+                    loopAngle: angle,
+                    curvatura: newCurvatura,
+                    recordUndo: false,
+                  );
             } else {
               final midX = (origen.x + destino.x) / 2.0;
               final midY = (origen.y + destino.y) / 2.0;
               final offX = worldPos.dx - midX;
               final offY = worldPos.dy - midY;
-              ref.read(grafoProvider.notifier).actualizarConexion(
+              ref
+                  .read(grafoProvider.notifier)
+                  .actualizarConexion(
                     _draggedConnId!,
                     offsetControlX: offX,
                     offsetControlY: offY,
@@ -519,11 +551,19 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
         final distWorld = (endPos - startWorldPos).distance;
 
         final grafo = ref.read(grafoProvider);
-        final targetNode = GraphHitTester.hitTestNode(endPos, grafo.nodos.values, scale: _getXYScale());
+        final targetNode = GraphHitTester.hitTestNode(
+          endPos,
+          grafo.nodos.values,
+          scale: _getXYScale(),
+        );
 
-        if (distWorld > 15.0 && targetNode != null && targetNode.id != startId) {
+        if (distWorld > 15.0 &&
+            targetNode != null &&
+            targetNode.id != startId) {
           // Instant drag to connect DIFFERENT target node!
-          ref.read(grafoProvider.notifier).agregarConexion(startId, targetNode.id);
+          ref
+              .read(grafoProvider.notifier)
+              .agregarConexion(startId, targetNode.id);
         } else if (distWorld <= 15.0 || targetNode?.id == startId) {
           if (screenDelta < 200.0) {
             // Tap / release on same node -> Edit node!
@@ -537,13 +577,17 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
     } else if (!_hasPannedCanvas &&
         _pointerDownScreenPosition != null &&
         _maxPointerCountDuringGesture < 2) {
-      final isZoomDebounced = _lastZoomGestureEndTime != null &&
-          DateTime.now().difference(_lastZoomGestureEndTime!).inMilliseconds < 400;
+      final isZoomDebounced =
+          _lastZoomGestureEndTime != null &&
+          DateTime.now().difference(_lastZoomGestureEndTime!).inMilliseconds <
+              400;
 
       if (!isZoomDebounced) {
         final screenVelocity = details.velocity.pixelsPerSecond.distance;
         final worldPos = _screenToWorld(_pointerDownScreenPosition!);
-        final endWorldPos = _lastFocalPoint != null ? _screenToWorld(_lastFocalPoint!) : worldPos;
+        final endWorldPos = _lastFocalPoint != null
+            ? _screenToWorld(_lastFocalPoint!)
+            : worldPos;
         final distWorld = (endWorldPos - worldPos).distance;
 
         if (distWorld < 12.0 && screenVelocity < 200.0) {
@@ -569,7 +613,9 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
     if (screenSize.width <= 0 || screenSize.height <= 0) return;
 
     final minDim = min(screenSize.width, screenSize.height);
-    final baseScale = minDim > 0 ? (minDim / (baseViewNodes * nodeDiameter)) : 1.0;
+    final baseScale = minDim > 0
+        ? (minDim / (baseViewNodes * nodeDiameter))
+        : 1.0;
 
     double scaleToUse = baseScale;
     if (preserveScale) {
@@ -636,8 +682,16 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
     final modoActivo = ref.read(modoActivoProvider);
     final now = DateTime.now();
 
-    final hitNodes = GraphHitTester.hitTestAllNodes(worldPos, grafo.nodos.values, scale: _getXYScale());
-    final hitConns = GraphHitTester.hitTestAllConnections(worldPos, grafo, _getXYScale());
+    final hitNodes = GraphHitTester.hitTestAllNodes(
+      worldPos,
+      grafo.nodos.values,
+      scale: _getXYScale(),
+    );
+    final hitConns = GraphHitTester.hitTestAllConnections(
+      worldPos,
+      grafo,
+      _getXYScale(),
+    );
     final totalHits = hitNodes.length + hitConns.length;
 
     // Directly trigger deletion dialog if current active mode is ModoActivo.eliminar!
@@ -680,7 +734,9 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
         _singleTapEditTimer?.cancel();
         _lastTapNodeId = null;
         _lastTapTime = null;
-        ref.read(grafoProvider.notifier).agregarConexion(firstNode.id, firstNode.id);
+        ref
+            .read(grafoProvider.notifier)
+            .agregarConexion(firstNode.id, firstNode.id);
         return;
       }
 
@@ -704,16 +760,22 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
                 nodeMap: grafo.nodos,
                 onSelected: (item) {
                   if (item.isNode) {
-                    ref.read(estadoEdicionProvider.notifier).seleccionarNodo(item.id);
+                    ref
+                        .read(estadoEdicionProvider.notifier)
+                        .seleccionarNodo(item.id);
                   } else {
-                    ref.read(estadoEdicionProvider.notifier).seleccionarConexion(item.id);
+                    ref
+                        .read(estadoEdicionProvider.notifier)
+                        .seleccionarConexion(item.id);
                   }
                 },
               );
             },
           );
         } else {
-          ref.read(estadoEdicionProvider.notifier).seleccionarNodo(firstNode.id);
+          ref
+              .read(estadoEdicionProvider.notifier)
+              .seleccionarNodo(firstNode.id);
         }
       });
       return;
@@ -734,16 +796,22 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
             nodeMap: grafo.nodos,
             onSelected: (item) {
               if (item.isNode) {
-                ref.read(estadoEdicionProvider.notifier).seleccionarNodo(item.id);
+                ref
+                    .read(estadoEdicionProvider.notifier)
+                    .seleccionarNodo(item.id);
               } else {
-                ref.read(estadoEdicionProvider.notifier).seleccionarConexion(item.id);
+                ref
+                    .read(estadoEdicionProvider.notifier)
+                    .seleccionarConexion(item.id);
               }
             },
           );
         },
       );
     } else if (hitConns.length == 1) {
-      ref.read(estadoEdicionProvider.notifier).seleccionarConexion(hitConns.first.id);
+      ref
+          .read(estadoEdicionProvider.notifier)
+          .seleccionarConexion(hitConns.first.id);
     } else {
       // Tap empty canvas -> Create node!
       final validPos = GraphGeometry.getNearestValidPosition(
@@ -775,10 +843,10 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
     final atributos = ref.read(atributosGlobalesProvider);
 
     final Map<String, String> attrNames = {
-      for (final a in atributos) a.id: a.nombre
+      for (final a in atributos) a.id: a.nombre,
     };
     final Map<String, String> nodeNames = {
-      for (final n in grafo.nodos.values) n.id: n.nombre ?? n.id
+      for (final n in grafo.nodos.values) n.id: n.nombre ?? n.id,
     };
 
     final confirmed = await showDialog<bool>(
@@ -814,10 +882,10 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
     final atributos = ref.read(atributosGlobalesProvider);
 
     final Map<String, String> attrNames = {
-      for (final a in atributos) a.id: a.nombre
+      for (final a in atributos) a.id: a.nombre,
     };
     final Map<String, String> nodeNames = {
-      for (final n in grafo.nodos.values) n.id: n.nombre ?? n.id
+      for (final n in grafo.nodos.values) n.id: n.nombre ?? n.id,
     };
 
     final confirmed = await showDialog<bool>(
@@ -843,8 +911,6 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
     ref.read(grafoProvider.notifier).eliminarConexion(conexion.id);
   }
 
-
-
   GraphRenderModel _buildRenderModel() {
     final palette = NeumorphicPalette.of(context);
     final grafo = ref.watch(grafoProvider);
@@ -869,8 +935,6 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
     );
   }
 
-
-
   void _onPointerSignal(PointerSignalEvent event) {
     if (event is PointerScrollEvent) {
       _triggerZoomLockout();
@@ -881,11 +945,16 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
 
       final screenSize = MediaQuery.of(context).size;
       final minDim = min(screenSize.width, screenSize.height);
-      final baseScale = minDim > 0 ? (minDim / (baseViewNodes * nodeDiameter)) : 1.0;
+      final baseScale = minDim > 0
+          ? (minDim / (baseViewNodes * nodeDiameter))
+          : 1.0;
       final minZoomOutScale = baseScale * (baseViewNodes / maxViewNodes);
       final maxZoomInScale = baseScale * (baseViewNodes / minViewNodes);
 
-      final targetScale = (currentScale * scaleFactor).clamp(minZoomOutScale, maxZoomInScale);
+      final targetScale = (currentScale * scaleFactor).clamp(
+        minZoomOutScale,
+        maxZoomInScale,
+      );
       final effectiveFactor = targetScale / currentScale;
 
       setState(() {
@@ -940,69 +1009,69 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
         child: Container(
           color: palette.canvasBg,
           child: Stack(
-          children: [
-            CustomPaint(
-              size: Size.infinite,
-              painter: GraphPainter(
-                renderModel: renderModel,
-                transform: _transform,
-                palette: palette,
-              ),
-            ),
-            if (_contextMenuScreenPosition != null &&
-                _contextMenuTargetId != null)
-              Positioned(
-                left: min(
-                  _contextMenuScreenPosition!.dx,
-                  MediaQuery.of(context).size.width - 150,
-                ),
-                top: min(
-                  _contextMenuScreenPosition!.dy,
-                  MediaQuery.of(context).size.height - 120,
-                ),
-                child: FloatingContextMenu(
-                  onEdit: () {
-                    final targetId = _contextMenuTargetId!;
-                    final isNode = _contextMenuIsNode;
-                    setState(() {
-                      _contextMenuScreenPosition = null;
-                    });
-                    if (isNode) {
-                      ref
-                          .read(estadoEdicionProvider.notifier)
-                          .seleccionarNodo(targetId);
-                    } else {
-                      ref
-                          .read(estadoEdicionProvider.notifier)
-                          .seleccionarConexion(targetId);
-                    }
-                  },
-                  onDelete: () {
-                    final targetId = _contextMenuTargetId!;
-                    final isNode = _contextMenuIsNode;
-                    setState(() {
-                      _contextMenuScreenPosition = null;
-                    });
-                    final grafo = ref.read(grafoProvider);
-                    if (isNode) {
-                      final nodo = grafo.nodos[targetId];
-                      if (nodo != null) _showDeleteNodeDialog(nodo);
-                    } else {
-                      final conn = grafo.conexiones[targetId];
-                      if (conn != null) _showDeleteConnectionDialog(conn);
-                    }
-                  },
-                  onDismiss: () {
-                    setState(() {
-                      _contextMenuScreenPosition = null;
-                    });
-                  },
+            children: [
+              CustomPaint(
+                size: Size.infinite,
+                painter: GraphPainter(
+                  renderModel: renderModel,
+                  transform: _transform,
+                  palette: palette,
                 ),
               ),
-          ],
+              if (_contextMenuScreenPosition != null &&
+                  _contextMenuTargetId != null)
+                Positioned(
+                  left: min(
+                    _contextMenuScreenPosition!.dx,
+                    MediaQuery.of(context).size.width - 150,
+                  ),
+                  top: min(
+                    _contextMenuScreenPosition!.dy,
+                    MediaQuery.of(context).size.height - 120,
+                  ),
+                  child: FloatingContextMenu(
+                    onEdit: () {
+                      final targetId = _contextMenuTargetId!;
+                      final isNode = _contextMenuIsNode;
+                      setState(() {
+                        _contextMenuScreenPosition = null;
+                      });
+                      if (isNode) {
+                        ref
+                            .read(estadoEdicionProvider.notifier)
+                            .seleccionarNodo(targetId);
+                      } else {
+                        ref
+                            .read(estadoEdicionProvider.notifier)
+                            .seleccionarConexion(targetId);
+                      }
+                    },
+                    onDelete: () {
+                      final targetId = _contextMenuTargetId!;
+                      final isNode = _contextMenuIsNode;
+                      setState(() {
+                        _contextMenuScreenPosition = null;
+                      });
+                      final grafo = ref.read(grafoProvider);
+                      if (isNode) {
+                        final nodo = grafo.nodos[targetId];
+                        if (nodo != null) _showDeleteNodeDialog(nodo);
+                      } else {
+                        final conn = grafo.conexiones[targetId];
+                        if (conn != null) _showDeleteConnectionDialog(conn);
+                      }
+                    },
+                    onDismiss: () {
+                      setState(() {
+                        _contextMenuScreenPosition = null;
+                      });
+                    },
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
-    ),
     );
   }
 }

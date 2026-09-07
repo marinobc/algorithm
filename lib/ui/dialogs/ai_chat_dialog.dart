@@ -24,11 +24,8 @@ class ChatMessage {
   final bool isUser;
   final DateTime timestamp;
 
-  ChatMessage({
-    required this.text,
-    required this.isUser,
-    DateTime? timestamp,
-  }) : timestamp = timestamp ?? DateTime.now();
+  ChatMessage({required this.text, required this.isUser, DateTime? timestamp})
+    : timestamp = timestamp ?? DateTime.now();
 }
 
 class AIChatDialog extends ConsumerStatefulWidget {
@@ -48,14 +45,16 @@ class _AIChatDialogState extends ConsumerState<AIChatDialog> {
   @override
   void initState() {
     super.initState();
-    _apiKey = dotenv.env['GEMINI_API_KEY'] ??
+    _apiKey =
+        dotenv.env['GEMINI_API_KEY'] ??
         (const String.fromEnvironment('GEMINI_API_KEY').isNotEmpty
             ? const String.fromEnvironment('GEMINI_API_KEY')
             : null);
 
     _messages.add(
       ChatMessage(
-        text: '¡Hola! Soy tu **Asistente Experto en Grafos**.\n\n'
+        text:
+            '¡Hola! Soy tu **Asistente Experto en Grafos**.\n\n'
             'Puedes hacerme consultas sobre:\n'
             '• La **matriz de adyacencia** y grados de tu grafo actual.\n'
             '• **Cómo usar la aplicación** y sus funciones.\n'
@@ -103,7 +102,9 @@ class _AIChatDialogState extends ConsumerState<AIChatDialog> {
       if (key != null && key.isNotEmpty) {
         final systemPrompt = _buildSystemPrompt(graph);
         final chatHistory = _messages.map((m) {
-          return m.isUser ? Content.text(m.text) : Content.model([TextPart(m.text)]);
+          return m.isUser
+              ? Content.text(m.text)
+              : Content.model([TextPart(m.text)]);
         }).toList();
 
         final response = await _generateWithModelFallback(
@@ -135,28 +136,26 @@ class _AIChatDialogState extends ConsumerState<AIChatDialog> {
     } catch (e) {
       if (mounted) {
         final errStr = e.toString();
-        final isNetworkError = errStr.contains('SocketException') ||
+        final isNetworkError =
+            errStr.contains('SocketException') ||
             errStr.contains('Failed host lookup') ||
             errStr.contains('No address associated with hostname') ||
             errStr.contains('network is unreachable');
 
         final String errorText;
         if (isNetworkError) {
-          errorText = '⚠️ Error de conexión a red:\n'
+          errorText =
+              '⚠️ Error de conexión a red:\n'
               'No fue posible conectar con los servidores de Gemini AI (Failed host lookup).\n\n'
               'Por favor, verifica tu conexión a Internet e inténtalo de nuevo.';
         } else {
-          errorText = '⚠️ Error al comunicarse con Gemini AI: $e\n\n'
+          errorText =
+              '⚠️ Error al comunicarse con Gemini AI: $e\n\n'
               'Asegúrate de que tu `GEMINI_API_KEY` en el archivo `.env` sea válida y tenga acceso a la API.';
         }
 
         setState(() {
-          _messages.add(
-            ChatMessage(
-              text: errorText,
-              isUser: false,
-            ),
-          );
+          _messages.add(ChatMessage(text: errorText, isUser: false));
           _isAnalyzing = false;
         });
         _scrollToBottom();
@@ -204,7 +203,8 @@ class _AIChatDialogState extends ConsumerState<AIChatDialog> {
       }
     }
 
-    throw lastException ?? Exception('No se pudo conectar con ningún modelo de Gemini.');
+    throw lastException ??
+        Exception('No se pudo conectar con ningún modelo de Gemini.');
   }
 
   String _buildGraphContext(Grafo graph) {
@@ -216,28 +216,42 @@ class _AIChatDialogState extends ConsumerState<AIChatDialog> {
     if (graph.nodos.isNotEmpty) {
       buffer.writeln("\nNodos:");
       for (final n in graph.nodos.values) {
-        buffer.writeln(" - ID: ${n.id}, Nombre: '${n.nombre ?? n.id}', Posición: (${n.x.toStringAsFixed(1)}, ${n.y.toStringAsFixed(1)})");
+        buffer.writeln(
+          " - ID: ${n.id}, Nombre: '${n.nombre ?? n.id}', Posición: (${n.x.toStringAsFixed(1)}, ${n.y.toStringAsFixed(1)})",
+        );
       }
 
       buffer.writeln("\nConexiones:");
       for (final c in graph.conexiones.values) {
         final orig = graph.nodos[c.nodoOrigenId]?.nombre ?? c.nodoOrigenId;
         final dest = graph.nodos[c.nodoDestinoId]?.nombre ?? c.nodoDestinoId;
-        final attrs = c.atributos.map((a) => "${a.atributoId}: ${a.valor}").join(", ");
-        buffer.writeln(" - ID: ${c.id}, Origen: '$orig', Destino: '$dest', Dirección: ${c.direccion.name}, Atributos: [${attrs.isEmpty ? 'Ninguno' : attrs}]");
+        final attrs = c.atributos
+            .map((a) => "${a.atributoId}: ${a.valor}")
+            .join(", ");
+        buffer.writeln(
+          " - ID: ${c.id}, Origen: '$orig', Destino: '$dest', Dirección: ${c.direccion.name}, Atributos: [${attrs.isEmpty ? 'Ninguno' : attrs}]",
+        );
       }
 
       final matrixData = AdjacencyMatrixService.calculateMatrix(graph);
       buffer.writeln("\n=== MATRIZ DE ADYACENCIA ===");
       buffer.writeln("Etiquetas de Nodos: ${matrixData.labels.join(', ')}");
-      buffer.writeln("Matriz (${matrixData.labels.length}x${matrixData.labels.length}):");
+      buffer.writeln(
+        "Matriz (${matrixData.labels.length}x${matrixData.labels.length}):",
+      );
       for (int i = 0; i < matrixData.matrix.length; i++) {
-        final rowStr = matrixData.matrix[i].map((cell) => cell.weightedValue).join('\t');
-        buffer.writeln(" ${matrixData.labels[i]}\t[ $rowStr ]\t| Suma: ${matrixData.rowSums[i].toStringAsFixed(1)}, Grado: ${matrixData.rowDegrees[i]}");
+        final rowStr = matrixData.matrix[i]
+            .map((cell) => cell.weightedValue)
+            .join('\t');
+        buffer.writeln(
+          " ${matrixData.labels[i]}\t[ $rowStr ]\t| Suma: ${matrixData.rowSums[i].toStringAsFixed(1)}, Grado: ${matrixData.rowDegrees[i]}",
+        );
       }
       buffer.writeln("Grado Máximo Δ(G): ${matrixData.maxDegree}");
       buffer.writeln("Grado Mínimo δ(G): ${matrixData.minDegree}");
-      buffer.writeln("Suma Total de Pesos: ${matrixData.totalWeightSum.toStringAsFixed(1)}");
+      buffer.writeln(
+        "Suma Total de Pesos: ${matrixData.totalWeightSum.toStringAsFixed(1)}",
+      );
     } else {
       buffer.writeln("El lienzo está actualmente vacío.");
     }
@@ -354,7 +368,8 @@ $guideContext
             final candidate = text.substring(startIdx, i + 1).trim();
             try {
               final decoded = json.decode(candidate);
-              if (decoded is Map<String, dynamic> && decoded.containsKey('action')) {
+              if (decoded is Map<String, dynamic> &&
+                  decoded.containsKey('action')) {
                 results.add(decoded);
               }
             } catch (_) {}
@@ -383,7 +398,10 @@ $guideContext
 
       for (int i = 0; i < n; i++) {
         final angle = i * (2 * pi / n);
-        positions[nodeNames[i]] = Offset(cx + radius * cos(angle), cy + radius * sin(angle));
+        positions[nodeNames[i]] = Offset(
+          cx + radius * cos(angle),
+          cy + radius * sin(angle),
+        );
       }
     } else {
       double minX = double.infinity, maxX = -double.infinity;
@@ -409,7 +427,10 @@ $guideContext
 
       for (int i = 0; i < n; i++) {
         final angle = i * (2 * pi / n);
-        positions[nodeNames[i]] = Offset(cx + radius * cos(angle), cy + radius * sin(angle));
+        positions[nodeNames[i]] = Offset(
+          cx + radius * cos(angle),
+          cy + radius * sin(angle),
+        );
       }
     }
 
@@ -464,7 +485,9 @@ $guideContext
 
         nodeMapByName[name.trim().toLowerCase()] = nodeId;
 
-        final nodeColor = AppTheme.presetColors[i % AppTheme.presetColors.length].toARGB32();
+        final nodeColor = AppTheme
+            .presetColors[i % AppTheme.presetColors.length]
+            .toARGB32();
 
         newNodes[nodeId] = Nodo(
           id: nodeId,
@@ -489,14 +512,18 @@ $guideContext
           final connId = 'conn_${DateTime.now().millisecondsSinceEpoch}_$i';
           final attrs = <AtributoValor>[];
           if (weight != null) {
-            attrs.add(AtributoValor(atributoId: 'attr_valor', valor: weight.toString()));
+            attrs.add(
+              AtributoValor(atributoId: 'attr_valor', valor: weight.toString()),
+            );
           }
 
           newConns[connId] = Conexion(
             id: connId,
             nodoOrigenId: origId,
             nodoDestinoId: destId,
-            direccion: isDirected ? Direccion.unidireccional : Direccion.ninguna,
+            direccion: isDirected
+                ? Direccion.unidireccional
+                : Direccion.ninguna,
             atributos: attrs,
             colorValue: newNodes[origId]?.colorValue ?? 0,
           );
@@ -507,8 +534,11 @@ $guideContext
       ref.read(grafoProvider.notifier).cargarGrafo(newGrafo);
       ref.read(estadoEdicionProvider.notifier).marcarCambioSinGuardar();
 
-      final graphName = data['graph_name'] as String? ?? 'Grafo Generado por IA';
-      ref.read(loadedGraphItemProvider.notifier).setLoadedItem(
+      final graphName =
+          data['graph_name'] as String? ?? 'Grafo Generado por IA';
+      ref
+          .read(loadedGraphItemProvider.notifier)
+          .setLoadedItem(
             SavedGraphItem(
               id: 'ai_graph_${DateTime.now().millisecondsSinceEpoch}',
               nombre: graphName,
@@ -522,7 +552,9 @@ $guideContext
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('✨ Grafo "$graphName" creado e insertado en el lienzo.'),
+            content: Text(
+              '✨ Grafo "$graphName" creado e insertado en el lienzo.',
+            ),
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -563,7 +595,10 @@ $guideContext
 
         nodeMapByName[name.trim().toLowerCase()] = nodeId;
 
-        final nodeColor = AppTheme.presetColors[(existingNodes.length + i) % AppTheme.presetColors.length].toARGB32();
+        final nodeColor = AppTheme
+            .presetColors[(existingNodes.length + i) %
+                AppTheme.presetColors.length]
+            .toARGB32();
 
         existingNodes[nodeId] = Nodo(
           id: nodeId,
@@ -588,21 +623,28 @@ $guideContext
           final connId = 'conn_${DateTime.now().millisecondsSinceEpoch}_$i';
           final attrs = <AtributoValor>[];
           if (weight != null) {
-            attrs.add(AtributoValor(atributoId: 'attr_valor', valor: weight.toString()));
+            attrs.add(
+              AtributoValor(atributoId: 'attr_valor', valor: weight.toString()),
+            );
           }
 
           existingConns[connId] = Conexion(
             id: connId,
             nodoOrigenId: origId,
             nodoDestinoId: destId,
-            direccion: isDirected ? Direccion.unidireccional : Direccion.ninguna,
+            direccion: isDirected
+                ? Direccion.unidireccional
+                : Direccion.ninguna,
             atributos: attrs,
             colorValue: existingNodes[origId]?.colorValue ?? 0,
           );
         }
       }
 
-      final updatedGrafo = Grafo(nodos: existingNodes, conexiones: existingConns);
+      final updatedGrafo = Grafo(
+        nodos: existingNodes,
+        conexiones: existingConns,
+      );
       ref.read(grafoProvider.notifier).cargarGrafo(updatedGrafo);
       ref.read(estadoEdicionProvider.notifier).marcarCambioSinGuardar();
 
@@ -629,7 +671,8 @@ $guideContext
       for (final name in nodesToRemove) {
         final lower = name.trim().toLowerCase();
         existingNodes.removeWhere((id, n) {
-          final isMatch = id == name || (n.nombre ?? '').trim().toLowerCase() == lower;
+          final isMatch =
+              id == name || (n.nombre ?? '').trim().toLowerCase() == lower;
           if (isMatch) removedNodeIds.add(id);
           return isMatch;
         });
@@ -637,10 +680,14 @@ $guideContext
 
       // Remove connections attached to deleted nodes
       existingConns.removeWhere((id, c) {
-        return removedNodeIds.contains(c.nodoOrigenId) || removedNodeIds.contains(c.nodoDestinoId);
+        return removedNodeIds.contains(c.nodoOrigenId) ||
+            removedNodeIds.contains(c.nodoDestinoId);
       });
 
-      final updatedGrafo = Grafo(nodos: existingNodes, conexiones: existingConns);
+      final updatedGrafo = Grafo(
+        nodos: existingNodes,
+        conexiones: existingConns,
+      );
       ref.read(grafoProvider.notifier).cargarGrafo(updatedGrafo);
       ref.read(estadoEdicionProvider.notifier).marcarCambioSinGuardar();
 
@@ -686,14 +733,21 @@ $guideContext
                 (c.nodoOrigenId == destId && c.nodoDestinoId == origId)) {
               final attrs = <AtributoValor>[];
               if (weight != null) {
-                attrs.add(AtributoValor(atributoId: 'attr_valor', valor: weight.toString()));
+                attrs.add(
+                  AtributoValor(
+                    atributoId: 'attr_valor',
+                    valor: weight.toString(),
+                  ),
+                );
               } else {
                 attrs.addAll(c.atributos);
               }
 
               existingConns[entry.key] = c.copyWith(
                 direccion: isDirected != null
-                    ? (isDirected ? Direccion.unidireccional : Direccion.ninguna)
+                    ? (isDirected
+                          ? Direccion.unidireccional
+                          : Direccion.ninguna)
                     : c.direccion,
                 atributos: attrs,
               );
@@ -702,7 +756,10 @@ $guideContext
         }
       }
 
-      final updatedGrafo = Grafo(nodos: existingNodes, conexiones: existingConns);
+      final updatedGrafo = Grafo(
+        nodos: existingNodes,
+        conexiones: existingConns,
+      );
       ref.read(grafoProvider.notifier).cargarGrafo(updatedGrafo);
       ref.read(estadoEdicionProvider.notifier).marcarCambioSinGuardar();
 
@@ -720,7 +777,8 @@ $guideContext
   String _generateLocalFallbackResponse(String userPrompt, Grafo graph) {
     final promptLower = userPrompt.toLowerCase();
 
-    final isGraphQuery = promptLower.contains('matriz') ||
+    final isGraphQuery =
+        promptLower.contains('matriz') ||
         promptLower.contains('grado') ||
         promptLower.contains('nodo') ||
         promptLower.contains('conexion') ||
@@ -739,7 +797,8 @@ $guideContext
     }
 
     if (promptLower.contains('matriz') || promptLower.contains('adyacencia')) {
-      if (graph.nodos.isEmpty) return 'El grafo está vacío. Agrega nodos al lienzo para ver la matriz.';
+      if (graph.nodos.isEmpty)
+        return 'El grafo está vacío. Agrega nodos al lienzo para ver la matriz.';
       final matrixData = AdjacencyMatrixService.calculateMatrix(graph);
       return '### Matriz de Adyacencia Actual\n'
           '• **Dimensiones:** ${matrixData.labels.length}x${matrixData.labels.length}\n'
@@ -749,19 +808,25 @@ $guideContext
           '• **Suma Total de Pesos:** ${matrixData.totalWeightSum.toStringAsFixed(1)}';
     }
 
-    if (promptLower.contains('grado') || promptLower.contains('conexion') || promptLower.contains('vecino')) {
+    if (promptLower.contains('grado') ||
+        promptLower.contains('conexion') ||
+        promptLower.contains('vecino')) {
       if (graph.nodos.isEmpty) return 'El grafo está vacío.';
       final matrixData = AdjacencyMatrixService.calculateMatrix(graph);
       final summary = <String>[];
       for (int i = 0; i < matrixData.nodes.length; i++) {
-        summary.add('• **${matrixData.labels[i]}:** Grado ${matrixData.vertexDegrees[i]} (Suma filas: ${matrixData.rowSums[i].toStringAsFixed(1)})');
+        summary.add(
+          '• **${matrixData.labels[i]}:** Grado ${matrixData.vertexDegrees[i]} (Suma filas: ${matrixData.rowSums[i].toStringAsFixed(1)})',
+        );
       }
       return '### Grados e Incidentes por Nodo\n'
           '${summary.join("\n")}\n\n'
           '• **Δ(G):** ${matrixData.maxDegree} | **δ(G):** ${matrixData.minDegree}';
     }
 
-    if (promptLower.contains('guia') || promptLower.contains('uso') || promptLower.contains('como')) {
+    if (promptLower.contains('guia') ||
+        promptLower.contains('uso') ||
+        promptLower.contains('como')) {
       return '### Resumen de la Guía de Uso\n'
           '1. **Crear Nodo:** Toca una zona libre del lienzo.\n'
           '2. **Mover Nodo:** Mueve arrastrando cualquier nodo.\n'
@@ -797,7 +862,10 @@ $guideContext
               children: [
                 CircleAvatar(
                   backgroundColor: colorScheme.primaryContainer,
-                  child: Icon(Icons.auto_awesome, color: colorScheme.onPrimaryContainer),
+                  child: Icon(
+                    Icons.auto_awesome,
+                    color: colorScheme.onPrimaryContainer,
+                  ),
                 ),
                 const SizedBox(width: 12),
                 const Expanded(
@@ -806,7 +874,10 @@ $guideContext
                     children: [
                       Text(
                         'Asistente IA de Grafos',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       Text(
                         'Análisis de matriz, manual e inserción/edición de grafos',
@@ -824,15 +895,24 @@ $guideContext
             if (!hasApiKey)
               Container(
                 margin: const EdgeInsets.only(top: 10),
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
                   color: colorScheme.tertiaryContainer.withValues(alpha: 0.5),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: colorScheme.tertiary.withValues(alpha: 0.4)),
+                  border: Border.all(
+                    color: colorScheme.tertiary.withValues(alpha: 0.4),
+                  ),
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.key_rounded, size: 16, color: colorScheme.onTertiaryContainer),
+                    Icon(
+                      Icons.key_rounded,
+                      size: 16,
+                      color: colorScheme.onTertiaryContainer,
+                    ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
@@ -856,10 +936,15 @@ $guideContext
                 itemBuilder: (context, index) {
                   final msg = _messages[index];
                   return Align(
-                    alignment: msg.isUser ? Alignment.centerRight : Alignment.centerLeft,
+                    alignment: msg.isUser
+                        ? Alignment.centerRight
+                        : Alignment.centerLeft,
                     child: Container(
                       margin: const EdgeInsets.only(bottom: 12),
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 10,
+                      ),
                       constraints: const BoxConstraints(maxWidth: 420),
                       decoration: BoxDecoration(
                         color: msg.isUser
@@ -877,12 +962,13 @@ $guideContext
                             )
                           : MarkdownBody(
                               data: msg.text,
-                              styleSheet: MarkdownStyleSheet.fromTheme(theme).copyWith(
-                                p: TextStyle(
-                                  color: colorScheme.onSurfaceVariant,
-                                  fontSize: 13,
-                                ),
-                              ),
+                              styleSheet: MarkdownStyleSheet.fromTheme(theme)
+                                  .copyWith(
+                                    p: TextStyle(
+                                      color: colorScheme.onSurfaceVariant,
+                                      fontSize: 13,
+                                    ),
+                                  ),
                             ),
                     ),
                   );
@@ -905,7 +991,10 @@ $guideContext
                     const SizedBox(width: 8),
                     Text(
                       'Gemini procesando y analizando...',
-                      style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
                     ),
                   ],
                 ),
@@ -925,7 +1014,10 @@ $guideContext
                         borderRadius: BorderRadius.circular(20),
                         borderSide: BorderSide.none,
                       ),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 10,
+                      ),
                     ),
                   ),
                 ),

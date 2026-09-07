@@ -1,5 +1,1 @@
-enum Direccion {
-  ninguna,
-  unidireccional,
-  bidireccional,
-}
+enum Direccion { ninguna, unidireccional, bidireccional }

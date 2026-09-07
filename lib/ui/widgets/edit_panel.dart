@@ -59,10 +59,13 @@ class _EditPanelState extends ConsumerState<EditPanel> {
   }
 
   TextEditingController _getAttrTagNameController(
-      String attrId, String currentName) {
+    String attrId,
+    String currentName,
+  ) {
     if (!_attrTagNameControllers.containsKey(attrId)) {
-      _attrTagNameControllers[attrId] =
-          TextEditingController(text: currentName);
+      _attrTagNameControllers[attrId] = TextEditingController(
+        text: currentName,
+      );
     } else if (_attrTagNameControllers[attrId]!.text != currentName &&
         !FocusScope.of(context).hasFocus) {
       _attrTagNameControllers[attrId]!.text = currentName;
@@ -79,8 +82,9 @@ class _EditPanelState extends ConsumerState<EditPanel> {
 
     for (final attr in atributos) {
       if (!_attrTagNameControllers.containsKey(attr.id)) {
-        _attrTagNameControllers[attr.id] =
-            TextEditingController(text: attr.nombre);
+        _attrTagNameControllers[attr.id] = TextEditingController(
+          text: attr.nombre,
+        );
       }
     }
 
@@ -100,15 +104,19 @@ class _EditPanelState extends ConsumerState<EditPanel> {
 
         _attrValueControllers.clear();
         for (final av in conn.atributos) {
-          _attrValueControllers[av.atributoId] =
-              TextEditingController(text: av.valor);
+          _attrValueControllers[av.atributoId] = TextEditingController(
+            text: av.valor,
+          );
         }
       }
     }
   }
 
   void _confirmDeleteAttribute(
-      BuildContext context, Atributo attr, NeumorphicPalette palette) {
+    BuildContext context,
+    Atributo attr,
+    NeumorphicPalette palette,
+  ) {
     final grafo = ref.read(grafoProvider);
     final affectedValues = <String>[];
     for (final conn in grafo.conexiones.values) {
@@ -208,12 +216,17 @@ class _EditPanelState extends ConsumerState<EditPanel> {
                     },
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 18, vertical: 8),
+                        horizontal: 18,
+                        vertical: 8,
+                      ),
                       decoration: BoxDecoration(
                         color: palette.alertColor,
                         borderRadius: BorderRadius.circular(999),
-                        boxShadow:
-                            NeumorphicShadows.inset(palette, distance: 2, blur: 4),
+                        boxShadow: NeumorphicShadows.inset(
+                          palette,
+                          distance: 2,
+                          blur: 4,
+                        ),
                       ),
                       child: const Text(
                         AppText.delete,
@@ -257,8 +270,12 @@ class _EditPanelState extends ConsumerState<EditPanel> {
     final origNodeId = conn?.nodoOrigenId;
     final destNodeId = conn?.nodoDestinoId;
 
-    final origNode = origNodeId != null ? ref.watch(grafoProvider).nodos[origNodeId] : null;
-    final destNode = destNodeId != null ? ref.watch(grafoProvider).nodos[destNodeId] : null;
+    final origNode = origNodeId != null
+        ? ref.watch(grafoProvider).nodos[origNodeId]
+        : null;
+    final destNode = destNodeId != null
+        ? ref.watch(grafoProvider).nodos[destNodeId]
+        : null;
 
     final nameA = origNode?.nombre ?? 'Nodo A';
     final nameB = destNode?.nombre ?? 'Nodo B';
@@ -316,7 +333,8 @@ class _EditPanelState extends ConsumerState<EditPanel> {
       );
     }
 
-    String currentDirectionOptionId = _selectedDireccion == Direccion.unidireccional
+    String currentDirectionOptionId =
+        _selectedDireccion == Direccion.unidireccional
         ? 'directional'
         : 'undirected';
 
@@ -386,11 +404,13 @@ class _EditPanelState extends ConsumerState<EditPanel> {
                   selectedDireccion: _selectedDireccion,
                   currentDirectionOptionId: currentDirectionOptionId,
                   directionOptions: directionOptions
-                      .map((opt) => ChoiceChipOption(
-                            id: opt.id,
-                            label: opt.label,
-                            onSelect: opt.onSelect,
-                          ))
+                      .map(
+                        (opt) => ChoiceChipOption(
+                          id: opt.id,
+                          label: opt.label,
+                          onSelect: opt.onSelect,
+                        ),
+                      )
                       .toList(),
                   loopAngle: conn?.loopAngle ?? (-3.14159 / 2),
                   onLoopAngleChanged: (val) {
@@ -425,7 +445,9 @@ class _EditPanelState extends ConsumerState<EditPanel> {
                           width: 110,
                           child: _buildM3TextField(
                             controller: _getAttrTagNameController(
-                                attr.id, attr.nombre),
+                              attr.id,
+                              attr.nombre,
+                            ),
                             label: 'Etiqueta',
                             colorScheme: colorScheme,
                             onChanged: (newTag) {
@@ -456,8 +478,10 @@ class _EditPanelState extends ConsumerState<EditPanel> {
                           ),
                         ),
                         IconButton(
-                          icon: Icon(Icons.delete_outline,
-                              color: colorScheme.error),
+                          icon: Icon(
+                            Icons.delete_outline,
+                            color: colorScheme.error,
+                          ),
                           onPressed: () =>
                               _confirmDeleteAttribute(context, attr, palette),
                         ),
@@ -510,7 +534,9 @@ class _EditPanelState extends ConsumerState<EditPanel> {
                       OutlinedButton(
                         onPressed: () {
                           FocusScope.of(context).unfocus();
-                          ref.read(estadoEdicionProvider.notifier).deseleccionar();
+                          ref
+                              .read(estadoEdicionProvider.notifier)
+                              .deseleccionar();
                         },
                         child: const Text(AppText.cancel),
                       ),
@@ -539,10 +565,10 @@ class _EditPanelState extends ConsumerState<EditPanel> {
     final atributos = ref.read(atributosGlobalesProvider);
 
     final Map<String, String> attrNames = {
-      for (final a in atributos) a.id: a.nombre
+      for (final a in atributos) a.id: a.nombre,
     };
     final Map<String, String> nodeNames = {
-      for (final n in grafo.nodos.values) n.id: n.nombre ?? n.id
+      for (final n in grafo.nodos.values) n.id: n.nombre ?? n.id,
     };
 
     if (edicion.esNodo) {
@@ -601,7 +627,9 @@ class _EditPanelState extends ConsumerState<EditPanel> {
       controller: controller,
       style: TextStyle(color: colorScheme.onSurface, fontSize: 14),
       onChanged: onChanged,
-      keyboardType: isNumeric ? const TextInputType.numberWithOptions(decimal: true) : TextInputType.text,
+      keyboardType: isNumeric
+          ? const TextInputType.numberWithOptions(decimal: true)
+          : TextInputType.text,
       inputFormatters: isNumeric
           ? [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))]
           : null,
@@ -609,8 +637,14 @@ class _EditPanelState extends ConsumerState<EditPanel> {
         filled: true,
         fillColor: colorScheme.surfaceContainerHighest,
         labelText: label,
-        labelStyle: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 13),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        labelStyle: TextStyle(
+          color: colorScheme.onSurfaceVariant,
+          fontSize: 13,
+        ),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 14,
+          vertical: 12,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide.none,
@@ -630,7 +664,9 @@ class _EditPanelState extends ConsumerState<EditPanel> {
     if (itemId == null) return;
 
     if (edicion.esNodo) {
-      ref.read(grafoProvider.notifier).actualizarNodo(
+      ref
+          .read(grafoProvider.notifier)
+          .actualizarNodo(
             itemId,
             nombre: _nameController.text.trim(),
             colorValue: _selectedColor,
@@ -650,8 +686,14 @@ class _EditPanelState extends ConsumerState<EditPanel> {
             other.id != itemId &&
             other.nodoOrigenId == targetOrigenId &&
             other.nodoDestinoId == targetDestinoId &&
-            (other.direccion == _selectedDireccion || _selectedDireccion == Direccion.bidireccional),
-        orElse: () => const Conexion(id: '', nodoOrigenId: '', nodoDestinoId: '', colorValue: 0),
+            (other.direccion == _selectedDireccion ||
+                _selectedDireccion == Direccion.bidireccional),
+        orElse: () => const Conexion(
+          id: '',
+          nodoOrigenId: '',
+          nodoDestinoId: '',
+          colorValue: 0,
+        ),
       );
 
       if (existingDuplicate.id.isNotEmpty) {
@@ -714,12 +756,17 @@ class _EditPanelState extends ConsumerState<EditPanel> {
                           onTap: () => Navigator.of(ctx).pop(true),
                           child: Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 18, vertical: 8),
+                              horizontal: 18,
+                              vertical: 8,
+                            ),
                             decoration: BoxDecoration(
                               color: palette.primaryAccent,
                               borderRadius: BorderRadius.circular(999),
-                              boxShadow: NeumorphicShadows.inset(palette,
-                                  distance: 2, blur: 4),
+                              boxShadow: NeumorphicShadows.inset(
+                                palette,
+                                distance: 2,
+                                blur: 4,
+                              ),
                             ),
                             child: const Text(
                               'Reemplazar',
@@ -760,7 +807,9 @@ class _EditPanelState extends ConsumerState<EditPanel> {
         }
       }
 
-      ref.read(grafoProvider.notifier).actualizarConexion(
+      ref
+          .read(grafoProvider.notifier)
+          .actualizarConexion(
             itemId,
             nodoOrigenId: targetOrigenId,
             nodoDestinoId: targetDestinoId,
@@ -773,8 +822,6 @@ class _EditPanelState extends ConsumerState<EditPanel> {
       ref.read(estadoEdicionProvider.notifier).deseleccionar();
     }
   }
-
-
 }
 
 class _ChoiceOption<T> {
@@ -807,7 +854,13 @@ class _MockGrafoNotifier extends GrafoNotifier {
 
 @Preview(name: 'EditPanel - Node Selected (Dark)', group: 'Widgets')
 Widget editPanelNodeSelectedDarkPreview() {
-  const sampleNode = Nodo(id: 'n1', x: 0, y: 0, colorValue: 0xFF2196F3, nombre: 'Nodo de Prueba');
+  const sampleNode = Nodo(
+    id: 'n1',
+    x: 0,
+    y: 0,
+    colorValue: 0xFF2196F3,
+    nombre: 'Nodo de Prueba',
+  );
   final sampleGrafo = Grafo(nodos: {'n1': sampleNode});
 
   return ProviderScope(
@@ -824,10 +877,7 @@ Widget editPanelNodeSelectedDarkPreview() {
       theme: AppTheme.darkTheme,
       themeMode: ThemeMode.dark,
       home: const Scaffold(
-        body: Align(
-          alignment: Alignment.bottomCenter,
-          child: EditPanel(),
-        ),
+        body: Align(alignment: Alignment.bottomCenter, child: EditPanel()),
       ),
     ),
   );
@@ -835,7 +885,13 @@ Widget editPanelNodeSelectedDarkPreview() {
 
 @Preview(name: 'EditPanel - Node Selected (Light)', group: 'Widgets')
 Widget editPanelNodeSelectedLightPreview() {
-  const sampleNode = Nodo(id: 'n1', x: 0, y: 0, colorValue: 0xFF2196F3, nombre: 'Nodo de Prueba');
+  const sampleNode = Nodo(
+    id: 'n1',
+    x: 0,
+    y: 0,
+    colorValue: 0xFF2196F3,
+    nombre: 'Nodo de Prueba',
+  );
   final sampleGrafo = Grafo(nodos: {'n1': sampleNode});
 
   return ProviderScope(
@@ -852,10 +908,7 @@ Widget editPanelNodeSelectedLightPreview() {
       theme: AppTheme.lightTheme,
       themeMode: ThemeMode.light,
       home: const Scaffold(
-        body: Align(
-          alignment: Alignment.bottomCenter,
-          child: EditPanel(),
-        ),
+        body: Align(alignment: Alignment.bottomCenter, child: EditPanel()),
       ),
     ),
   );
@@ -863,8 +916,20 @@ Widget editPanelNodeSelectedLightPreview() {
 
 @Preview(name: 'EditPanel - Connection Selected (Dark)', group: 'Widgets')
 Widget editPanelConnectionSelectedDarkPreview() {
-  const nodeA = Nodo(id: 'n1', x: 0, y: 0, colorValue: 0xFF2196F3, nombre: 'Nodo A');
-  const nodeB = Nodo(id: 'n2', x: 100, y: 100, colorValue: 0xFF4CAF50, nombre: 'Nodo B');
+  const nodeA = Nodo(
+    id: 'n1',
+    x: 0,
+    y: 0,
+    colorValue: 0xFF2196F3,
+    nombre: 'Nodo A',
+  );
+  const nodeB = Nodo(
+    id: 'n2',
+    x: 100,
+    y: 100,
+    colorValue: 0xFF4CAF50,
+    nombre: 'Nodo B',
+  );
   const conn1 = Conexion(
     id: 'c1',
     nodoOrigenId: 'n1',
@@ -891,10 +956,7 @@ Widget editPanelConnectionSelectedDarkPreview() {
       theme: AppTheme.darkTheme,
       themeMode: ThemeMode.dark,
       home: const Scaffold(
-        body: Align(
-          alignment: Alignment.bottomCenter,
-          child: EditPanel(),
-        ),
+        body: Align(alignment: Alignment.bottomCenter, child: EditPanel()),
       ),
     ),
   );
@@ -902,8 +964,20 @@ Widget editPanelConnectionSelectedDarkPreview() {
 
 @Preview(name: 'EditPanel - Connection Selected (Light)', group: 'Widgets')
 Widget editPanelConnectionSelectedLightPreview() {
-  const nodeA = Nodo(id: 'n1', x: 0, y: 0, colorValue: 0xFF2196F3, nombre: 'Nodo A');
-  const nodeB = Nodo(id: 'n2', x: 100, y: 100, colorValue: 0xFF4CAF50, nombre: 'Nodo B');
+  const nodeA = Nodo(
+    id: 'n1',
+    x: 0,
+    y: 0,
+    colorValue: 0xFF2196F3,
+    nombre: 'Nodo A',
+  );
+  const nodeB = Nodo(
+    id: 'n2',
+    x: 100,
+    y: 100,
+    colorValue: 0xFF4CAF50,
+    nombre: 'Nodo B',
+  );
   const conn1 = Conexion(
     id: 'c1',
     nodoOrigenId: 'n1',
@@ -930,12 +1004,8 @@ Widget editPanelConnectionSelectedLightPreview() {
       theme: AppTheme.lightTheme,
       themeMode: ThemeMode.light,
       home: const Scaffold(
-        body: Align(
-          alignment: Alignment.bottomCenter,
-          child: EditPanel(),
-        ),
+        body: Align(alignment: Alignment.bottomCenter, child: EditPanel()),
       ),
     ),
   );
 }
-

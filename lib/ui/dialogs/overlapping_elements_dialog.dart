@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../domain/models/conexion.dart';
 import '../../domain/models/nodo.dart';
 
@@ -59,9 +60,7 @@ class OverlappingElementsDialog extends StatelessWidget {
       final dest = nodeMap[conn.nodoDestinoId]?.nombre ?? conn.nodoDestinoId;
       final isSelfLoop = conn.nodoOrigenId == conn.nodoDestinoId;
 
-      final label = isSelfLoop
-          ? 'Bucle en $orig'
-          : '$orig ➔ $dest';
+      final label = isSelfLoop ? 'Bucle en $orig' : '$orig ➔ $dest';
 
       items.add(
         OverlappingElementItem(
@@ -96,7 +95,10 @@ class OverlappingElementsDialog extends StatelessWidget {
           children: [
             Text(
               'Hay varios elementos superpuestos en este punto. ¿Cuál deseas editar?',
-              style: TextStyle(fontSize: 13, color: colorScheme.onSurfaceVariant),
+              style: TextStyle(
+                fontSize: 13,
+                color: colorScheme.onSurfaceVariant,
+              ),
             ),
             const SizedBox(height: 16),
             for (final item in items)
@@ -114,11 +116,17 @@ class OverlappingElementsDialog extends StatelessWidget {
                   ),
                   title: Text(
                     item.title,
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
                   ),
                   subtitle: Text(
                     item.subtitle,
-                    style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
                   ),
                   trailing: const Icon(Icons.chevron_right_rounded),
                   onTap: () {

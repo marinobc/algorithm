@@ -73,7 +73,8 @@ class _AdjacencyMatrixScreenState extends ConsumerState<AdjacencyMatrixScreen> {
                       Text(
                         'Conecta el grafo para poder ver la matriz',
                         textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(
                               fontWeight: FontWeight.bold,
                               color: colorScheme.error,
                             ),
@@ -151,45 +152,69 @@ class _AdjacencyMatrixScreenState extends ConsumerState<AdjacencyMatrixScreen> {
                                       Row(
                                         children: [
                                           // Offset to align with matrix columns inside [ ]
-                                          const SizedBox(width: totalLeftOffset),
+                                          const SizedBox(
+                                            width: totalLeftOffset,
+                                          ),
                                           // Standard Node Headers
-                                          ...List.generate(matrixData.labels.length, (j) {
-                                            final colName = matrixData.labels[j];
-                                            final isColSelected = _selectedColumnIndex == j;
+                                          ...List.generate(matrixData.labels.length, (
+                                            j,
+                                          ) {
+                                            final colName =
+                                                matrixData.labels[j];
+                                            final isColSelected =
+                                                _selectedColumnIndex == j;
 
                                             return GestureDetector(
                                               onTap: () {
                                                 setState(() {
-                                                  _selectedColumnIndex = isColSelected ? null : j;
+                                                  _selectedColumnIndex =
+                                                      isColSelected ? null : j;
                                                 });
                                               },
                                               child: AnimatedContainer(
-                                                duration: const Duration(milliseconds: 150),
+                                                duration: const Duration(
+                                                  milliseconds: 150,
+                                                ),
                                                 width: cellWidth,
                                                 height: cellHeight,
                                                 alignment: Alignment.center,
-                                                margin: const EdgeInsets.symmetric(horizontal: 2),
+                                                margin:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 2,
+                                                    ),
                                                 decoration: BoxDecoration(
                                                   color: isColSelected
-                                                      ? colorScheme.secondaryContainer
-                                                      : colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
-                                                  borderRadius: BorderRadius.circular(8),
+                                                      ? colorScheme
+                                                            .secondaryContainer
+                                                      : colorScheme
+                                                            .surfaceContainerHighest
+                                                            .withValues(
+                                                              alpha: 0.4,
+                                                            ),
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
                                                   border: Border.all(
                                                     color: isColSelected
                                                         ? colorScheme.secondary
-                                                        : colorScheme.outlineVariant.withValues(alpha: 0.4),
+                                                        : colorScheme
+                                                              .outlineVariant
+                                                              .withValues(
+                                                                alpha: 0.4,
+                                                              ),
                                                   ),
                                                 ),
                                                 child: Text(
                                                   colName,
                                                   textAlign: TextAlign.center,
                                                   maxLines: 1,
-                                                  overflow: TextOverflow.ellipsis,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
                                                   style: TextStyle(
                                                     fontWeight: FontWeight.bold,
                                                     fontSize: 13,
                                                     color: isColSelected
-                                                        ? colorScheme.onSecondaryContainer
+                                                        ? colorScheme
+                                                              .onSecondaryContainer
                                                         : colorScheme.onSurface,
                                                   ),
                                                 ),
@@ -197,15 +222,24 @@ class _AdjacencyMatrixScreenState extends ConsumerState<AdjacencyMatrixScreen> {
                                             );
                                           }),
                                           // Gap over Right Bracket ']'
-                                          const SizedBox(width: bracketGap + bracketWidth + bracketGap),
+                                          const SizedBox(
+                                            width:
+                                                bracketGap +
+                                                bracketWidth +
+                                                bracketGap,
+                                          ),
                                           // Extra Summary Header 1: Suma Fila
                                           _buildHeaderCell(
                                             context: context,
                                             label: 'Suma Fila',
-                                            isSelected: _selectedColumnIndex == matrixData.labels.length,
+                                            isSelected:
+                                                _selectedColumnIndex ==
+                                                matrixData.labels.length,
                                             onTap: () {
                                               setState(() {
-                                                _selectedColumnIndex = _selectedColumnIndex == matrixData.labels.length
+                                                _selectedColumnIndex =
+                                                    _selectedColumnIndex ==
+                                                        matrixData.labels.length
                                                     ? null
                                                     : matrixData.labels.length;
                                               });
@@ -219,12 +253,20 @@ class _AdjacencyMatrixScreenState extends ConsumerState<AdjacencyMatrixScreen> {
                                           _buildHeaderCell(
                                             context: context,
                                             label: 'Grado Fila',
-                                            isSelected: _selectedColumnIndex == matrixData.labels.length + 1,
+                                            isSelected:
+                                                _selectedColumnIndex ==
+                                                matrixData.labels.length + 1,
                                             onTap: () {
                                               setState(() {
-                                                _selectedColumnIndex = _selectedColumnIndex == matrixData.labels.length + 1
+                                                _selectedColumnIndex =
+                                                    _selectedColumnIndex ==
+                                                        matrixData
+                                                                .labels
+                                                                .length +
+                                                            1
                                                     ? null
-                                                    : matrixData.labels.length + 1;
+                                                    : matrixData.labels.length +
+                                                          1;
                                               });
                                             },
                                             colorScheme: colorScheme,
@@ -238,73 +280,123 @@ class _AdjacencyMatrixScreenState extends ConsumerState<AdjacencyMatrixScreen> {
 
                                       // Main Section: Row Headers + Left Bracket '[' + Matrix Grid N x N + Right Bracket ']' + Summary Columns OUTSIDE ]
                                       Row(
-                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
                                           // Row Headers Column (Node Names OUTSIDE Brackets)
                                           Column(
-                                            crossAxisAlignment: CrossAxisAlignment.end,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.end,
                                             mainAxisSize: MainAxisSize.min,
-                                            children: List.generate(matrixData.labels.length, (i) {
-                                              final rowName = matrixData.labels[i];
-                                              final isRowSelected = _selectedRowIndex == i;
+                                            children: List.generate(
+                                              matrixData.labels.length,
+                                              (i) {
+                                                final rowName =
+                                                    matrixData.labels[i];
+                                                final isRowSelected =
+                                                    _selectedRowIndex == i;
 
-                                              return GestureDetector(
-                                                onTap: () {
-                                                  setState(() {
-                                                    _selectedRowIndex = isRowSelected ? null : i;
-                                                  });
-                                                },
-                                                child: AnimatedContainer(
-                                                  duration: const Duration(milliseconds: 150),
-                                                  width: rowHeaderWidth,
-                                                  height: cellHeight,
-                                                  alignment: Alignment.center,
-                                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                                  margin: const EdgeInsets.symmetric(vertical: 2),
-                                                  decoration: BoxDecoration(
-                                                    color: isRowSelected
-                                                        ? colorScheme.primaryContainer
-                                                        : colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
-                                                    borderRadius: BorderRadius.circular(8),
-                                                    border: Border.all(
+                                                return GestureDetector(
+                                                  onTap: () {
+                                                    setState(() {
+                                                      _selectedRowIndex =
+                                                          isRowSelected
+                                                          ? null
+                                                          : i;
+                                                    });
+                                                  },
+                                                  child: AnimatedContainer(
+                                                    duration: const Duration(
+                                                      milliseconds: 150,
+                                                    ),
+                                                    width: rowHeaderWidth,
+                                                    height: cellHeight,
+                                                    alignment: Alignment.center,
+                                                    padding:
+                                                        const EdgeInsets.symmetric(
+                                                          horizontal: 10,
+                                                          vertical: 4,
+                                                        ),
+                                                    margin:
+                                                        const EdgeInsets.symmetric(
+                                                          vertical: 2,
+                                                        ),
+                                                    decoration: BoxDecoration(
                                                       color: isRowSelected
-                                                          ? colorScheme.primary
-                                                          : colorScheme.outlineVariant.withValues(alpha: 0.4),
+                                                          ? colorScheme
+                                                                .primaryContainer
+                                                          : colorScheme
+                                                                .surfaceContainerHighest
+                                                                .withValues(
+                                                                  alpha: 0.4,
+                                                                ),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            8,
+                                                          ),
+                                                      border: Border.all(
+                                                        color: isRowSelected
+                                                            ? colorScheme
+                                                                  .primary
+                                                            : colorScheme
+                                                                  .outlineVariant
+                                                                  .withValues(
+                                                                    alpha: 0.4,
+                                                                  ),
+                                                      ),
+                                                    ),
+                                                    child: Text(
+                                                      rowName,
+                                                      maxLines: 1,
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
+                                                      style: TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        fontSize: 13,
+                                                        color: isRowSelected
+                                                            ? colorScheme
+                                                                  .onPrimaryContainer
+                                                            : colorScheme
+                                                                  .onSurface,
+                                                      ),
                                                     ),
                                                   ),
-                                                  child: Text(
-                                                    rowName,
-                                                    maxLines: 1,
-                                                    overflow: TextOverflow.ellipsis,
-                                                    style: TextStyle(
-                                                      fontWeight: FontWeight.bold,
-                                                      fontSize: 13,
-                                                      color: isRowSelected
-                                                          ? colorScheme.onPrimaryContainer
-                                                          : colorScheme.onSurface,
-                                                    ),
-                                                  ),
-                                                ),
-                                              );
-                                            }),
+                                                );
+                                              },
+                                            ),
                                           ),
                                           const SizedBox(width: bracketGap),
 
                                           // Large Mathematical Left Bracket '[' (Spans only N node rows)
                                           Container(
-                                            height: matrixData.labels.length * (cellHeight + 4),
+                                            height:
+                                                matrixData.labels.length *
+                                                (cellHeight + 4),
                                             width: bracketWidth,
                                             decoration: BoxDecoration(
                                               border: Border(
-                                                top: BorderSide(color: colorScheme.onSurface, width: 3),
-                                                left: BorderSide(color: colorScheme.onSurface, width: 3),
-                                                bottom: BorderSide(color: colorScheme.onSurface, width: 3),
+                                                top: BorderSide(
+                                                  color: colorScheme.onSurface,
+                                                  width: 3,
+                                                ),
+                                                left: BorderSide(
+                                                  color: colorScheme.onSurface,
+                                                  width: 3,
+                                                ),
+                                                bottom: BorderSide(
+                                                  color: colorScheme.onSurface,
+                                                  width: 3,
+                                                ),
                                               ),
-                                              borderRadius: const BorderRadius.only(
-                                                topLeft: Radius.circular(4),
-                                                bottomLeft: Radius.circular(4),
-                                              ),
+                                              borderRadius:
+                                                  const BorderRadius.only(
+                                                    topLeft: Radius.circular(4),
+                                                    bottomLeft: Radius.circular(
+                                                      4,
+                                                    ),
+                                                  ),
                                             ),
                                           ),
                                           const SizedBox(width: bracketGap),
@@ -312,80 +404,147 @@ class _AdjacencyMatrixScreenState extends ConsumerState<AdjacencyMatrixScreen> {
                                           // N x N Matrix Data Values Grid (Inside Brackets)
                                           Column(
                                             mainAxisSize: MainAxisSize.min,
-                                            children: List.generate(matrixData.labels.length, (i) {
-                                              final sourceLabel = matrixData.labels[i];
-                                              final isRowSelected = _selectedRowIndex == i;
+                                            children: List.generate(matrixData.labels.length, (
+                                              i,
+                                            ) {
+                                              final sourceLabel =
+                                                  matrixData.labels[i];
+                                              final isRowSelected =
+                                                  _selectedRowIndex == i;
 
                                               return Padding(
-                                                padding: const EdgeInsets.symmetric(vertical: 2),
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      vertical: 2,
+                                                    ),
                                                 child: Row(
-                                                  mainAxisSize: MainAxisSize.min,
-                                                  children: List.generate(matrixData.labels.length, (j) {
-                                                    final cell = matrixData.matrix[i][j];
-                                                    final targetLabel = matrixData.labels[j];
-                                                    final isColSelected = _selectedColumnIndex == j;
-                                                    final isIntersection = isRowSelected && isColSelected;
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
+                                                  children: List.generate(matrixData.labels.length, (
+                                                    j,
+                                                  ) {
+                                                    final cell =
+                                                        matrixData.matrix[i][j];
+                                                    final targetLabel =
+                                                        matrixData.labels[j];
+                                                    final isColSelected =
+                                                        _selectedColumnIndex ==
+                                                        j;
+                                                    final isIntersection =
+                                                        isRowSelected &&
+                                                        isColSelected;
 
-                                                    Color bg = Colors.transparent;
-                                                    Color textColor = cell.isConnected
+                                                    Color bg =
+                                                        Colors.transparent;
+                                                    Color textColor =
+                                                        cell.isConnected
                                                         ? colorScheme.primary
-                                                        : colorScheme.outline.withValues(alpha: 0.4);
+                                                        : colorScheme.outline
+                                                              .withValues(
+                                                                alpha: 0.4,
+                                                              );
 
                                                     if (isIntersection) {
-                                                      bg = colorScheme.primaryContainer;
-                                                      textColor = colorScheme.onPrimaryContainer;
+                                                      bg = colorScheme
+                                                          .primaryContainer;
+                                                      textColor = colorScheme
+                                                          .onPrimaryContainer;
                                                     } else if (isColSelected) {
-                                                      bg = colorScheme.secondaryContainer.withValues(alpha: 0.35);
+                                                      bg = colorScheme
+                                                          .secondaryContainer
+                                                          .withValues(
+                                                            alpha: 0.35,
+                                                          );
                                                     } else if (isRowSelected) {
-                                                      bg = colorScheme.primaryContainer.withValues(alpha: 0.35);
+                                                      bg = colorScheme
+                                                          .primaryContainer
+                                                          .withValues(
+                                                            alpha: 0.35,
+                                                          );
                                                     }
 
-                                                    final tooltipText = 'Conexión: $sourceLabel a $targetLabel\nPeso: ${cell.weightedValue}';
+                                                    final tooltipText =
+                                                        'Conexión: $sourceLabel a $targetLabel\nPeso: ${cell.weightedValue}';
 
                                                     return GestureDetector(
                                                       onTap: () {
                                                         setState(() {
-                                                          if (_selectedRowIndex == i && _selectedColumnIndex == j) {
-                                                            _selectedRowIndex = null;
-                                                            _selectedColumnIndex = null;
+                                                          if (_selectedRowIndex ==
+                                                                  i &&
+                                                              _selectedColumnIndex ==
+                                                                  j) {
+                                                            _selectedRowIndex =
+                                                                null;
+                                                            _selectedColumnIndex =
+                                                                null;
                                                           } else {
-                                                            _selectedRowIndex = i;
-                                                            _selectedColumnIndex = j;
+                                                            _selectedRowIndex =
+                                                                i;
+                                                            _selectedColumnIndex =
+                                                                j;
                                                           }
                                                         });
                                                       },
                                                       child: Tooltip(
                                                         message: tooltipText,
-                                                        padding: const EdgeInsets.all(8),
+                                                        padding:
+                                                            const EdgeInsets.all(
+                                                              8,
+                                                            ),
                                                         decoration: BoxDecoration(
-                                                          color: colorScheme.onSurface,
-                                                          borderRadius: BorderRadius.circular(8),
+                                                          color: colorScheme
+                                                              .onSurface,
+                                                          borderRadius:
+                                                              BorderRadius.circular(
+                                                                8,
+                                                              ),
                                                         ),
                                                         textStyle: TextStyle(
-                                                          color: colorScheme.surface,
+                                                          color: colorScheme
+                                                              .surface,
                                                           fontSize: 12,
                                                         ),
                                                         child: AnimatedContainer(
-                                                          duration: const Duration(milliseconds: 150),
+                                                          duration:
+                                                              const Duration(
+                                                                milliseconds:
+                                                                    150,
+                                                              ),
                                                           width: cellWidth,
                                                           height: cellHeight,
-                                                          margin: const EdgeInsets.symmetric(horizontal: 2),
+                                                          margin:
+                                                              const EdgeInsets.symmetric(
+                                                                horizontal: 2,
+                                                              ),
                                                           decoration: BoxDecoration(
                                                             color: bg,
-                                                            borderRadius: BorderRadius.circular(6),
-                                                            border: isIntersection
-                                                                ? Border.all(color: colorScheme.primary, width: 2)
+                                                            borderRadius:
+                                                                BorderRadius.circular(
+                                                                  6,
+                                                                ),
+                                                            border:
+                                                                isIntersection
+                                                                ? Border.all(
+                                                                    color: colorScheme
+                                                                        .primary,
+                                                                    width: 2,
+                                                                  )
                                                                 : null,
                                                           ),
                                                           child: Center(
                                                             child: Text(
                                                               cell.weightedValue,
                                                               style: TextStyle(
-                                                                fontWeight: cell.isConnected || isIntersection
-                                                                    ? FontWeight.bold
-                                                                    : FontWeight.normal,
+                                                                fontWeight:
+                                                                    cell.isConnected ||
+                                                                        isIntersection
+                                                                    ? FontWeight
+                                                                          .bold
+                                                                    : FontWeight
+                                                                          .normal,
                                                                 fontSize: 15,
-                                                                color: textColor,
+                                                                color:
+                                                                    textColor,
                                                               ),
                                                             ),
                                                           ),
@@ -401,18 +560,33 @@ class _AdjacencyMatrixScreenState extends ConsumerState<AdjacencyMatrixScreen> {
 
                                           // Large Mathematical Right Bracket ']' (Spans only N node rows)
                                           Container(
-                                            height: matrixData.labels.length * (cellHeight + 4),
+                                            height:
+                                                matrixData.labels.length *
+                                                (cellHeight + 4),
                                             width: bracketWidth,
                                             decoration: BoxDecoration(
                                               border: Border(
-                                                top: BorderSide(color: colorScheme.onSurface, width: 3),
-                                                right: BorderSide(color: colorScheme.onSurface, width: 3),
-                                                bottom: BorderSide(color: colorScheme.onSurface, width: 3),
+                                                top: BorderSide(
+                                                  color: colorScheme.onSurface,
+                                                  width: 3,
+                                                ),
+                                                right: BorderSide(
+                                                  color: colorScheme.onSurface,
+                                                  width: 3,
+                                                ),
+                                                bottom: BorderSide(
+                                                  color: colorScheme.onSurface,
+                                                  width: 3,
+                                                ),
                                               ),
-                                              borderRadius: const BorderRadius.only(
-                                                topRight: Radius.circular(4),
-                                                bottomRight: Radius.circular(4),
-                                              ),
+                                              borderRadius:
+                                                  const BorderRadius.only(
+                                                    topRight: Radius.circular(
+                                                      4,
+                                                    ),
+                                                    bottomRight:
+                                                        Radius.circular(4),
+                                                  ),
                                             ),
                                           ),
                                           const SizedBox(width: bracketGap),
@@ -420,40 +594,68 @@ class _AdjacencyMatrixScreenState extends ConsumerState<AdjacencyMatrixScreen> {
                                           // 2 Summary Columns OUTSIDE ] (Suma Fila & Grado Fila)
                                           Column(
                                             mainAxisSize: MainAxisSize.min,
-                                            children: List.generate(matrixData.labels.length, (i) {
-                                              final isRowSelected = _selectedRowIndex == i;
+                                            children: List.generate(
+                                              matrixData.labels.length,
+                                              (i) {
+                                                final isRowSelected =
+                                                    _selectedRowIndex == i;
 
-                                              return Padding(
-                                                padding: const EdgeInsets.symmetric(vertical: 2),
-                                                child: Row(
-                                                  mainAxisSize: MainAxisSize.min,
-                                                  children: [
-                                                    // Suma Fila
-                                                    _buildSummaryCell(
-                                                      context: context,
-                                                      text: AdjacencyMatrixData.formatValue(matrixData.rowSums[i]),
-                                                      tooltip: 'Suma total de pesos para la fila ${matrixData.labels[i]}',
-                                                      isSum: true,
-                                                      isSelected: isRowSelected || _selectedColumnIndex == matrixData.labels.length,
-                                                      colorScheme: colorScheme,
-                                                      width: cellWidth,
-                                                      height: cellHeight,
-                                                    ),
-                                                    // Grado Fila
-                                                    _buildSummaryCell(
-                                                      context: context,
-                                                      text: '${matrixData.rowDegrees[i]}',
-                                                      tooltip: 'Grado / Conexiones activas de la fila ${matrixData.labels[i]}',
-                                                      isSum: false,
-                                                      isSelected: isRowSelected || _selectedColumnIndex == matrixData.labels.length + 1,
-                                                      colorScheme: colorScheme,
-                                                      width: cellWidth,
-                                                      height: cellHeight,
-                                                    ),
-                                                  ],
-                                                ),
-                                              );
-                                            }),
+                                                return Padding(
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        vertical: 2,
+                                                      ),
+                                                  child: Row(
+                                                    mainAxisSize:
+                                                        MainAxisSize.min,
+                                                    children: [
+                                                      // Suma Fila
+                                                      _buildSummaryCell(
+                                                        context: context,
+                                                        text:
+                                                            AdjacencyMatrixData.formatValue(
+                                                              matrixData
+                                                                  .rowSums[i],
+                                                            ),
+                                                        tooltip:
+                                                            'Suma total de pesos para la fila ${matrixData.labels[i]}',
+                                                        isSum: true,
+                                                        isSelected:
+                                                            isRowSelected ||
+                                                            _selectedColumnIndex ==
+                                                                matrixData
+                                                                    .labels
+                                                                    .length,
+                                                        colorScheme:
+                                                            colorScheme,
+                                                        width: cellWidth,
+                                                        height: cellHeight,
+                                                      ),
+                                                      // Grado Fila
+                                                      _buildSummaryCell(
+                                                        context: context,
+                                                        text:
+                                                            '${matrixData.rowDegrees[i]}',
+                                                        tooltip:
+                                                            'Grado / Conexiones activas de la fila ${matrixData.labels[i]}',
+                                                        isSum: false,
+                                                        isSelected:
+                                                            isRowSelected ||
+                                                            _selectedColumnIndex ==
+                                                                matrixData
+                                                                        .labels
+                                                                        .length +
+                                                                    1,
+                                                        colorScheme:
+                                                            colorScheme,
+                                                        width: cellWidth,
+                                                        height: cellHeight,
+                                                      ),
+                                                    ],
+                                                  ),
+                                                );
+                                              },
+                                            ),
                                           ),
                                         ],
                                       ),
@@ -467,10 +669,14 @@ class _AdjacencyMatrixScreenState extends ConsumerState<AdjacencyMatrixScreen> {
                                           _buildHeaderCell(
                                             context: context,
                                             label: 'Suma Col.',
-                                            isSelected: _selectedRowIndex == matrixData.labels.length,
+                                            isSelected:
+                                                _selectedRowIndex ==
+                                                matrixData.labels.length,
                                             onTap: () {
                                               setState(() {
-                                                _selectedRowIndex = _selectedRowIndex == matrixData.labels.length
+                                                _selectedRowIndex =
+                                                    _selectedRowIndex ==
+                                                        matrixData.labels.length
                                                     ? null
                                                     : matrixData.labels.length;
                                               });
@@ -479,30 +685,58 @@ class _AdjacencyMatrixScreenState extends ConsumerState<AdjacencyMatrixScreen> {
                                             isSum: true,
                                             width: rowHeaderWidth,
                                             height: cellHeight,
-                                            margin: const EdgeInsets.symmetric(vertical: 2),
+                                            margin: const EdgeInsets.symmetric(
+                                              vertical: 2,
+                                            ),
                                           ),
                                           // Gap under Left Bracket '['
-                                          const SizedBox(width: bracketGap + bracketWidth + bracketGap),
+                                          const SizedBox(
+                                            width:
+                                                bracketGap +
+                                                bracketWidth +
+                                                bracketGap,
+                                          ),
                                           // Column Sums for N nodes
-                                          ...List.generate(matrixData.labels.length, (j) {
-                                            final isColSelected = _selectedColumnIndex == j;
+                                          ...List.generate(
+                                            matrixData.labels.length,
+                                            (j) {
+                                              final isColSelected =
+                                                  _selectedColumnIndex == j;
 
-                                            return Padding(
-                                              padding: const EdgeInsets.symmetric(vertical: 2),
-                                              child: _buildSummaryCell(
-                                                context: context,
-                                                text: AdjacencyMatrixData.formatValue(matrixData.colSums[j]),
-                                                tooltip: 'Suma total de pesos para la columna ${matrixData.labels[j]}',
-                                                isSum: true,
-                                                isSelected: isColSelected || _selectedRowIndex == matrixData.labels.length,
-                                                colorScheme: colorScheme,
-                                                width: cellWidth,
-                                                height: cellHeight,
-                                              ),
-                                            );
-                                          }),
+                                              return Padding(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      vertical: 2,
+                                                    ),
+                                                child: _buildSummaryCell(
+                                                  context: context,
+                                                  text:
+                                                      AdjacencyMatrixData.formatValue(
+                                                        matrixData.colSums[j],
+                                                      ),
+                                                  tooltip:
+                                                      'Suma total de pesos para la columna ${matrixData.labels[j]}',
+                                                  isSum: true,
+                                                  isSelected:
+                                                      isColSelected ||
+                                                      _selectedRowIndex ==
+                                                          matrixData
+                                                              .labels
+                                                              .length,
+                                                  colorScheme: colorScheme,
+                                                  width: cellWidth,
+                                                  height: cellHeight,
+                                                ),
+                                              );
+                                            },
+                                          ),
                                           // Gap under Right Bracket ']'
-                                          const SizedBox(width: bracketGap + bracketWidth + bracketGap),
+                                          const SizedBox(
+                                            width:
+                                                bracketGap +
+                                                bracketWidth +
+                                                bracketGap,
+                                          ),
                                         ],
                                       ),
                                       // Summary Row 2: Grado Col.
@@ -512,42 +746,77 @@ class _AdjacencyMatrixScreenState extends ConsumerState<AdjacencyMatrixScreen> {
                                           _buildHeaderCell(
                                             context: context,
                                             label: 'Grado Col.',
-                                            isSelected: _selectedRowIndex == matrixData.labels.length + 1,
+                                            isSelected:
+                                                _selectedRowIndex ==
+                                                matrixData.labels.length + 1,
                                             onTap: () {
                                               setState(() {
-                                                _selectedRowIndex = _selectedRowIndex == matrixData.labels.length + 1
+                                                _selectedRowIndex =
+                                                    _selectedRowIndex ==
+                                                        matrixData
+                                                                .labels
+                                                                .length +
+                                                            1
                                                     ? null
-                                                    : matrixData.labels.length + 1;
+                                                    : matrixData.labels.length +
+                                                          1;
                                               });
                                             },
                                             colorScheme: colorScheme,
                                             isSum: false,
                                             width: rowHeaderWidth,
                                             height: cellHeight,
-                                            margin: const EdgeInsets.symmetric(vertical: 2),
+                                            margin: const EdgeInsets.symmetric(
+                                              vertical: 2,
+                                            ),
                                           ),
                                           // Gap under Left Bracket '['
-                                          const SizedBox(width: bracketGap + bracketWidth + bracketGap),
+                                          const SizedBox(
+                                            width:
+                                                bracketGap +
+                                                bracketWidth +
+                                                bracketGap,
+                                          ),
                                           // Column Degrees for N nodes
-                                          ...List.generate(matrixData.labels.length, (j) {
-                                            final isColSelected = _selectedColumnIndex == j;
+                                          ...List.generate(
+                                            matrixData.labels.length,
+                                            (j) {
+                                              final isColSelected =
+                                                  _selectedColumnIndex == j;
 
-                                            return Padding(
-                                              padding: const EdgeInsets.symmetric(vertical: 2),
-                                              child: _buildSummaryCell(
-                                                context: context,
-                                                text: '${matrixData.colDegrees[j]}',
-                                                tooltip: 'Grado / Conexiones activas de la columna ${matrixData.labels[j]}',
-                                                isSum: false,
-                                                isSelected: isColSelected || _selectedRowIndex == matrixData.labels.length + 1,
-                                                colorScheme: colorScheme,
-                                                width: cellWidth,
-                                                height: cellHeight,
-                                              ),
-                                            );
-                                          }),
+                                              return Padding(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      vertical: 2,
+                                                    ),
+                                                child: _buildSummaryCell(
+                                                  context: context,
+                                                  text:
+                                                      '${matrixData.colDegrees[j]}',
+                                                  tooltip:
+                                                      'Grado / Conexiones activas de la columna ${matrixData.labels[j]}',
+                                                  isSum: false,
+                                                  isSelected:
+                                                      isColSelected ||
+                                                      _selectedRowIndex ==
+                                                          matrixData
+                                                                  .labels
+                                                                  .length +
+                                                              1,
+                                                  colorScheme: colorScheme,
+                                                  width: cellWidth,
+                                                  height: cellHeight,
+                                                ),
+                                              );
+                                            },
+                                          ),
                                           // Gap under Right Bracket ']'
-                                          const SizedBox(width: bracketGap + bracketWidth + bracketGap),
+                                          const SizedBox(
+                                            width:
+                                                bracketGap +
+                                                bracketWidth +
+                                                bracketGap,
+                                          ),
                                         ],
                                       ),
                                     ],
@@ -718,7 +987,9 @@ class _AdjacencyMatrixScreenState extends ConsumerState<AdjacencyMatrixScreen> {
     EdgeInsetsGeometry? margin,
   }) {
     final baseColor = isSum ? colorScheme.primary : colorScheme.secondary;
-    final baseContainer = isSum ? colorScheme.primaryContainer : colorScheme.secondaryContainer;
+    final baseContainer = isSum
+        ? colorScheme.primaryContainer
+        : colorScheme.secondaryContainer;
 
     final bgColor = isSelected
         ? baseContainer
@@ -729,7 +1000,9 @@ class _AdjacencyMatrixScreenState extends ConsumerState<AdjacencyMatrixScreen> {
         : baseColor.withValues(alpha: 0.4);
 
     final textColor = isSelected
-        ? (isSum ? colorScheme.onPrimaryContainer : colorScheme.onSecondaryContainer)
+        ? (isSum
+              ? colorScheme.onPrimaryContainer
+              : colorScheme.onSecondaryContainer)
         : baseColor;
 
     return GestureDetector(
@@ -771,14 +1044,18 @@ class _AdjacencyMatrixScreenState extends ConsumerState<AdjacencyMatrixScreen> {
     required double height,
   }) {
     final baseColor = isSum ? colorScheme.primary : colorScheme.secondary;
-    final baseContainer = isSum ? colorScheme.primaryContainer : colorScheme.secondaryContainer;
+    final baseContainer = isSum
+        ? colorScheme.primaryContainer
+        : colorScheme.secondaryContainer;
 
     final bg = isSelected
         ? baseContainer
         : baseContainer.withValues(alpha: 0.2);
 
     final textColor = isSelected
-        ? (isSum ? colorScheme.onPrimaryContainer : colorScheme.onSecondaryContainer)
+        ? (isSum
+              ? colorScheme.onPrimaryContainer
+              : colorScheme.onSecondaryContainer)
         : baseColor;
 
     return Tooltip(
@@ -788,10 +1065,7 @@ class _AdjacencyMatrixScreenState extends ConsumerState<AdjacencyMatrixScreen> {
         color: colorScheme.onSurface,
         borderRadius: BorderRadius.circular(8),
       ),
-      textStyle: TextStyle(
-        color: colorScheme.surface,
-        fontSize: 12,
-      ),
+      textStyle: TextStyle(color: colorScheme.surface, fontSize: 12),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
         width: width,

@@ -30,7 +30,9 @@ class Grafo {
   Map<String, dynamic> toJson() {
     return {
       'nodos': nodos.map((key, value) => MapEntry(key, value.toJson())),
-      'conexiones': conexiones.map((key, value) => MapEntry(key, value.toJson())),
+      'conexiones': conexiones.map(
+        (key, value) => MapEntry(key, value.toJson()),
+      ),
       'atributosGlobales': atributosGlobales.map((a) => a.toJson()).toList(),
     };
   }
@@ -49,8 +51,8 @@ class Grafo {
     final rawAttrs = json['atributosGlobales'] as List<dynamic>?;
     final parsedAttrs = rawAttrs != null
         ? rawAttrs
-            .map((a) => Atributo.fromJson(a as Map<String, dynamic>))
-            .toList()
+              .map((a) => Atributo.fromJson(a as Map<String, dynamic>))
+              .toList()
         : const [Atributo(id: 'attr_valor', nombre: 'Valor')];
 
     return Grafo(
@@ -79,6 +81,7 @@ class Grafo {
     }
     return result;
   }
+
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
@@ -126,4 +129,3 @@ class Grafo {
     return hash;
   }
 }
-

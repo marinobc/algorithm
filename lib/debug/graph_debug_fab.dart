@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -38,7 +39,9 @@ class GraphDebugFab extends ConsumerWidget {
         for (final c in grafo.conexiones.values) {
           final orig = grafo.nodos[c.nodoOrigenId]?.nombre ?? c.nodoOrigenId;
           final dest = grafo.nodos[c.nodoDestinoId]?.nombre ?? c.nodoDestinoId;
-          final attrStr = c.atributos.map((a) => '${a.atributoId}: ${a.valor}').join(', ');
+          final attrStr = c.atributos
+              .map((a) => '${a.atributoId}: ${a.valor}')
+              .join(', ');
           summary.writeln(
             '//   $orig ➔ $dest | Dir: ${c.direccion.name} | Attrs: [$attrStr]',
           );

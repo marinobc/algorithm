@@ -40,12 +40,18 @@ class AssignmentAlgorithmCard extends ConsumerWidget {
           segments: const [
             ButtonSegment<OptimizationGoal>(
               value: OptimizationGoal.minimize,
-              label: Text('Min', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+              label: Text(
+                'Min',
+                style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+              ),
               icon: Icon(Icons.trending_down, size: 14),
             ),
             ButtonSegment<OptimizationGoal>(
               value: OptimizationGoal.maximize,
-              label: Text('Max', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+              label: Text(
+                'Max',
+                style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+              ),
               icon: Icon(Icons.trending_up, size: 14),
             ),
           ],
@@ -117,14 +123,17 @@ class AssignmentAlgorithmCard extends ConsumerWidget {
     for (int i = 0; i < result.allocationMatrix.length; i++) {
       for (int j = 0; j < result.allocationMatrix[i].length; j++) {
         if (result.allocationMatrix[i][j] > 0) {
-          final isFicticio = i >= problem.origins.length || j >= problem.destinations.length;
+          final isFicticio =
+              i >= problem.origins.length || j >= problem.destinations.length;
           final origLabel = i < problem.origins.length
               ? problem.origins[i].nombre
               : 'Descartado';
           final destLabel = j < problem.destinations.length
               ? problem.destinations[j].nombre
               : 'Descartado';
-          final costVal = (i < problem.costMatrix.length && j < problem.costMatrix[i].length)
+          final costVal =
+              (i < problem.costMatrix.length &&
+                  j < problem.costMatrix[i].length)
               ? problem.costMatrix[i][j]
               : 0.0;
 

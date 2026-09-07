@@ -338,8 +338,10 @@ class GraphShareService {
             FilledButton.icon(
               onPressed: () async {
                 try {
-                  final savedPath =
-                      await _saveJpgFile(jpgBytes, graphName ?? 'Grafo');
+                  final savedPath = await _saveJpgFile(
+                    jpgBytes,
+                    graphName ?? 'Grafo',
+                  );
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(

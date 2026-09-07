@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widget_previews.dart';
+
 import '../text/app_text.dart';
 import '../theme/app_theme.dart';
 
@@ -35,8 +36,9 @@ class FloatingContextMenu extends StatelessWidget {
           ),
           Card(
             elevation: 4,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
             color: colorScheme.surfaceContainerHigh,
             child: SizedBox(
               width: 140,
@@ -45,15 +47,21 @@ class FloatingContextMenu extends StatelessWidget {
                 children: [
                   InkWell(
                     onTap: onEdit,
-                    borderRadius:
-                        const BorderRadius.vertical(top: Radius.circular(16)),
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(16),
+                    ),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 16.0, vertical: 12.0),
+                        horizontal: 16.0,
+                        vertical: 12.0,
+                      ),
                       child: Row(
                         children: [
-                          Icon(Icons.edit_outlined,
-                              color: colorScheme.primary, size: 18),
+                          Icon(
+                            Icons.edit_outlined,
+                            color: colorScheme.primary,
+                            size: 18,
+                          ),
                           const SizedBox(width: 10),
                           Text(
                             AppText.edit,
@@ -67,21 +75,24 @@ class FloatingContextMenu extends StatelessWidget {
                       ),
                     ),
                   ),
-                  Divider(
-                    height: 1,
-                    color: colorScheme.outlineVariant,
-                  ),
+                  Divider(height: 1, color: colorScheme.outlineVariant),
                   InkWell(
                     onTap: onDelete,
                     borderRadius: const BorderRadius.vertical(
-                        bottom: Radius.circular(16)),
+                      bottom: Radius.circular(16),
+                    ),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 16.0, vertical: 12.0),
+                        horizontal: 16.0,
+                        vertical: 12.0,
+                      ),
                       child: Row(
                         children: [
-                          Icon(Icons.delete_outline,
-                              color: colorScheme.error, size: 18),
+                          Icon(
+                            Icons.delete_outline,
+                            color: colorScheme.error,
+                            size: 18,
+                          ),
                           const SizedBox(width: 10),
                           Text(
                             AppText.delete,
@@ -142,4 +153,3 @@ Widget floatingContextMenuLightPreview() {
     ),
   );
 }
-

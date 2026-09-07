@@ -30,10 +30,13 @@ class AdjacencyMatrixData {
   final List<int> colDegrees;
   final double totalWeightSum;
   final int totalDegrees;
+
   /// Δ(G): maximum vertex degree (edges incident to the most-connected node)
   final int maxDegree;
+
   /// δ(G): minimum vertex degree (edges incident to the least-connected node)
   final int minDegree;
+
   /// Per-vertex degree list: d(v) = edges incident to v (self-loops count twice)
   final List<int> vertexDegrees;
 

@@ -94,7 +94,9 @@ class GraphPainter extends CustomPainter {
 
       // Outer soft ambient glow (16.5px stroke => extends 7.0px from main line, matching node inflate 7.0)
       final glowBgPaint = Paint()
-        ..color = highlightBaseColor.withValues(alpha: palette.isDark ? 0.45 : 0.3)
+        ..color = highlightBaseColor.withValues(
+          alpha: palette.isDark ? 0.45 : 0.3,
+        )
         ..style = PaintingStyle.stroke
         ..strokeWidth = 16.5
         ..strokeCap = StrokeCap.round
@@ -110,7 +112,9 @@ class GraphPainter extends CustomPainter {
       canvas.drawPath(path, solidUnderlayPaint);
 
       // Highlight arrowhead tips in underlay pass
-      if (conn.isDirected && conn.arrowPoint != null && conn.arrowAngle != null) {
+      if (conn.isDirected &&
+          conn.arrowPoint != null &&
+          conn.arrowAngle != null) {
         _drawArrowHeadUnderlay(
           canvas,
           conn.arrowPoint!,
@@ -150,7 +154,9 @@ class GraphPainter extends CustomPainter {
 
       // Outer soft ambient glow fill (inflate 7.0 => extends 7.0px from node edge)
       final auraPaint = Paint()
-        ..color = highlightBaseColor.withValues(alpha: palette.isDark ? 0.45 : 0.3)
+        ..color = highlightBaseColor.withValues(
+          alpha: palette.isDark ? 0.45 : 0.3,
+        )
         ..style = PaintingStyle.fill
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8.0);
       final auraRRect = RRect.fromRectAndRadius(
@@ -274,10 +280,7 @@ class GraphPainter extends CustomPainter {
       bx - nx * (arrowWidth / 2),
       by - ny * (arrowWidth / 2),
     );
-    final pNotch = Offset(
-      bx + ux * notchDepth,
-      by + uy * notchDepth,
-    );
+    final pNotch = Offset(bx + ux * notchDepth, by + uy * notchDepth);
 
     return Path()
       ..moveTo(tip.dx, tip.dy)
@@ -296,7 +299,9 @@ class GraphPainter extends CustomPainter {
 
     // Outer soft ambient glow for stealth arrowhead (strokeWidth 14.0 => extends 7.0px on all sides)
     final glowPaint = Paint()
-      ..color = highlightBaseColor.withValues(alpha: palette.isDark ? 0.45 : 0.3)
+      ..color = highlightBaseColor.withValues(
+        alpha: palette.isDark ? 0.45 : 0.3,
+      )
       ..style = PaintingStyle.stroke
       ..strokeWidth = 14.0
       ..strokeCap = StrokeCap.round
@@ -387,10 +392,7 @@ class GraphPainter extends CustomPainter {
   ) {
     final textSpan = TextSpan(
       text: text,
-      style: const TextStyle(
-        fontSize: 12,
-        fontWeight: FontWeight.bold,
-      ),
+      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
     );
 
     final textPainter = TextPainter(
@@ -406,7 +408,9 @@ class GraphPainter extends CustomPainter {
 
     // 1. Soft ambient glow background (inflated by 7.0px on all sides)
     final glowPaint = Paint()
-      ..color = highlightBaseColor.withValues(alpha: palette.isDark ? 0.45 : 0.3)
+      ..color = highlightBaseColor.withValues(
+        alpha: palette.isDark ? 0.45 : 0.3,
+      )
       ..style = PaintingStyle.fill
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8.0);
     final glowRRect = RRect.fromRectAndRadius(

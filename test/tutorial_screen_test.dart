@@ -6,12 +6,12 @@ import 'package:nodos/ui/text/user_guide_text.dart';
 void main() {
   group('TutorialScreen Widget Tests', () {
     Widget buildSubject() {
-      return MaterialApp(
-        home: const TutorialScreen(),
-      );
+      return MaterialApp(home: const TutorialScreen());
     }
 
-    testWidgets('renders Markdown widget with tutorial content', (tester) async {
+    testWidgets('renders Markdown widget with tutorial content', (
+      tester,
+    ) async {
       await tester.pumpWidget(buildSubject());
       await tester.pumpAndSettle();
 
@@ -22,7 +22,9 @@ void main() {
       expect(find.textContaining('Guía de Uso'), findsWidgets);
     });
 
-    testWidgets('shows tutorial content text from UserGuideText', (tester) async {
+    testWidgets('shows tutorial content text from UserGuideText', (
+      tester,
+    ) async {
       await tester.pumpWidget(buildSubject());
       await tester.pumpAndSettle();
 
@@ -58,16 +60,18 @@ void main() {
 
     testWidgets('close button pops the route', (tester) async {
       // Push TutorialScreen on top of a dummy home so pop works.
-      await tester.pumpWidget(MaterialApp(
-        home: Builder(
-          builder: (ctx) => ElevatedButton(
-            onPressed: () => Navigator.of(ctx).push(
-              MaterialPageRoute(builder: (_) => const TutorialScreen()),
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Builder(
+            builder: (ctx) => ElevatedButton(
+              onPressed: () => Navigator.of(
+                ctx,
+              ).push(MaterialPageRoute(builder: (_) => const TutorialScreen())),
+              child: const Text('Open'),
             ),
-            child: const Text('Open'),
           ),
         ),
-      ));
+      );
 
       await tester.tap(find.text('Open'));
       await tester.pumpAndSettle();

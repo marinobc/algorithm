@@ -21,5 +21,6 @@ class AlgorithmHighlight {
   bool get isNotEmpty => !isEmpty;
 
   bool isNodeHighlighted(String nodeId) => nodeIds.contains(nodeId);
-  bool isConnectionHighlighted(String connectionId) => connectionIds.contains(connectionId);
+  bool isConnectionHighlighted(String connectionId) =>
+      connectionIds.contains(connectionId);
 }

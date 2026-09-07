@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widget_previews.dart';
+
 import '../../domain/models/conexion.dart';
 import '../../domain/models/direccion.dart';
 import '../text/app_text.dart';
@@ -32,16 +33,14 @@ class DeleteConfirmationDialog extends StatelessWidget {
     final directionLabel = isSelfLoop
         ? 'Bucle ($origName)'
         : (conn.direccion == Direccion.ninguna
-            ? '$origName - $destName'
-            : '$origName → $destName');
+              ? '$origName - $destName'
+              : '$origName → $destName');
 
     final filledValues = conn.atributos
         .where((av) => av.valor.trim().isNotEmpty)
         .map((av) {
           final tag = attributeNames[av.atributoId];
-          return tag != null && tag.isNotEmpty
-              ? '$tag: ${av.valor}'
-              : av.valor;
+          return tag != null && tag.isNotEmpty ? '$tag: ${av.valor}' : av.valor;
         })
         .toList();
 
@@ -63,8 +62,8 @@ class DeleteConfirmationDialog extends StatelessWidget {
 
     final confirmMessage = isNode
         ? (nodeName != null && nodeName!.isNotEmpty
-            ? DialogText.confirmDeleteNamedNode(nodeName!)
-            : DialogText.confirmDeleteNode)
+              ? DialogText.confirmDeleteNamedNode(nodeName!)
+              : DialogText.confirmDeleteNode)
         : DialogText.confirmDeleteConnection;
 
     return AlertDialog(
@@ -101,7 +100,8 @@ class DeleteConfirmationDialog extends StatelessWidget {
             const SizedBox(height: 12),
             Text(
               DialogText.confirmDeleteNodeConnections(
-                  connectionsToDelete.length),
+                connectionsToDelete.length,
+              ),
               style: TextStyle(
                 color: colorScheme.primary,
                 fontWeight: FontWeight.bold,
@@ -126,11 +126,15 @@ class DeleteConfirmationDialog extends StatelessWidget {
                       for (final conn in connectionsToDelete)
                         Padding(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 6.0, vertical: 4.0),
+                            horizontal: 6.0,
+                            vertical: 4.0,
+                          ),
                           child: Text(
                             _formatConnectionValues(conn),
                             style: TextStyle(
-                                color: colorScheme.onSurfaceVariant, fontSize: 12),
+                              color: colorScheme.onSurfaceVariant,
+                              fontSize: 12,
+                            ),
                           ),
                         ),
                     ],
@@ -190,12 +194,7 @@ Widget deleteConfirmationConnectionPreview() {
   return MaterialApp(
     debugShowCheckedModeBanner: false,
     home: Scaffold(
-      body: Center(
-        child: DeleteConfirmationDialog(
-          isNode: false,
-        ),
-      ),
+      body: Center(child: DeleteConfirmationDialog(isNode: false)),
     ),
   );
 }
-

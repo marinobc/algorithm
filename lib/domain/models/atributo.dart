@@ -2,33 +2,18 @@ class Atributo {
   final String id;
   final String nombre;
 
-  const Atributo({
-    required this.id,
-    required this.nombre,
-  });
+  const Atributo({required this.id, required this.nombre});
 
-  Atributo copyWith({
-    String? id,
-    String? nombre,
-  }) {
-    return Atributo(
-      id: id ?? this.id,
-      nombre: nombre ?? this.nombre,
-    );
+  Atributo copyWith({String? id, String? nombre}) {
+    return Atributo(id: id ?? this.id, nombre: nombre ?? this.nombre);
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'nombre': nombre,
-    };
+    return {'id': id, 'nombre': nombre};
   }
 
   factory Atributo.fromJson(Map<String, dynamic> json) {
-    return Atributo(
-      id: json['id'] as String,
-      nombre: json['nombre'] as String,
-    );
+    return Atributo(id: json['id'] as String, nombre: json['nombre'] as String);
   }
 
   @override
@@ -47,15 +32,9 @@ class AtributoValor {
   final String atributoId;
   final String valor;
 
-  const AtributoValor({
-    required this.atributoId,
-    required this.valor,
-  });
+  const AtributoValor({required this.atributoId, required this.valor});
 
-  AtributoValor copyWith({
-    String? atributoId,
-    String? valor,
-  }) {
+  AtributoValor copyWith({String? atributoId, String? valor}) {
     return AtributoValor(
       atributoId: atributoId ?? this.atributoId,
       valor: valor ?? this.valor,
@@ -63,10 +42,7 @@ class AtributoValor {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'atributoId': atributoId,
-      'valor': valor,
-    };
+    return {'atributoId': atributoId, 'valor': valor};
   }
 
   factory AtributoValor.fromJson(Map<String, dynamic> json) {
@@ -87,4 +63,3 @@ class AtributoValor {
   @override
   int get hashCode => atributoId.hashCode ^ valor.hashCode;
 }
-

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
+
 import '../text/user_guide_text.dart';
 
 typedef TutorialDialog = TutorialScreen;
@@ -52,9 +53,7 @@ class TutorialScreen extends StatelessWidget {
       blockquoteDecoration: BoxDecoration(
         color: colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(8),
-        border: Border(
-          left: BorderSide(color: colorScheme.primary, width: 4),
-        ),
+        border: Border(left: BorderSide(color: colorScheme.primary, width: 4)),
       ),
       horizontalRuleDecoration: BoxDecoration(
         border: Border(
@@ -115,7 +114,10 @@ class TutorialScreen extends StatelessWidget {
                     const SizedBox(height: 12),
                     const Text(
                       'Error: No se pudo cargar el contenido del tutorial.',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
                       textAlign: TextAlign.center,
                     ),
                   ],
@@ -154,7 +156,10 @@ class TutorialScreen extends StatelessWidget {
                     icon: const Icon(Icons.check_circle_outline),
                     label: const Text(
                       'Entendido, volver al lienzo',
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),

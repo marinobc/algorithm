@@ -1,5 +1,7 @@
 import 'dart:math';
+
 import 'package:flutter/material.dart';
+
 import '../../domain/models/direccion.dart';
 import '../../domain/models/grafo.dart';
 import '../../domain/services/graph_geometry.dart';
@@ -104,7 +106,8 @@ class GraphRenderModel {
   final List<RenderNode> nodes;
   final List<RenderConnectionLine> connections;
   final RenderDragLine? dragLine;
-  final double gridSpacing; // Distance between grid dots = 1 node diameter (50.0)
+  final double
+  gridSpacing; // Distance between grid dots = 1 node diameter (50.0)
 
   const GraphRenderModel({
     required this.nodes,
@@ -190,8 +193,11 @@ class GraphRenderModel {
       final currentIdx = pairIndex[pairKey] ?? 0;
       pairIndex[pairKey] = currentIdx + 1;
 
-      final offsetFactor =
-          GraphHitTester.calculateOffsetFactor(c, currentIdx, totalInPair);
+      final offsetFactor = GraphHitTester.calculateOffsetFactor(
+        c,
+        currentIdx,
+        totalInPair,
+      );
 
       final curve = GraphGeometry.calculateBezierCurve(
         origen: origen,
@@ -301,7 +307,8 @@ class GraphRenderModel {
         ),
       );
 
-      final isConnSelected = !isSelectedNode &&
+      final isConnSelected =
+          !isSelectedNode &&
           (selectedItemId == c.id ||
               (selectedConn != null &&
                   ((c.nodoOrigenId == selectedConn.nodoOrigenId &&
@@ -320,8 +327,8 @@ class GraphRenderModel {
           ),
           color: (c.direccion == Direccion.ninguna)
               ? (palette.surfaceBg.computeLuminance() > 0.45
-                  ? const Color(0xFF212121)
-                  : const Color(0xFFFFFFFF))
+                    ? const Color(0xFF212121)
+                    : const Color(0xFFFFFFFF))
               : Color(origen.colorValue),
           isDirected: c.direccion != Direccion.ninguna,
           arrowPoint: arrowPoint,

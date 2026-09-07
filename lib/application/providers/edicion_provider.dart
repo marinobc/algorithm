@@ -37,11 +37,8 @@ class EstadoEdicion {
   }
 
   @override
-  int get hashCode => Object.hash(
-        itemSeleccionadoId,
-        esNodo,
-        tieneCambiosSinGuardar,
-      );
+  int get hashCode =>
+      Object.hash(itemSeleccionadoId, esNodo, tieneCambiosSinGuardar);
 
   static const initial = EstadoEdicion();
 }
@@ -51,17 +48,11 @@ class EdicionNotifier extends Notifier<EstadoEdicion> {
   EstadoEdicion build() => EstadoEdicion.initial;
 
   void seleccionarNodo(String nodoId) {
-    state = state.copyWith(
-      itemSeleccionadoId: nodoId,
-      esNodo: true,
-    );
+    state = state.copyWith(itemSeleccionadoId: nodoId, esNodo: true);
   }
 
   void seleccionarConexion(String conexionId) {
-    state = state.copyWith(
-      itemSeleccionadoId: conexionId,
-      esNodo: false,
-    );
+    state = state.copyWith(itemSeleccionadoId: conexionId, esNodo: false);
   }
 
   void marcarCambioSinGuardar() {
@@ -83,7 +74,8 @@ class EdicionNotifier extends Notifier<EstadoEdicion> {
   }
 }
 
-final estadoEdicionProvider =
-    NotifierProvider<EdicionNotifier, EstadoEdicion>(() {
-  return EdicionNotifier();
-});
+final estadoEdicionProvider = NotifierProvider<EdicionNotifier, EstadoEdicion>(
+  () {
+    return EdicionNotifier();
+  },
+);

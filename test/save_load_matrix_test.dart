@@ -17,8 +17,20 @@ void main() {
 
   group('Grafo JSON Serialization & Deserialization', () {
     test('Grafo -> toJson -> fromJson restores exact graph state', () {
-      const n1 = Nodo(id: 'n1', nombre: 'Nodo A', colorValue: 0xFF2196F3, x: 100, y: 150);
-      const n2 = Nodo(id: 'n2', nombre: 'Nodo B', colorValue: 0xFFFF9800, x: 300, y: 350);
+      const n1 = Nodo(
+        id: 'n1',
+        nombre: 'Nodo A',
+        colorValue: 0xFF2196F3,
+        x: 100,
+        y: 150,
+      );
+      const n2 = Nodo(
+        id: 'n2',
+        nombre: 'Nodo B',
+        colorValue: 0xFFFF9800,
+        x: 300,
+        y: 350,
+      );
 
       const conn = Conexion(
         id: 'c1',
@@ -51,7 +63,13 @@ void main() {
     });
 
     test('GraphStorageService exportToJson and importFromJson roundtrip', () {
-      const n1 = Nodo(id: 'n1', nombre: 'Alpha', colorValue: 0xFF000000, x: 0, y: 0);
+      const n1 = Nodo(
+        id: 'n1',
+        nombre: 'Alpha',
+        colorValue: 0xFF000000,
+        x: 0,
+        y: 0,
+      );
       final original = Grafo(nodos: {'n1': n1});
 
       final jsonStr = GraphStorageService.exportToJson(original);
@@ -73,8 +91,20 @@ void main() {
     });
 
     test('Graph with 2 connected nodes produces 2x2 binary and weighted matrix', () {
-      const n1 = Nodo(id: 'n1', nombre: 'A', colorValue: 0xFF000000, x: 0, y: 0);
-      const n2 = Nodo(id: 'n2', nombre: 'B', colorValue: 0xFF000000, x: 100, y: 100);
+      const n1 = Nodo(
+        id: 'n1',
+        nombre: 'A',
+        colorValue: 0xFF000000,
+        x: 0,
+        y: 0,
+      );
+      const n2 = Nodo(
+        id: 'n2',
+        nombre: 'B',
+        colorValue: 0xFF000000,
+        x: 100,
+        y: 100,
+      );
       const conn = Conexion(
         id: 'c1',
         nodoOrigenId: 'n1',
@@ -123,15 +153,24 @@ void main() {
       final initial = await GraphStorageService.getSavedGraphs();
       expect(initial, isEmpty);
 
-      final savedItem = await GraphStorageService.saveGraphSlot('Test Slot', graph);
+      final savedItem = await GraphStorageService.saveGraphSlot(
+        'Test Slot',
+        graph,
+      );
 
       final afterSave = await GraphStorageService.getSavedGraphs();
       expect(afterSave.length, equals(1));
       expect(afterSave.first.nombre, equals('Test Slot'));
 
       // Test overrideSavedGraphSlot
-      const updatedGraph = Grafo(nodos: {'n1': Nodo(id: 'n1', x: 0, y: 0, colorValue: 0xFF123456)});
-      await GraphStorageService.overrideSavedGraphSlot(savedItem.id, 'Test Slot Updated', updatedGraph);
+      const updatedGraph = Grafo(
+        nodos: {'n1': Nodo(id: 'n1', x: 0, y: 0, colorValue: 0xFF123456)},
+      );
+      await GraphStorageService.overrideSavedGraphSlot(
+        savedItem.id,
+        'Test Slot Updated',
+        updatedGraph,
+      );
 
       final afterOverride = await GraphStorageService.getSavedGraphs();
       expect(afterOverride.length, equals(1));
@@ -145,16 +184,16 @@ void main() {
   });
 
   group('Control Widgets Tests', () {
-    testWidgets('CanvasControlsFabs renders center FAB and responds to click', (tester) async {
+    testWidgets('CanvasControlsFabs renders center FAB and responds to click', (
+      tester,
+    ) async {
       bool resetClicked = false;
 
       await tester.pumpWidget(
         ProviderScope(
           child: MaterialApp(
             home: Scaffold(
-              body: CanvasControlsFabs(
-                onResetView: () => resetClicked = true,
-              ),
+              body: CanvasControlsFabs(onResetView: () => resetClicked = true),
             ),
           ),
         ),
@@ -175,13 +214,22 @@ void main() {
 
       expect(container.read(grafoProvider).nodos, isEmpty);
 
-      const n1 = Nodo(id: 'n1', nombre: 'Loaded Node', colorValue: 0xFF123456, x: 10, y: 20);
+      const n1 = Nodo(
+        id: 'n1',
+        nombre: 'Loaded Node',
+        colorValue: 0xFF123456,
+        x: 10,
+        y: 20,
+      );
       final newGraph = Grafo(nodos: {'n1': n1});
 
       notifier.cargarGrafo(newGraph);
 
       expect(container.read(grafoProvider).nodos.length, equals(1));
-      expect(container.read(grafoProvider).nodos['n1']?.nombre, equals('Loaded Node'));
+      expect(
+        container.read(grafoProvider).nodos['n1']?.nombre,
+        equals('Loaded Node'),
+      );
 
       // Loading graph starts with clean undo history (no false unsaved changes)
       expect(notifier.puedeDeshacer, isFalse);

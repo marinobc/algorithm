@@ -139,7 +139,9 @@ class HungarianAssignmentSolver implements ITransportationSolver {
     required OptimizationGoal goal,
   }) {
     final origNames = problem.origins.map((o) => o.nombre ?? o.id).toList();
-    final destNames = problem.destinations.map((d) => d.nombre ?? d.id).toList();
+    final destNames = problem.destinations
+        .map((d) => d.nombre ?? d.id)
+        .toList();
 
     // 1. Balance/Pad rectangular matrix to square N x N (N = max(M, N)) with 0 cost for dummy nodes
     final balanced = TransportationSolverHelper.balanceProblem(
@@ -150,10 +152,16 @@ class HungarianAssignmentSolver implements ITransportationSolver {
       problem.costMatrix,
     );
 
-    final n = max(balanced.originLabels.length, balanced.destinationLabels.length);
+    final n = max(
+      balanced.originLabels.length,
+      balanced.destinationLabels.length,
+    );
     final origLabels = List<String>.from(balanced.originLabels);
     final destLabels = List<String>.from(balanced.destinationLabels);
-    final costs = List.generate(n, (i) => List<double>.from(balanced.costMatrix[i]));
+    final costs = List.generate(
+      n,
+      (i) => List<double>.from(balanced.costMatrix[i]),
+    );
 
     // Pad matrix up to square n x n if origins or destinations lengths differ
     while (origLabels.length < n) {
@@ -172,13 +180,15 @@ class HungarianAssignmentSolver implements ITransportationSolver {
 
     // 2. Goal Adjustment for Maximization vs Minimization
     final effCosts = TransportationSolverHelper.transformForGoal(costs, goal);
-    steps.add(StepExplanation(
-      stepNumber: stepCounter++,
-      title: 'Paso 1: Matriz de Costos Inicial',
-      description: goal == OptimizationGoal.maximize
-          ? 'Matriz ajustada para maximización.'
-          : 'Matriz inicial de costos.',
-    ));
+    steps.add(
+      StepExplanation(
+        stepNumber: stepCounter++,
+        title: 'Paso 1: Matriz de Costos Inicial',
+        description: goal == OptimizationGoal.maximize
+            ? 'Matriz ajustada para maximización.'
+            : 'Matriz inicial de costos.',
+      ),
+    );
 
     // 3. Step 1: Row Reduction (\alpha_i)
     final rowReduced = List.generate(n, (i) => List<double>.from(effCosts[i]));
@@ -190,15 +200,24 @@ class HungarianAssignmentSolver implements ITransportationSolver {
         rowReduced[i][j] -= minVal;
       }
     }
-    steps.add(StepExplanation(
-      stepNumber: stepCounter++,
-      title: 'Paso 2: Reducción por Filas (Alpha)',
-      description: 'Se resta el mínimo de cada fila a sus elementos (Alpha_i).',
-      currentAllocations: List.generate(n, (r) => List<double>.from(rowReduced[r])),
-    ));
+    steps.add(
+      StepExplanation(
+        stepNumber: stepCounter++,
+        title: 'Paso 2: Reducción por Filas (Alpha)',
+        description:
+            'Se resta el mínimo de cada fila a sus elementos (Alpha_i).',
+        currentAllocations: List.generate(
+          n,
+          (r) => List<double>.from(rowReduced[r]),
+        ),
+      ),
+    );
 
     // 4. Step 2: Column Reduction (\beta_j)
-    final colReduced = List.generate(n, (i) => List<double>.from(rowReduced[i]));
+    final colReduced = List.generate(
+      n,
+      (i) => List<double>.from(rowReduced[i]),
+    );
     final beta = List<double>.filled(n, 0.0);
     for (int j = 0; j < n; j++) {
       double minVal = double.infinity;
@@ -210,15 +229,24 @@ class HungarianAssignmentSolver implements ITransportationSolver {
         colReduced[i][j] -= minVal;
       }
     }
-    steps.add(StepExplanation(
-      stepNumber: stepCounter++,
-      title: 'Paso 3: Reducción por Columnas (Beta)',
-      description: 'Se resta el mínimo de cada columna a sus elementos (Beta_j).',
-      currentAllocations: List.generate(n, (r) => List<double>.from(colReduced[r])),
-    ));
+    steps.add(
+      StepExplanation(
+        stepNumber: stepCounter++,
+        title: 'Paso 3: Reducción por Columnas (Beta)',
+        description:
+            'Se resta el mínimo de cada columna a sus elementos (Beta_j).',
+        currentAllocations: List.generate(
+          n,
+          (r) => List<double>.from(colReduced[r]),
+        ),
+      ),
+    );
 
     // 5. Step 3: Line Cover & Theta Adjustment until N lines cover all zeros
-    final workingMatrix = List.generate(n, (i) => List<double>.from(colReduced[i]));
+    final workingMatrix = List.generate(
+      n,
+      (i) => List<double>.from(colReduced[i]),
+    );
     var match = _findMaximumMatching(workingMatrix, n);
 
     while (match.length < n) {
@@ -253,14 +281,19 @@ class HungarianAssignmentSolver implements ITransportationSolver {
     }
 
     // 6. Build final allocation matrix n x n
-    final allocationMatrix = List.generate(n, (_) => List<double>.filled(n, 0.0));
+    final allocationMatrix = List.generate(
+      n,
+      (_) => List<double>.filled(n, 0.0),
+    );
     double totalCost = 0.0;
 
     for (int i = 0; i < n; i++) {
       final j = match[i];
       if (j != null && j >= 0 && j < n) {
         allocationMatrix[i][j] = 1.0;
-        final actualCost = (i < costs.length && j < costs[i].length) ? costs[i][j] : 0.0;
+        final actualCost = (i < costs.length && j < costs[i].length)
+            ? costs[i][j]
+            : 0.0;
         if (actualCost.isFinite) {
           totalCost += actualCost;
         }
@@ -278,7 +311,10 @@ class HungarianAssignmentSolver implements ITransportationSolver {
       allocationMatrix: allocationMatrix,
       totalCost: totalCost,
       steps: steps,
-      wasBalancedWithDummy: balanced.wasBalanced || origLabels.length > problem.origins.length || destLabels.length > problem.destinations.length,
+      wasBalancedWithDummy:
+          balanced.wasBalanced ||
+          origLabels.length > problem.origins.length ||
+          destLabels.length > problem.destinations.length,
       dummyLabelAdded: balanced.dummyAddedLabel,
     );
   }
@@ -308,12 +344,24 @@ class HungarianAssignmentSolver implements ITransportationSolver {
     return match;
   }
 
-  bool _bpm(int u, List<List<double>> matrix, int n, Map<int, int> matchR, Set<int> visited) {
+  bool _bpm(
+    int u,
+    List<List<double>> matrix,
+    int n,
+    Map<int, int> matchR,
+    Set<int> visited,
+  ) {
     for (int v = 0; v < n; v++) {
       if (matrix[u][v].abs() < 1e-5 && !visited.contains(v)) {
         visited.add(v);
-        final currentMatch = matchR.entries.firstWhere((e) => e.value == v, orElse: () => const MapEntry(-1, -1)).key;
-        if (currentMatch == -1 || _bpm(currentMatch, matrix, n, matchR, visited)) {
+        final currentMatch = matchR.entries
+            .firstWhere(
+              (e) => e.value == v,
+              orElse: () => const MapEntry(-1, -1),
+            )
+            .key;
+        if (currentMatch == -1 ||
+            _bpm(currentMatch, matrix, n, matchR, visited)) {
           matchR[u] = v;
           return true;
         }
@@ -322,7 +370,11 @@ class HungarianAssignmentSolver implements ITransportationSolver {
     return false;
   }
 
-  _LineCover _computeMinimumLineCover(List<List<double>> matrix, int n, Map<int, int> match) {
+  _LineCover _computeMinimumLineCover(
+    List<List<double>> matrix,
+    int n,
+    Map<int, int> match,
+  ) {
     final markedRows = <int>{};
     final markedCols = <int>{};
 
@@ -342,7 +394,12 @@ class HungarianAssignmentSolver implements ITransportationSolver {
         }
       }
       for (final c in markedCols.toList()) {
-        final r = match.entries.firstWhere((e) => e.value == c, orElse: () => const MapEntry(-1, -1)).key;
+        final r = match.entries
+            .firstWhere(
+              (e) => e.value == c,
+              orElse: () => const MapEntry(-1, -1),
+            )
+            .key;
         if (r != -1 && !markedRows.contains(r)) {
           markedRows.add(r);
           newlyMarked = true;

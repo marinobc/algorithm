@@ -1,6 +1,8 @@
 import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../domain/models/atributo.dart';
 import '../../domain/models/conexion.dart';
 import '../../domain/models/direccion.dart';
@@ -66,7 +68,12 @@ class GrafoNotifier extends Notifier<Grafo> {
 
     if (existingHues.isEmpty) {
       final initialHue = Random().nextDouble() * 360.0;
-      return HSVColor.fromAHSV(1.0, initialHue, 0.85, 0.95).toColor().toARGB32();
+      return HSVColor.fromAHSV(
+        1.0,
+        initialHue,
+        0.85,
+        0.95,
+      ).toColor().toARGB32();
     }
 
     double bestHue = 0.0;
@@ -99,17 +106,13 @@ class GrafoNotifier extends Notifier<Grafo> {
   }
 
   /// Adds a new node to the graph and returns the created node.
-  Nodo agregarNodo(
-    double x,
-    double y, {
-    String? nombre,
-    int? colorValue,
-  }) {
+  Nodo agregarNodo(double x, double y, {String? nombre, int? colorValue}) {
     _recordUndoState();
     final clamped = GraphGeometry.clampNodePosition(x, y);
     final nextNumber = state.nodos.length + 1;
     final nodeName = nombre ?? 'Nodo $nextNumber';
-    final nodeId = 'nodo_${DateTime.now().microsecondsSinceEpoch}_${_nodeSeq++}';
+    final nodeId =
+        'nodo_${DateTime.now().microsecondsSinceEpoch}_${_nodeSeq++}';
     final nodeColor = colorValue ?? generateMaximallyDistinctColor();
 
     final nuevoNodo = Nodo(
@@ -120,7 +123,8 @@ class GrafoNotifier extends Notifier<Grafo> {
       y: clamped.y,
     );
 
-    final updatedNodos = Map<String, Nodo>.from(state.nodos)..[nodeId] = nuevoNodo;
+    final updatedNodos = Map<String, Nodo>.from(state.nodos)
+      ..[nodeId] = nuevoNodo;
     state = state.copyWith(nodos: updatedNodos);
     return nuevoNodo;
   }
@@ -134,7 +138,8 @@ class GrafoNotifier extends Notifier<Grafo> {
     }
     final clamped = GraphGeometry.clampNodePosition(x, y);
     final updatedNodo = nodo.copyWith(x: clamped.x, y: clamped.y);
-    final updatedNodos = Map<String, Nodo>.from(state.nodos)..[id] = updatedNodo;
+    final updatedNodos = Map<String, Nodo>.from(state.nodos)
+      ..[id] = updatedNodo;
     state = state.copyWith(nodos: updatedNodos);
   }
 
@@ -147,7 +152,8 @@ class GrafoNotifier extends Notifier<Grafo> {
       nombre: nombre ?? nodo.nombre,
       colorValue: colorValue ?? nodo.colorValue,
     );
-    final updatedNodos = Map<String, Nodo>.from(state.nodos)..[id] = updatedNodo;
+    final updatedNodos = Map<String, Nodo>.from(state.nodos)
+      ..[id] = updatedNodo;
     state = state.copyWith(nodos: updatedNodos);
   }
 
@@ -161,10 +167,7 @@ class GrafoNotifier extends Notifier<Grafo> {
     final updatedConexiones = Map<String, Conexion>.from(state.conexiones)
       ..removeWhere((key, value) => idsAEliminar.contains(key));
 
-    state = state.copyWith(
-      nodos: updatedNodos,
-      conexiones: updatedConexiones,
-    );
+    state = state.copyWith(nodos: updatedNodos, conexiones: updatedConexiones);
 
     return conexionesAEliminar;
   }
@@ -187,17 +190,24 @@ class GrafoNotifier extends Notifier<Grafo> {
     if (isSelfLoop) {
       final existingLoop = state.conexiones.values.firstWhere(
         (c) => c.nodoOrigenId == origenId && c.nodoDestinoId == origenId,
-        orElse: () => const Conexion(id: '', nodoOrigenId: '', nodoDestinoId: '', colorValue: 0),
+        orElse: () => const Conexion(
+          id: '',
+          nodoOrigenId: '',
+          nodoDestinoId: '',
+          colorValue: 0,
+        ),
       );
       if (existingLoop.id.isNotEmpty) {
         return [];
       }
     } else {
-      final existingPair = state.conexiones.values.where(
-        (c) =>
-            (c.nodoOrigenId == origenId && c.nodoDestinoId == destinoId) ||
-            (c.nodoOrigenId == destinoId && c.nodoDestinoId == origenId),
-      ).toList();
+      final existingPair = state.conexiones.values
+          .where(
+            (c) =>
+                (c.nodoOrigenId == origenId && c.nodoDestinoId == destinoId) ||
+                (c.nodoOrigenId == destinoId && c.nodoDestinoId == origenId),
+          )
+          .toList();
 
       if (existingPair.length >= 2) {
         return [];
@@ -208,17 +218,21 @@ class GrafoNotifier extends Notifier<Grafo> {
           nodeBId: destinoId,
           targetDirection: Direccion.bidireccional,
         );
-        return state.conexiones.values.where(
-          (c) =>
-              (c.nodoOrigenId == origenId && c.nodoDestinoId == destinoId) ||
-              (c.nodoOrigenId == destinoId && c.nodoDestinoId == origenId),
-        ).toList();
+        return state.conexiones.values
+            .where(
+              (c) =>
+                  (c.nodoOrigenId == origenId &&
+                      c.nodoDestinoId == destinoId) ||
+                  (c.nodoOrigenId == destinoId && c.nodoDestinoId == origenId),
+            )
+            .toList();
       }
     }
 
     _recordUndoState();
     final defaultConfigVal = ref.read(configProvider).valorConexionPorDefecto;
-    final validDefaultVal = (defaultConfigVal.isEmpty ||
+    final validDefaultVal =
+        (defaultConfigVal.isEmpty ||
             double.tryParse(defaultConfigVal) == null ||
             (double.tryParse(defaultConfigVal) ?? 0) <= 0)
         ? '1'
@@ -231,14 +245,20 @@ class GrafoNotifier extends Notifier<Grafo> {
 
     final hasValAttr = defaultAttrs.any((a) => a.atributoId == 'attr_valor');
     if (!hasValAttr) {
-      defaultAttrs.insert(0, AtributoValor(atributoId: 'attr_valor', valor: validDefaultVal));
+      defaultAttrs.insert(
+        0,
+        AtributoValor(atributoId: 'attr_valor', valor: validDefaultVal),
+      );
     } else {
       for (int i = 0; i < defaultAttrs.length; i++) {
         if (defaultAttrs[i].atributoId == 'attr_valor') {
           final valStr = defaultAttrs[i].valor.trim();
           final numVal = double.tryParse(valStr);
           if (valStr.isEmpty || numVal == null || numVal <= 0) {
-            defaultAttrs[i] = AtributoValor(atributoId: 'attr_valor', valor: validDefaultVal);
+            defaultAttrs[i] = AtributoValor(
+              atributoId: 'attr_valor',
+              valor: validDefaultVal,
+            );
           }
         }
       }
@@ -277,10 +297,12 @@ class GrafoNotifier extends Notifier<Grafo> {
       return [c1, c2];
     } else {
       final conexionId = 'conn_${DateTime.now().microsecondsSinceEpoch}';
-      final connColor = colorValue ??
+      final connColor =
+          colorValue ??
           (targetDireccion == Direccion.ninguna
               ? 0xFF9E9E9E // Soft gray for non-directional
-              : (origNode?.colorValue ?? 0xFF00E676)); // Origin node color for directional
+              : (origNode?.colorValue ??
+                    0xFF00E676)); // Origin node color for directional
 
       final nuevaConexion = Conexion(
         id: conexionId,
@@ -352,23 +374,36 @@ class GrafoNotifier extends Notifier<Grafo> {
 
     final connAtoB = updatedConexiones.values.firstWhere(
       (c) => c.nodoOrigenId == nodeAId && c.nodoDestinoId == nodeBId,
-      orElse: () => const Conexion(id: '', nodoOrigenId: '', nodoDestinoId: '', colorValue: 0),
+      orElse: () => const Conexion(
+        id: '',
+        nodoOrigenId: '',
+        nodoDestinoId: '',
+        colorValue: 0,
+      ),
     );
 
     final connBtoA = updatedConexiones.values.firstWhere(
       (c) => c.nodoOrigenId == nodeBId && c.nodoDestinoId == nodeAId,
-      orElse: () => const Conexion(id: '', nodoOrigenId: '', nodoDestinoId: '', colorValue: 0),
+      orElse: () => const Conexion(
+        id: '',
+        nodoOrigenId: '',
+        nodoDestinoId: '',
+        colorValue: 0,
+      ),
     );
 
     final now = DateTime.now().microsecondsSinceEpoch;
 
     final defaultConfigVal = ref.read(configProvider).valorConexionPorDefecto;
-    final validDefaultVal = (defaultConfigVal.isEmpty ||
+    final validDefaultVal =
+        (defaultConfigVal.isEmpty ||
             double.tryParse(defaultConfigVal) == null ||
             (double.tryParse(defaultConfigVal) ?? 0) <= 0)
         ? '1'
         : defaultConfigVal;
-    final fallbackAttrs = [AtributoValor(atributoId: 'attr_valor', valor: validDefaultVal)];
+    final fallbackAttrs = [
+      AtributoValor(atributoId: 'attr_valor', valor: validDefaultVal),
+    ];
 
     if (targetDirection == Direccion.bidireccional) {
       final id1 = connAtoB.id.isNotEmpty ? connAtoB.id : 'conn_${now}_1';
@@ -378,9 +413,15 @@ class GrafoNotifier extends Notifier<Grafo> {
         id: id1,
         nodoOrigenId: nodeAId,
         nodoDestinoId: nodeBId,
-        colorValue: colorValueAtoB ?? (connAtoB.id.isNotEmpty ? connAtoB.colorValue : 0xFF4CAF50),
+        colorValue:
+            colorValueAtoB ??
+            (connAtoB.id.isNotEmpty ? connAtoB.colorValue : 0xFF4CAF50),
         direccion: Direccion.unidireccional,
-        atributos: atributosAtoB ?? (connAtoB.id.isNotEmpty && connAtoB.atributos.isNotEmpty ? connAtoB.atributos : fallbackAttrs),
+        atributos:
+            atributosAtoB ??
+            (connAtoB.id.isNotEmpty && connAtoB.atributos.isNotEmpty
+                ? connAtoB.atributos
+                : fallbackAttrs),
         curvatura: connAtoB.id.isNotEmpty ? connAtoB.curvatura : null,
         loopAngle: connAtoB.id.isNotEmpty ? connAtoB.loopAngle : null,
         offsetControlX: connAtoB.id.isNotEmpty ? connAtoB.offsetControlX : null,
@@ -391,9 +432,15 @@ class GrafoNotifier extends Notifier<Grafo> {
         id: id2,
         nodoOrigenId: nodeBId,
         nodoDestinoId: nodeAId,
-        colorValue: colorValueBtoA ?? (connBtoA.id.isNotEmpty ? connBtoA.colorValue : 0xFFFF9800),
+        colorValue:
+            colorValueBtoA ??
+            (connBtoA.id.isNotEmpty ? connBtoA.colorValue : 0xFFFF9800),
         direccion: Direccion.unidireccional,
-        atributos: atributosBtoA ?? (connBtoA.id.isNotEmpty && connBtoA.atributos.isNotEmpty ? connBtoA.atributos : fallbackAttrs),
+        atributos:
+            atributosBtoA ??
+            (connBtoA.id.isNotEmpty && connBtoA.atributos.isNotEmpty
+                ? connBtoA.atributos
+                : fallbackAttrs),
         curvatura: connBtoA.id.isNotEmpty ? connBtoA.curvatura : null,
         loopAngle: connBtoA.id.isNotEmpty ? connBtoA.loopAngle : null,
         offsetControlX: connBtoA.id.isNotEmpty ? connBtoA.offsetControlX : null,
@@ -409,9 +456,15 @@ class GrafoNotifier extends Notifier<Grafo> {
         id: id1,
         nodoOrigenId: nodeAId,
         nodoDestinoId: nodeBId,
-        colorValue: colorValueAtoB ?? (connAtoB.id.isNotEmpty ? connAtoB.colorValue : 0xFF4CAF50),
+        colorValue:
+            colorValueAtoB ??
+            (connAtoB.id.isNotEmpty ? connAtoB.colorValue : 0xFF4CAF50),
         direccion: Direccion.unidireccional,
-        atributos: atributosAtoB ?? (connAtoB.id.isNotEmpty && connAtoB.atributos.isNotEmpty ? connAtoB.atributos : fallbackAttrs),
+        atributos:
+            atributosAtoB ??
+            (connAtoB.id.isNotEmpty && connAtoB.atributos.isNotEmpty
+                ? connAtoB.atributos
+                : fallbackAttrs),
         curvatura: connAtoB.id.isNotEmpty ? connAtoB.curvatura : null,
         loopAngle: connAtoB.id.isNotEmpty ? connAtoB.loopAngle : null,
         offsetControlX: connAtoB.id.isNotEmpty ? connAtoB.offsetControlX : null,
@@ -427,9 +480,15 @@ class GrafoNotifier extends Notifier<Grafo> {
         id: id1,
         nodoOrigenId: nodeAId,
         nodoDestinoId: nodeBId,
-        colorValue: colorValueAtoB ?? (connAtoB.id.isNotEmpty ? connAtoB.colorValue : 0xFF9E9E9E),
+        colorValue:
+            colorValueAtoB ??
+            (connAtoB.id.isNotEmpty ? connAtoB.colorValue : 0xFF9E9E9E),
         direccion: Direccion.ninguna,
-        atributos: atributosAtoB ?? (connAtoB.id.isNotEmpty && connAtoB.atributos.isNotEmpty ? connAtoB.atributos : fallbackAttrs),
+        atributos:
+            atributosAtoB ??
+            (connAtoB.id.isNotEmpty && connAtoB.atributos.isNotEmpty
+                ? connAtoB.atributos
+                : fallbackAttrs),
         curvatura: connAtoB.id.isNotEmpty ? connAtoB.curvatura : null,
         loopAngle: connAtoB.id.isNotEmpty ? connAtoB.loopAngle : null,
         offsetControlX: connAtoB.id.isNotEmpty ? connAtoB.offsetControlX : null,
@@ -507,5 +566,5 @@ class LoadedGraphItemNotifier extends Notifier<SavedGraphItem?> {
 
 final loadedGraphItemProvider =
     NotifierProvider<LoadedGraphItemNotifier, SavedGraphItem?>(() {
-  return LoadedGraphItemNotifier();
-});
+      return LoadedGraphItemNotifier();
+    });

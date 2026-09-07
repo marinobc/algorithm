@@ -57,7 +57,8 @@ class ConfigNotifier extends Notifier<ConfigEstado> {
       Direccion connType = state.tipoConexionPorDefecto;
       if (savedConnType != null) {
         if (savedConnType == 'ninguna') connType = Direccion.ninguna;
-        if (savedConnType == 'unidireccional') connType = Direccion.unidireccional;
+        if (savedConnType == 'unidireccional')
+          connType = Direccion.unidireccional;
       }
 
       state = state.copyWith(themeMode: mode, tipoConexionPorDefecto: connType);
@@ -98,8 +99,9 @@ class ConfigNotifier extends Notifier<ConfigEstado> {
   }
 
   void toggleTheme() {
-    final next =
-        state.themeMode == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
+    final next = state.themeMode == ThemeMode.dark
+        ? ThemeMode.light
+        : ThemeMode.dark;
     state = state.copyWith(themeMode: next);
     _saveTheme(next);
   }

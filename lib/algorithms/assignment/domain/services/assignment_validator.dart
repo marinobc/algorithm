@@ -71,8 +71,10 @@ class TransportationValidator {
 
     for (final conexion in grafo.conexiones.values) {
       if (conexion.direccion == Direccion.unidireccional) {
-        outDegree[conexion.nodoOrigenId] = (outDegree[conexion.nodoOrigenId] ?? 0) + 1;
-        inDegree[conexion.nodoDestinoId] = (inDegree[conexion.nodoDestinoId] ?? 0) + 1;
+        outDegree[conexion.nodoOrigenId] =
+            (outDegree[conexion.nodoOrigenId] ?? 0) + 1;
+        inDegree[conexion.nodoDestinoId] =
+            (inDegree[conexion.nodoDestinoId] ?? 0) + 1;
       }
     }
 
@@ -108,16 +110,14 @@ class TransportationValidator {
     if (origins.isEmpty) {
       return const TransportationValidationResult(
         isValid: false,
-        errorMessage:
-            'No se puede aplicar el algoritmo, modifique el grafo para incluir al menos un nodo de Origen (sin conexiones entrantes).',
+        errorMessage: 'No se puede aplicar el algoritmo, modifique el grafo para incluir al menos un nodo de Origen (sin conexiones entrantes).',
       );
     }
 
     if (destinations.isEmpty) {
       return const TransportationValidationResult(
         isValid: false,
-        errorMessage:
-            'No se puede aplicar el algoritmo, modifique el grafo para incluir al menos un nodo de Destino (sin conexiones salientes).',
+        errorMessage: 'No se puede aplicar el algoritmo, modifique el grafo para incluir al menos un nodo de Destino (sin conexiones salientes).',
       );
     }
 
@@ -126,10 +126,13 @@ class TransportationValidator {
 
     // 4. Verify no origin-to-origin or destination-to-destination connections
     for (final conexion in grafo.conexiones.values) {
-      final origName = grafo.nodos[conexion.nodoOrigenId]?.nombre ?? conexion.nodoOrigenId;
-      final destName = grafo.nodos[conexion.nodoDestinoId]?.nombre ?? conexion.nodoDestinoId;
+      final origName =
+          grafo.nodos[conexion.nodoOrigenId]?.nombre ?? conexion.nodoOrigenId;
+      final destName =
+          grafo.nodos[conexion.nodoDestinoId]?.nombre ?? conexion.nodoDestinoId;
 
-      if (originIds.contains(conexion.nodoOrigenId) && originIds.contains(conexion.nodoDestinoId)) {
+      if (originIds.contains(conexion.nodoOrigenId) &&
+          originIds.contains(conexion.nodoDestinoId)) {
         return TransportationValidationResult(
           isValid: false,
           errorMessage:
@@ -137,7 +140,8 @@ class TransportationValidator {
         );
       }
 
-      if (destIds.contains(conexion.nodoOrigenId) && destIds.contains(conexion.nodoDestinoId)) {
+      if (destIds.contains(conexion.nodoOrigenId) &&
+          destIds.contains(conexion.nodoDestinoId)) {
         return TransportationValidationResult(
           isValid: false,
           errorMessage:
@@ -146,7 +150,8 @@ class TransportationValidator {
       }
 
       // Check for reverse destination -> origin edge
-      if (destIds.contains(conexion.nodoOrigenId) && originIds.contains(conexion.nodoDestinoId)) {
+      if (destIds.contains(conexion.nodoOrigenId) &&
+          originIds.contains(conexion.nodoDestinoId)) {
         return TransportationValidationResult(
           isValid: false,
           errorMessage:

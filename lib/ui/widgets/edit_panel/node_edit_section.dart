@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../text/dialog_text.dart';
 import '../../theme/app_theme.dart';
 
@@ -106,7 +107,10 @@ class _NodeEditSectionState extends State<NodeEditSection> {
           style: TextStyle(color: colorScheme.onSurface, fontSize: 14),
           decoration: InputDecoration(
             labelText: DialogText.nodeName,
-            labelStyle: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 13),
+            labelStyle: TextStyle(
+              color: colorScheme.onSurfaceVariant,
+              fontSize: 13,
+            ),
             filled: true,
             fillColor: colorScheme.surfaceContainerHigh,
             border: OutlineInputBorder(
@@ -117,7 +121,10 @@ class _NodeEditSectionState extends State<NodeEditSection> {
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(color: colorScheme.primary, width: 2),
             ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 14,
+            ),
           ),
         ),
         const SizedBox(height: 16),
@@ -190,7 +197,10 @@ class _NodeEditSectionState extends State<NodeEditSection> {
               decoration: BoxDecoration(
                 color: selectedColor,
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: colorScheme.outlineVariant, width: 1.5),
+                border: Border.all(
+                  color: colorScheme.outlineVariant,
+                  width: 1.5,
+                ),
                 boxShadow: [
                   BoxShadow(
                     color: selectedColor.withValues(alpha: 0.3),
@@ -231,9 +241,15 @@ class _NodeEditSectionState extends State<NodeEditSection> {
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: colorScheme.primary, width: 2),
+                    borderSide: BorderSide(
+                      color: colorScheme.primary,
+                      width: 2,
+                    ),
                   ),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 12,
+                  ),
                 ),
               ),
             ),

@@ -82,8 +82,8 @@ class Conexion {
     final rawAttrs = json['atributos'] as List<dynamic>?;
     final parsedAttrs = rawAttrs != null
         ? rawAttrs
-            .map((a) => AtributoValor.fromJson(a as Map<String, dynamic>))
-            .toList()
+              .map((a) => AtributoValor.fromJson(a as Map<String, dynamic>))
+              .toList()
         : <AtributoValor>[];
 
     return Conexion(
@@ -137,4 +137,3 @@ class Conexion {
     return true;
   }
 }
-

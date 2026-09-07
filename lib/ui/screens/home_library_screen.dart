@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -76,9 +77,9 @@ class _HomeLibraryScreenState extends ConsumerState<HomeLibraryScreen> {
         ref.read(grafoProvider.notifier).cargarGrafo(graph);
         ref.read(loadedGraphItemProvider.notifier).setLoadedItem(item);
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al cargar el grafo: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error al cargar el grafo: $e')));
         return;
       }
     } else {
@@ -90,9 +91,7 @@ class _HomeLibraryScreenState extends ConsumerState<HomeLibraryScreen> {
     ref.read(estadoEdicionProvider.notifier).deseleccionar();
 
     Navigator.of(context)
-        .push(
-      MaterialPageRoute(builder: (_) => const GraphEditorScreen()),
-    )
+        .push(MaterialPageRoute(builder: (_) => const GraphEditorScreen()))
         .then((_) => _loadGraphs());
   }
 
@@ -117,8 +116,8 @@ class _HomeLibraryScreenState extends ConsumerState<HomeLibraryScreen> {
 
       Navigator.of(context)
           .push(
-        MaterialPageRoute(builder: (_) => const AdjacencyMatrixScreen()),
-      )
+            MaterialPageRoute(builder: (_) => const AdjacencyMatrixScreen()),
+          )
           .then((_) => _loadGraphs());
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -147,7 +146,10 @@ class _HomeLibraryScreenState extends ConsumerState<HomeLibraryScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-        title: Text('Eliminar Grafo', style: TextStyle(color: colorScheme.error)),
+        title: Text(
+          'Eliminar Grafo',
+          style: TextStyle(color: colorScheme.error),
+        ),
         content: Text('¿Deseas eliminar permanentemente "${item.nombre}"?'),
         actions: [
           TextButton(
@@ -204,7 +206,10 @@ class _HomeLibraryScreenState extends ConsumerState<HomeLibraryScreen> {
           children: [
             Icon(Icons.hub_rounded, size: 28),
             SizedBox(width: 12),
-            Text('Biblioteca de Grafos', style: TextStyle(fontWeight: FontWeight.bold)),
+            Text(
+              'Biblioteca de Grafos',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
           ],
         ),
         backgroundColor: colorScheme.surfaceContainerHigh,
@@ -214,9 +219,9 @@ class _HomeLibraryScreenState extends ConsumerState<HomeLibraryScreen> {
             icon: const Icon(Icons.settings_outlined),
             tooltip: 'Configuración del Sistema',
             onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const ConfigScreen()),
-              );
+              Navigator.of(
+                context,
+              ).push(MaterialPageRoute(builder: (_) => const ConfigScreen()));
             },
           ),
           const SizedBox(width: 8),
@@ -243,13 +248,15 @@ class _HomeLibraryScreenState extends ConsumerState<HomeLibraryScreen> {
                                 _searchController.clear();
                                 _onSearchChanged('');
                               },
-                            )
+                            ),
                           ]
                         : null,
                     onChanged: _onSearchChanged,
                     elevation: WidgetStateProperty.all(1),
                     shape: WidgetStateProperty.all(
-                      RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
                     ),
                   ),
                 ),
@@ -261,26 +268,41 @@ class _HomeLibraryScreenState extends ConsumerState<HomeLibraryScreen> {
               child: _isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : _allGraphs.isEmpty
-                      ? _buildEmptyState(context, colorScheme, 'No tienes grafos guardados', 'Crea un nuevo grafo para comenzar a trabajar en el lienzo.')
-                      : _filteredGraphs.isEmpty
-                          ? _buildEmptyState(context, colorScheme, 'Sin resultados', 'No se encontraron grafos con el término "$_searchQuery".')
-                          : RefreshIndicator(
-                              onRefresh: _loadGraphs,
-                              child: GridView.builder(
-                                padding: const EdgeInsets.fromLTRB(16, 8, 16, 90),
-                                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: crossAxisCount,
-                                  crossAxisSpacing: 16,
-                                  mainAxisSpacing: 16,
-                                  childAspectRatio: childAspectRatio,
-                                ),
-                                itemCount: _filteredGraphs.length,
-                                itemBuilder: (context, index) {
-                                  final item = _filteredGraphs[index];
-                                  return _buildGraphCard(context, item, colorScheme, palette);
-                                },
-                              ),
-                            ),
+                  ? _buildEmptyState(
+                      context,
+                      colorScheme,
+                      'No tienes grafos guardados',
+                      'Crea un nuevo grafo para comenzar a trabajar en el lienzo.',
+                    )
+                  : _filteredGraphs.isEmpty
+                  ? _buildEmptyState(
+                      context,
+                      colorScheme,
+                      'Sin resultados',
+                      'No se encontraron grafos con el término "$_searchQuery".',
+                    )
+                  : RefreshIndicator(
+                      onRefresh: _loadGraphs,
+                      child: GridView.builder(
+                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 90),
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: crossAxisCount,
+                          crossAxisSpacing: 16,
+                          mainAxisSpacing: 16,
+                          childAspectRatio: childAspectRatio,
+                        ),
+                        itemCount: _filteredGraphs.length,
+                        itemBuilder: (context, index) {
+                          final item = _filteredGraphs[index];
+                          return _buildGraphCard(
+                            context,
+                            item,
+                            colorScheme,
+                            palette,
+                          );
+                        },
+                      ),
+                    ),
             ),
           ],
         ),
@@ -294,24 +316,40 @@ class _HomeLibraryScreenState extends ConsumerState<HomeLibraryScreen> {
     );
   }
 
-  Widget _buildEmptyState(BuildContext context, ColorScheme colorScheme, String title, String subtitle) {
+  Widget _buildEmptyState(
+    BuildContext context,
+    ColorScheme colorScheme,
+    String title,
+    String subtitle,
+  ) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32.0),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.bubble_chart_outlined, size: 72, color: colorScheme.primary.withValues(alpha: 0.6)),
+            Icon(
+              Icons.bubble_chart_outlined,
+              size: 72,
+              color: colorScheme.primary.withValues(alpha: 0.6),
+            ),
             const SizedBox(height: 16),
             Text(
               title,
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: colorScheme.onSurface),
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: colorScheme.onSurface,
+              ),
             ),
             const SizedBox(height: 8),
             Text(
               subtitle,
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 14, color: colorScheme.onSurfaceVariant),
+              style: TextStyle(
+                fontSize: 14,
+                color: colorScheme.onSurfaceVariant,
+              ),
             ),
           ],
         ),
@@ -319,7 +357,12 @@ class _HomeLibraryScreenState extends ConsumerState<HomeLibraryScreen> {
     );
   }
 
-  Widget _buildGraphCard(BuildContext context, SavedGraphItem item, ColorScheme colorScheme, NeumorphicPalette palette) {
+  Widget _buildGraphCard(
+    BuildContext context,
+    SavedGraphItem item,
+    ColorScheme colorScheme,
+    NeumorphicPalette palette,
+  ) {
     final cardBgColor = colorScheme.surfaceContainerLow;
 
     return Card(
@@ -354,18 +397,27 @@ class _HomeLibraryScreenState extends ConsumerState<HomeLibraryScreen> {
                         Flexible(
                           child: Text(
                             item.nombre,
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
                         const SizedBox(width: 2),
                         IconButton(
-                          constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                          constraints: const BoxConstraints(
+                            minWidth: 28,
+                            minHeight: 28,
+                          ),
                           padding: EdgeInsets.zero,
                           iconSize: 16,
                           tooltip: 'Editar nombre del grafo',
-                          icon: Icon(Icons.edit_rounded, color: colorScheme.outline),
+                          icon: Icon(
+                            Icons.edit_rounded,
+                            color: colorScheme.outline,
+                          ),
                           onPressed: () => _renameGraph(item),
                         ),
                       ],
@@ -376,7 +428,10 @@ class _HomeLibraryScreenState extends ConsumerState<HomeLibraryScreen> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       IconButton.filledTonal(
-                        constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                        constraints: const BoxConstraints(
+                          minWidth: 36,
+                          minHeight: 36,
+                        ),
                         padding: EdgeInsets.zero,
                         tooltip: 'Ver Matriz de Adyacencia',
                         style: IconButton.styleFrom(
@@ -388,14 +443,20 @@ class _HomeLibraryScreenState extends ConsumerState<HomeLibraryScreen> {
                       ),
                       const SizedBox(width: 6),
                       IconButton.filledTonal(
-                        constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                        constraints: const BoxConstraints(
+                          minWidth: 36,
+                          minHeight: 36,
+                        ),
                         padding: EdgeInsets.zero,
                         tooltip: 'Eliminar Grafo',
                         style: IconButton.styleFrom(
                           backgroundColor: colorScheme.errorContainer,
                           foregroundColor: colorScheme.onErrorContainer,
                         ),
-                        icon: const Icon(Icons.delete_outline_rounded, size: 18),
+                        icon: const Icon(
+                          Icons.delete_outline_rounded,
+                          size: 18,
+                        ),
                         onPressed: () => _deleteGraph(item),
                       ),
                     ],
@@ -408,7 +469,10 @@ class _HomeLibraryScreenState extends ConsumerState<HomeLibraryScreen> {
               Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: colorScheme.primaryContainer,
                       borderRadius: BorderRadius.circular(10),
@@ -416,7 +480,11 @@ class _HomeLibraryScreenState extends ConsumerState<HomeLibraryScreen> {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.circle, size: 10, color: colorScheme.onPrimaryContainer),
+                        Icon(
+                          Icons.circle,
+                          size: 10,
+                          color: colorScheme.onPrimaryContainer,
+                        ),
                         const SizedBox(width: 6),
                         Text(
                           '${item.nodoCount} Nodos',
@@ -431,7 +499,10 @@ class _HomeLibraryScreenState extends ConsumerState<HomeLibraryScreen> {
                   ),
                   const SizedBox(width: 8),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: colorScheme.secondaryContainer,
                       borderRadius: BorderRadius.circular(10),
@@ -439,7 +510,11 @@ class _HomeLibraryScreenState extends ConsumerState<HomeLibraryScreen> {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.alt_route_rounded, size: 12, color: colorScheme.onSecondaryContainer),
+                        Icon(
+                          Icons.alt_route_rounded,
+                          size: 12,
+                          color: colorScheme.onSecondaryContainer,
+                        ),
                         const SizedBox(width: 6),
                         Text(
                           '${item.conexionCount} Aristas',
@@ -455,11 +530,18 @@ class _HomeLibraryScreenState extends ConsumerState<HomeLibraryScreen> {
                   const Spacer(),
                   Row(
                     children: [
-                      Icon(Icons.schedule_rounded, size: 12, color: colorScheme.outline),
+                      Icon(
+                        Icons.schedule_rounded,
+                        size: 12,
+                        color: colorScheme.outline,
+                      ),
                       const SizedBox(width: 4),
                       Text(
                         item.fecha,
-                        style: TextStyle(fontSize: 11, color: colorScheme.outline),
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: colorScheme.outline,
+                        ),
                       ),
                     ],
                   ),
@@ -517,7 +599,8 @@ class _GraphThumbnailWidgetState extends State<GraphThumbnailWidget> {
       return;
     }
 
-    if (widget.item.thumbnailBase64 != null && widget.item.thumbnailBase64!.isNotEmpty) {
+    if (widget.item.thumbnailBase64 != null &&
+        widget.item.thumbnailBase64!.isNotEmpty) {
       try {
         final decoded = base64Decode(widget.item.thumbnailBase64!);
         setState(() {
@@ -580,34 +663,34 @@ class _GraphThumbnailWidgetState extends State<GraphThumbnailWidget> {
               ),
             )
           : _imageBytes != null
-              ? Image.memory(
-                  _imageBytes!,
-                  fit: BoxFit.contain,
-                  width: double.infinity,
-                  height: double.infinity,
-                  filterQuality: FilterQuality.high,
-                )
-              : Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.dashboard_customize_outlined,
-                        color: colorScheme.outline.withValues(alpha: 0.5),
-                        size: 32,
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        'Lienzo Vacío',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: colorScheme.outline.withValues(alpha: 0.7),
-                        ),
-                      ),
-                    ],
+          ? Image.memory(
+              _imageBytes!,
+              fit: BoxFit.contain,
+              width: double.infinity,
+              height: double.infinity,
+              filterQuality: FilterQuality.high,
+            )
+          : Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.dashboard_customize_outlined,
+                    color: colorScheme.outline.withValues(alpha: 0.5),
+                    size: 32,
                   ),
-                ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Lienzo Vacío',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: colorScheme.outline.withValues(alpha: 0.7),
+                    ),
+                  ),
+                ],
+              ),
+            ),
     );
   }
 }

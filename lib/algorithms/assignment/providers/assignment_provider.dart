@@ -8,10 +8,11 @@ import '../domain/services/assignment_validator.dart';
 import '../domain/solvers/hungarian_solver.dart';
 
 /// Provider for checking if the current graph qualifies for Transportation / Assignation
-final transportationValidationProvider = Provider<TransportationValidationResult>((ref) {
-  final grafo = ref.watch(grafoProvider);
-  return TransportationValidator.validate(grafo);
-});
+final transportationValidationProvider =
+    Provider<TransportationValidationResult>((ref) {
+      final grafo = ref.watch(grafoProvider);
+      return TransportationValidator.validate(grafo);
+    });
 
 class TransportationState {
   final bool isActive;
@@ -103,11 +104,13 @@ class TransportationNotifier extends Notifier<TransportationState> {
 
 final transportationNotifierProvider =
     NotifierProvider<TransportationNotifier, TransportationState>(() {
-  return TransportationNotifier();
-});
+      return TransportationNotifier();
+    });
 
 /// Computed provider returning problem extracted matrix data
-final transportationProblemDataProvider = Provider<TransportationProblemData?>((ref) {
+final transportationProblemDataProvider = Provider<TransportationProblemData?>((
+  ref,
+) {
   final validation = ref.watch(transportationValidationProvider);
   if (!validation.isValid) return null;
 
@@ -117,7 +120,9 @@ final transportationProblemDataProvider = Provider<TransportationProblemData?>((
   return AssignmentMatrixExtractor.extract(
     grafo,
     validation,
-    customSupplies: state.customSupplies.isNotEmpty ? state.customSupplies : null,
+    customSupplies: state.customSupplies.isNotEmpty
+        ? state.customSupplies
+        : null,
     customDemands: state.customDemands.isNotEmpty ? state.customDemands : null,
   );
 });
@@ -189,4 +194,6 @@ final algorithmHighlightProvider = Provider<AlgorithmHighlight>((ref) {
 });
 
 /// Alias provider for backwards compatibility
-final highlightedElementsProvider = Provider<AlgorithmHighlight>((ref) => ref.watch(algorithmHighlightProvider));
+final highlightedElementsProvider = Provider<AlgorithmHighlight>(
+  (ref) => ref.watch(algorithmHighlightProvider),
+);

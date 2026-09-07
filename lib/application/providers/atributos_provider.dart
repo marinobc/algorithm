@@ -1,12 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../domain/models/atributo.dart';
 
 class AtributosNotifier extends Notifier<List<Atributo>> {
   @override
   List<Atributo> build() {
-    return const [
-      Atributo(id: 'attr_valor', nombre: 'Valor'),
-    ];
+    return const [Atributo(id: 'attr_valor', nombre: 'Valor')];
   }
 
   void agregarAtributo(String nombre) {
@@ -17,7 +16,7 @@ class AtributosNotifier extends Notifier<List<Atributo>> {
   void renombrarAtributo(String id, String nuevoNombre) {
     state = [
       for (final a in state)
-        if (a.id == id) a.copyWith(nombre: nuevoNombre) else a
+        if (a.id == id) a.copyWith(nombre: nuevoNombre) else a,
     ];
   }
 
@@ -26,13 +25,11 @@ class AtributosNotifier extends Notifier<List<Atributo>> {
   }
 
   void reset() {
-    state = const [
-      Atributo(id: 'attr_valor', nombre: 'Valor'),
-    ];
+    state = const [Atributo(id: 'attr_valor', nombre: 'Valor')];
   }
 }
 
 final atributosGlobalesProvider =
     NotifierProvider<AtributosNotifier, List<Atributo>>(() {
-  return AtributosNotifier();
-});
+      return AtributosNotifier();
+    });

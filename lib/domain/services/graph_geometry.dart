@@ -1,4 +1,5 @@
 import 'dart:math';
+
 import '../models/nodo.dart';
 
 class Point2D {
@@ -48,17 +49,19 @@ class GraphGeometry {
       final angle = i * (pi / 6.0); // 30 degrees = pi / 6
       final px = nodo.x + nodo.radius * cos(angle);
       final py = nodo.y + nodo.radius * sin(angle);
-      points.add(ConnectionPoint(
-        point: Point2D(px, py),
-        angleRadians: angle,
-        index: i,
-      ));
+      points.add(
+        ConnectionPoint(point: Point2D(px, py), angleRadians: angle, index: i),
+      );
     }
     return points;
   }
 
   /// Select the connection point closest in angle toward the target position (tx, ty).
-  static ConnectionPoint selectBestConnectionPoint(Nodo nodo, double tx, double ty) {
+  static ConnectionPoint selectBestConnectionPoint(
+    Nodo nodo,
+    double tx,
+    double ty,
+  ) {
     final dx = tx - nodo.x;
     final dy = ty - nodo.y;
     var targetAngle = atan2(dy, dx);
@@ -92,7 +95,9 @@ class GraphGeometry {
 
     final cosA = cos(angleRadians);
     final sinA = sin(angleRadians);
-    final denom = sqrt((cosA * cosA) / (halfW * halfW) + (sinA * sinA) / (halfH * halfH));
+    final denom = sqrt(
+      (cosA * cosA) / (halfW * halfW) + (sinA * sinA) / (halfH * halfH),
+    );
     final scale = denom > 0 ? (1.0 / denom) : nodo.radius;
 
     return Point2D(nodo.x + cosA * scale, nodo.y + sinA * scale);
@@ -111,40 +116,47 @@ class GraphGeometry {
     double? offsetControlX,
     double? offsetControlY,
   }) {
-    final effectiveFactor = customCurvatura ?? (offsetFactor != 0.0 ? offsetFactor * 0.25 : 0.04);
+    final effectiveFactor =
+        customCurvatura ?? (offsetFactor != 0.0 ? offsetFactor * 0.25 : 0.04);
 
     if (origen.id == destino.id) {
       // 360-Degree Circular Self-Loop connection oriented around loopAngle
       final centerAngle = loopAngle ?? (-pi / 2.0); // Top (-90 deg) by default
       final textLength = (origen.nombre ?? origen.id).length;
-      final nodeOuterRadius = max(origen.radius, (textLength * 8.0 + 24.0) / 2.0);
+      final nodeOuterRadius = max(
+        origen.radius,
+        (textLength * 8.0 + 24.0) / 2.0,
+      );
 
       // Smooth circular loop radius calculation: grows cleanly with curvatura
-      final loopRadius = nodeOuterRadius * (1.1 + (effectiveFactor < 0 ? 0.0 : effectiveFactor.clamp(0.0, 6.0)) * 0.6);
+      final loopRadius =
+          nodeOuterRadius *
+          (1.1 +
+              (effectiveFactor < 0 ? 0.0 : effectiveFactor.clamp(0.0, 6.0)) *
+                  0.6);
 
       // Symmetrical anchor points on node perimeter
       final startAngle = centerAngle + (pi / 4.5); // +40 deg
-      final endAngle = centerAngle - (pi / 4.5);   // -40 deg
+      final endAngle = centerAngle - (pi / 4.5); // -40 deg
 
       final start = getPerimeterPoint(origen, startAngle);
       final end = getPerimeterPoint(origen, endAngle);
 
       // Circular cubic Bezier control points that form a smooth round loop
       final c1 = Point2D(
-        origen.x + (nodeOuterRadius + loopRadius * 1.55) * cos(centerAngle + 0.52),
-        origen.y + (nodeOuterRadius + loopRadius * 1.55) * sin(centerAngle + 0.52),
+        origen.x +
+            (nodeOuterRadius + loopRadius * 1.55) * cos(centerAngle + 0.52),
+        origen.y +
+            (nodeOuterRadius + loopRadius * 1.55) * sin(centerAngle + 0.52),
       );
       final c2 = Point2D(
-        origen.x + (nodeOuterRadius + loopRadius * 1.55) * cos(centerAngle - 0.52),
-        origen.y + (nodeOuterRadius + loopRadius * 1.55) * sin(centerAngle - 0.52),
+        origen.x +
+            (nodeOuterRadius + loopRadius * 1.55) * cos(centerAngle - 0.52),
+        origen.y +
+            (nodeOuterRadius + loopRadius * 1.55) * sin(centerAngle - 0.52),
       );
 
-      return BezierCurve2D(
-        start: start,
-        control1: c1,
-        control2: c2,
-        end: end,
-      );
+      return BezierCurve2D(start: start, control1: c1, control2: c2, end: end);
     }
 
     final rawDx = destino.x - origen.x;
@@ -164,11 +176,16 @@ class GraphGeometry {
     final double effOffsetY;
 
     // Sub-linear logarithmic handle magnitude scaling preventing oversized curves on long distances
-    final adaptiveMagnitude = min(rawDist * 0.40, 36.0 + 75.0 * log(1.0 + rawDist / 120.0));
+    final adaptiveMagnitude = min(
+      rawDist * 0.40,
+      36.0 + 75.0 * log(1.0 + rawDist / 120.0),
+    );
 
     if (offsetControlX != null && offsetControlY != null) {
       // Smooth exponential dampening so extreme 2D drag distances maintain proportional curve elegance
-      final dampFactor = rawDist == 0 ? 1.0 : min(1.0, 1.2 * (1.0 - exp(-rawDist / 350.0)));
+      final dampFactor = rawDist == 0
+          ? 1.0
+          : min(1.0, 1.2 * (1.0 - exp(-rawDist / 350.0)));
       effOffsetX = offsetControlX * dampFactor;
       effOffsetY = offsetControlY * dampFactor;
       peakTargetX = midX + effOffsetX;
@@ -180,8 +197,16 @@ class GraphGeometry {
       peakTargetY = midY + effOffsetY;
     }
 
-    final cpOrigen = selectBestConnectionPoint(origen, peakTargetX, peakTargetY);
-    final cpDestino = selectBestConnectionPoint(destino, peakTargetX, peakTargetY);
+    final cpOrigen = selectBestConnectionPoint(
+      origen,
+      peakTargetX,
+      peakTargetY,
+    );
+    final cpDestino = selectBestConnectionPoint(
+      destino,
+      peakTargetX,
+      peakTargetY,
+    );
 
     final start = cpOrigen.point;
     final end = cpDestino.point;
@@ -204,7 +229,8 @@ class GraphGeometry {
   }
 
   static const double worldGridExtent = 2400.0; // [-2400.0, 2400.0]
-  static const double maxNodeCoord = 2376.0; // 2400.0 - 24.0 radius (node stays inside 100x100 grid)
+  static const double maxNodeCoord =
+      2376.0; // 2400.0 - 24.0 radius (node stays inside 100x100 grid)
 
   /// Clamps node position so the entire node body stays strictly inside world grid [-2400, 2400].
   static Point2D clampNodePosition(double x, double y) {
@@ -267,8 +293,14 @@ class GraphGeometry {
           hasCollision = true;
           if (dist == 0) {
             // Push at 45 degree angle if exact overlap
-            x = (node.x + requiredDist * cos(pi / 4)).clamp(-maxNodeCoord, maxNodeCoord);
-            y = (node.y + requiredDist * sin(pi / 4)).clamp(-maxNodeCoord, maxNodeCoord);
+            x = (node.x + requiredDist * cos(pi / 4)).clamp(
+              -maxNodeCoord,
+              maxNodeCoord,
+            );
+            y = (node.y + requiredDist * sin(pi / 4)).clamp(
+              -maxNodeCoord,
+              maxNodeCoord,
+            );
           } else {
             final factor = requiredDist / dist;
             x = (node.x + dx * factor).clamp(-maxNodeCoord, maxNodeCoord);
@@ -281,23 +313,31 @@ class GraphGeometry {
 
     // Safety fallback: if multi-pass bound in tight cluster, perform radial search
     if (!isValidNodePosition(
-        candidateX: x,
-        candidateY: y,
-        candidateId: candidateId,
-        existingNodes: existingNodes,
-        nodeDiameter: nodeDiameter)) {
+      candidateX: x,
+      candidateY: y,
+      candidateId: candidateId,
+      existingNodes: existingNodes,
+      nodeDiameter: nodeDiameter,
+    )) {
       double angle = 0;
       double radiusOffset = requiredDist;
       while (radiusOffset <= maxNodeCoord * 2) {
         for (int i = 0; i < 8; i++) {
-          final testX = (x + radiusOffset * cos(angle)).clamp(-maxNodeCoord, maxNodeCoord);
-          final testY = (y + radiusOffset * sin(angle)).clamp(-maxNodeCoord, maxNodeCoord);
+          final testX = (x + radiusOffset * cos(angle)).clamp(
+            -maxNodeCoord,
+            maxNodeCoord,
+          );
+          final testY = (y + radiusOffset * sin(angle)).clamp(
+            -maxNodeCoord,
+            maxNodeCoord,
+          );
           if (isValidNodePosition(
-              candidateX: testX,
-              candidateY: testY,
-              candidateId: candidateId,
-              existingNodes: existingNodes,
-              nodeDiameter: nodeDiameter)) {
+            candidateX: testX,
+            candidateY: testY,
+            candidateId: candidateId,
+            existingNodes: existingNodes,
+            nodeDiameter: nodeDiameter,
+          )) {
             return Point2D(testX, testY);
           }
           angle += pi / 4;

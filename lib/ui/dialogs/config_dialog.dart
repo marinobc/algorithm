@@ -118,8 +118,10 @@ class _ConfigScreenState extends ConsumerState<ConfigScreen> {
                           RadioOptionCard<Direccion>(
                             value: Direccion.unidireccional,
                             groupValue: _selectedConnType,
-                            title: 'Conexión Dirigida (Flecha Origen ➔ Destino)',
-                            subtitle: 'Asigna dirección unidireccional por defecto',
+                            title:
+                                'Conexión Dirigida (Flecha Origen ➔ Destino)',
+                            subtitle:
+                                'Asigna dirección unidireccional por defecto',
                             icon: Icons.arrow_forward_rounded,
                             onSelected: (val) {
                               setState(() => _selectedConnType = val);
@@ -180,9 +182,13 @@ class _ConfigScreenState extends ConsumerState<ConfigScreen> {
                           const SizedBox(height: 16),
                           TextField(
                             controller: _valController,
-                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
                             inputFormatters: [
-                              FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                              FilteringTextInputFormatter.allow(
+                                RegExp(r'^\d*\.?\d*'),
+                              ),
                             ],
                             onChanged: (_) => _autoSaveConfig(),
                             decoration: InputDecoration(
@@ -253,7 +259,8 @@ class _ConfigScreenState extends ConsumerState<ConfigScreen> {
                             value: ThemeMode.light,
                             groupValue: _selectedTheme,
                             title: 'Tema Claro',
-                            subtitle: 'Fondo claro con acentos morados y violeta',
+                            subtitle:
+                                'Fondo claro con acentos morados y violeta',
                             icon: Icons.wb_sunny_outlined,
                             onSelected: (val) {
                               setState(() => _selectedTheme = val);
@@ -331,14 +338,20 @@ class RadioOptionCard<T> extends StatelessWidget {
           child: Row(
             children: [
               Icon(
-                isSelected ? Icons.radio_button_checked_rounded : Icons.radio_button_off_rounded,
-                color: isSelected ? colorScheme.primary : colorScheme.onSurfaceVariant,
+                isSelected
+                    ? Icons.radio_button_checked_rounded
+                    : Icons.radio_button_off_rounded,
+                color: isSelected
+                    ? colorScheme.primary
+                    : colorScheme.onSurfaceVariant,
                 size: 20,
               ),
               const SizedBox(width: 12),
               Icon(
                 icon,
-                color: isSelected ? colorScheme.primary : colorScheme.onSurfaceVariant,
+                color: isSelected
+                    ? colorScheme.primary
+                    : colorScheme.onSurfaceVariant,
                 size: 20,
               ),
               const SizedBox(width: 12),
@@ -350,8 +363,12 @@ class RadioOptionCard<T> extends StatelessWidget {
                       title,
                       style: TextStyle(
                         fontSize: 14,
-                        fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                        color: isSelected ? colorScheme.onPrimaryContainer : colorScheme.onSurface,
+                        fontWeight: isSelected
+                            ? FontWeight.bold
+                            : FontWeight.w500,
+                        color: isSelected
+                            ? colorScheme.onPrimaryContainer
+                            : colorScheme.onSurface,
                       ),
                     ),
                     if (subtitle != null) ...[
@@ -361,7 +378,9 @@ class RadioOptionCard<T> extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 12,
                           color: isSelected
-                              ? colorScheme.onPrimaryContainer.withValues(alpha: 0.8)
+                              ? colorScheme.onPrimaryContainer.withValues(
+                                  alpha: 0.8,
+                                )
                               : colorScheme.onSurfaceVariant,
                         ),
                       ),

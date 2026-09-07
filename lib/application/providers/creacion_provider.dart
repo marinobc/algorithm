@@ -1,7 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class EstadoCreacion {
-  final String? nuevoNodoIdPendienteConexion; // Node created that requires connection
+  final String?
+  nuevoNodoIdPendienteConexion; // Node created that requires connection
   final String? primerNodoSeleccionado; // Node 1 selected for new connection
   final String? segundoNodoSeleccionado; // Node 2 selected for new connection
   final bool mostrandoDialogoDireccion;
@@ -51,11 +52,11 @@ class EstadoCreacion {
 
   @override
   int get hashCode => Object.hash(
-        nuevoNodoIdPendienteConexion,
-        primerNodoSeleccionado,
-        segundoNodoSeleccionado,
-        mostrandoDialogoDireccion,
-      );
+    nuevoNodoIdPendienteConexion,
+    primerNodoSeleccionado,
+    segundoNodoSeleccionado,
+    mostrandoDialogoDireccion,
+  );
 
   static const initial = EstadoCreacion();
 }
@@ -93,5 +94,5 @@ class CreacionNotifier extends Notifier<EstadoCreacion> {
 
 final estadoCreacionProvider =
     NotifierProvider<CreacionNotifier, EstadoCreacion>(() {
-  return CreacionNotifier();
-});
+      return CreacionNotifier();
+    });

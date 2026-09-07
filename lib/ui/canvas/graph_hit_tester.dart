@@ -1,5 +1,7 @@
 import 'dart:math';
+
 import 'package:flutter/material.dart';
+
 import '../../domain/models/conexion.dart';
 import '../../domain/models/direccion.dart';
 import '../../domain/models/grafo.dart';
@@ -39,7 +41,11 @@ class GraphHitTester {
   }
 
   /// Hit-tests nodes on the canvas. Returns touched node or null, sorted by closest proximity.
-  static Nodo? hitTestNode(Offset worldPos, Iterable<Nodo> nodes, {double scale = 1.0}) {
+  static Nodo? hitTestNode(
+    Offset worldPos,
+    Iterable<Nodo> nodes, {
+    double scale = 1.0,
+  }) {
     final all = hitTestAllNodes(worldPos, nodes, scale: scale);
     return all.isNotEmpty ? all.first : null;
   }
@@ -113,11 +119,7 @@ class GraphHitTester {
       final currentIdx = pairIndex[pairKey] ?? 0;
       pairIndex[pairKey] = currentIdx + 1;
 
-      final offsetFactor = calculateOffsetFactor(
-        conn,
-        currentIdx,
-        totalInPair,
-      );
+      final offsetFactor = calculateOffsetFactor(conn, currentIdx, totalInPair);
 
       final curve = GraphGeometry.calculateBezierCurve(
         origen: origen,
@@ -222,7 +224,8 @@ class GraphHitTester {
     // A single unidirectional/no-direction line with no pair partner stays centred.
     // A bidirectional pair always has totalInPair == 2, so this guard only fires
     // for truly isolated connections.
-    if (totalInPair <= 1 && conn.direccion != Direccion.bidireccional) return 0.0;
+    if (totalInPair <= 1 && conn.direccion != Direccion.bidireccional)
+      return 0.0;
     final isCanonicalOrder =
         conn.nodoOrigenId.compareTo(conn.nodoDestinoId) < 0;
     final baseSign = isCanonicalOrder ? 1.0 : -1.0;

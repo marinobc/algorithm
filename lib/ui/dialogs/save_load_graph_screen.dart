@@ -70,7 +70,9 @@ class _SaveLoadGraphScreenState extends ConsumerState<SaveLoadGraphScreen>
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Grafo guardado como nuevo registro "$name" en la BD local.'),
+          content: Text(
+            'Grafo guardado como nuevo registro "$name" en la BD local.',
+          ),
           duration: const Duration(seconds: 2),
           behavior: SnackBarBehavior.floating,
         ),
@@ -93,7 +95,9 @@ class _SaveLoadGraphScreenState extends ConsumerState<SaveLoadGraphScreen>
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Grafo "$name" actualizado (sobrescrito) en la BD local.'),
+          content: Text(
+            'Grafo "$name" actualizado (sobrescrito) en la BD local.',
+          ),
           duration: const Duration(seconds: 2),
           behavior: SnackBarBehavior.floating,
         ),
@@ -107,7 +111,9 @@ class _SaveLoadGraphScreenState extends ConsumerState<SaveLoadGraphScreen>
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Eliminar Grafo'),
-        content: Text('¿Estás seguro de que deseas eliminar "$name" de la BD local?'),
+        content: Text(
+          '¿Estás seguro de que deseas eliminar "$name" de la BD local?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
@@ -202,9 +208,18 @@ class _SaveLoadGraphScreenState extends ConsumerState<SaveLoadGraphScreen>
         bottom: TabBar(
           controller: _tabController,
           tabs: const [
-            Tab(text: 'Guardar (BD)', icon: Icon(Icons.save_outlined, size: 20)),
-            Tab(text: 'Grafos Guardados', icon: Icon(Icons.storage_rounded, size: 20)),
-            Tab(text: 'Importar / Exportar JSON', icon: Icon(Icons.code_rounded, size: 20)),
+            Tab(
+              text: 'Guardar (BD)',
+              icon: Icon(Icons.save_outlined, size: 20),
+            ),
+            Tab(
+              text: 'Grafos Guardados',
+              icon: Icon(Icons.storage_rounded, size: 20),
+            ),
+            Tab(
+              text: 'Importar / Exportar JSON',
+              icon: Icon(Icons.code_rounded, size: 20),
+            ),
           ],
         ),
       ),
@@ -248,7 +263,9 @@ class _SaveLoadGraphScreenState extends ConsumerState<SaveLoadGraphScreen>
                   elevation: 0,
                   color: colorScheme.primaryContainer.withValues(alpha: 0.35),
                   shape: RoundedRectangleBorder(
-                    side: BorderSide(color: colorScheme.primary.withValues(alpha: 0.6)),
+                    side: BorderSide(
+                      color: colorScheme.primary.withValues(alpha: 0.6),
+                    ),
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Padding(
@@ -414,7 +431,10 @@ class _SaveLoadGraphScreenState extends ConsumerState<SaveLoadGraphScreen>
             Expanded(
               child: Text(
                 'Historial de Versiones: ${item.nombre}',
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ],
@@ -426,7 +446,10 @@ class _SaveLoadGraphScreenState extends ConsumerState<SaveLoadGraphScreen>
             children: [
               Text(
                 'Todas las versiones guardadas de este registro se conservan automáticamente.',
-                style: TextStyle(fontSize: 13, color: colorScheme.onSurfaceVariant),
+                style: TextStyle(
+                  fontSize: 13,
+                  color: colorScheme.onSurfaceVariant,
+                ),
               ),
               const SizedBox(height: 14),
               ConstrainedBox(
@@ -442,7 +465,10 @@ class _SaveLoadGraphScreenState extends ConsumerState<SaveLoadGraphScreen>
                     return ListTile(
                       contentPadding: EdgeInsets.zero,
                       leading: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 6,
+                        ),
                         decoration: BoxDecoration(
                           color: isLatest
                               ? colorScheme.primaryContainer
@@ -462,23 +488,35 @@ class _SaveLoadGraphScreenState extends ConsumerState<SaveLoadGraphScreen>
                       ),
                       title: Text(
                         '${v.nodoCount} nodos, ${v.conexionCount} conexiones',
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
                       ),
                       subtitle: Text(
                         v.fecha + (isLatest ? ' • (Actual)' : ''),
-                        style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: colorScheme.onSurfaceVariant,
+                        ),
                       ),
                       trailing: FilledButton.tonal(
                         onPressed: () {
                           Navigator.of(ctx).pop();
                           try {
-                            final graph = GraphStorageService.importFromJson(v.jsonContent);
+                            final graph = GraphStorageService.importFromJson(
+                              v.jsonContent,
+                            );
                             ref.read(grafoProvider.notifier).cargarGrafo(graph);
-                            ref.read(loadedGraphItemProvider.notifier).setLoadedItem(item);
+                            ref
+                                .read(loadedGraphItemProvider.notifier)
+                                .setLoadedItem(item);
                             Navigator.of(context).pop();
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text('Versión v${v.versionNumber} de "${item.nombre}" restaurada.'),
+                                content: Text(
+                                  'Versión v${v.versionNumber} de "${item.nombre}" restaurada.',
+                                ),
                                 duration: const Duration(seconds: 2),
                                 behavior: SnackBarBehavior.floating,
                               ),
@@ -487,7 +525,9 @@ class _SaveLoadGraphScreenState extends ConsumerState<SaveLoadGraphScreen>
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text('Error al restaurar versión: $e'),
-                                backgroundColor: Theme.of(context).colorScheme.error,
+                                backgroundColor: Theme.of(context)
+                                    .colorScheme
+                                    .error,
                               ),
                             );
                           }
@@ -546,13 +586,18 @@ class _SaveLoadGraphScreenState extends ConsumerState<SaveLoadGraphScreen>
               const SizedBox(height: 4),
               Text(
                 'v${item.currentVersion} • ${item.nodoCount} nodos • ${item.conexionCount} conexiones',
-                style: TextStyle(fontSize: 13, color: colorScheme.onSurfaceVariant),
+                style: TextStyle(
+                  fontSize: 13,
+                  color: colorScheme.onSurfaceVariant,
+                ),
               ),
               const Divider(height: 24),
               ListTile(
                 leading: const Icon(Icons.file_open_rounded),
                 title: const Text('Cargar Grafo'),
-                subtitle: const Text('Cargar este grafo en el lienzo de trabajo'),
+                subtitle: const Text(
+                  'Cargar este grafo en el lienzo de trabajo',
+                ),
                 onTap: () {
                   Navigator.of(ctx).pop();
                   _loadGraphFromItem(item);
@@ -569,10 +614,16 @@ class _SaveLoadGraphScreenState extends ConsumerState<SaveLoadGraphScreen>
                   },
                 ),
               ListTile(
-                leading: Icon(Icons.delete_outline_rounded, color: colorScheme.error),
+                leading: Icon(
+                  Icons.delete_outline_rounded,
+                  color: colorScheme.error,
+                ),
                 title: Text(
                   'Eliminar Grafo',
-                  style: TextStyle(color: colorScheme.error, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    color: colorScheme.error,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 subtitle: const Text('Borrar este registro de la BD local'),
                 onTap: () {
@@ -605,9 +656,8 @@ class _SaveLoadGraphScreenState extends ConsumerState<SaveLoadGraphScreen>
             const SizedBox(height: 16),
             Text(
               'No hay grafos guardados en la BD Local',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: Theme.of(context).textTheme.titleMedium
+                  ?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Text(
@@ -657,7 +707,9 @@ class _SaveLoadGraphScreenState extends ConsumerState<SaveLoadGraphScreen>
             separatorBuilder: (context, index) => const SizedBox(height: 12),
             itemBuilder: (context, index) {
               final item = _savedGraphs[index];
-              final versionCount = item.history.isNotEmpty ? item.history.length : 1;
+              final versionCount = item.history.isNotEmpty
+                  ? item.history.length
+                  : 1;
 
               return Dismissible(
                 key: Key(item.id),
@@ -681,7 +733,11 @@ class _SaveLoadGraphScreenState extends ConsumerState<SaveLoadGraphScreen>
                   ),
                   child: const Row(
                     children: [
-                      Icon(Icons.file_open_rounded, color: Colors.white, size: 28),
+                      Icon(
+                        Icons.file_open_rounded,
+                        color: Colors.white,
+                        size: 28,
+                      ),
                       SizedBox(width: 12),
                       Text(
                         'Cargar Grafo',
@@ -713,7 +769,11 @@ class _SaveLoadGraphScreenState extends ConsumerState<SaveLoadGraphScreen>
                         ),
                       ),
                       SizedBox(width: 12),
-                      Icon(Icons.delete_outline_rounded, color: Colors.white, size: 28),
+                      Icon(
+                        Icons.delete_outline_rounded,
+                        color: Colors.white,
+                        size: 28,
+                      ),
                     ],
                   ),
                 ),
@@ -725,7 +785,11 @@ class _SaveLoadGraphScreenState extends ConsumerState<SaveLoadGraphScreen>
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: InkWell(
-                    onTap: () => _showGraphItemOptionsBottomSheet(context, item, colorScheme),
+                    onTap: () => _showGraphItemOptionsBottomSheet(
+                      context,
+                      item,
+                      colorScheme,
+                    ),
                     borderRadius: BorderRadius.circular(16),
                     child: Padding(
                       padding: const EdgeInsets.all(16.0),
@@ -773,7 +837,8 @@ class _SaveLoadGraphScreenState extends ConsumerState<SaveLoadGraphScreen>
                                         style: TextStyle(
                                           fontSize: 11,
                                           fontWeight: FontWeight.bold,
-                                          color: colorScheme.onSecondaryContainer,
+                                          color:
+                                              colorScheme.onSecondaryContainer,
                                         ),
                                       ),
                                     ),
@@ -839,10 +904,7 @@ class _SaveLoadGraphScreenState extends ConsumerState<SaveLoadGraphScreen>
             maxLines: null,
             expands: true,
             textAlignVertical: TextAlignVertical.top,
-            style: const TextStyle(
-              fontFamily: 'monospace',
-              fontSize: 13,
-            ),
+            style: const TextStyle(fontFamily: 'monospace', fontSize: 13),
             decoration: InputDecoration(
               labelText: 'Código JSON del Grafo',
               hintText: 'Pega o edita el código JSON de un grafo aquí...',

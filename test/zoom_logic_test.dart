@@ -4,6 +4,7 @@
 // known bugs BEFORE APK deployment.
 
 import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -14,7 +15,9 @@ const double maxViewNodes = 100.0;
 
 Matrix4 buildCentredTransform(Size screenSize) {
   final minDim = min(screenSize.width, screenSize.height);
-  final baseScale = minDim > 0 ? (minDim / (baseViewNodes * nodeDiameter)) : 1.0;
+  final baseScale = minDim > 0
+      ? (minDim / (baseViewNodes * nodeDiameter))
+      : 1.0;
   final maxZoomInScale = baseScale * (baseViewNodes / minViewNodes);
   return Matrix4.identity()
     ..translate(screenSize.width / 2, screenSize.height / 2)
@@ -23,7 +26,9 @@ Matrix4 buildCentredTransform(Size screenSize) {
 
 ({double minScale, double maxScale}) zoomBounds(Size screenSize) {
   final minDim = min(screenSize.width, screenSize.height);
-  final baseScale = minDim > 0 ? (minDim / (baseViewNodes * nodeDiameter)) : 1.0;
+  final baseScale = minDim > 0
+      ? (minDim / (baseViewNodes * nodeDiameter))
+      : 1.0;
   return (
     minScale: baseScale * (baseViewNodes / maxViewNodes),
     maxScale: baseScale * (baseViewNodes / minViewNodes),
@@ -51,12 +56,8 @@ Matrix4 applyZoomFrame({
 }
 
 /// Simulate one 3-finger pan frame (pure translation, no scale).
-Matrix4 applyPanFrame({
-  required Matrix4 current,
-  required Offset focalDelta,
-}) {
-  final update = Matrix4.identity()
-    ..translate(focalDelta.dx, focalDelta.dy);
+Matrix4 applyPanFrame({required Matrix4 current, required Offset focalDelta}) {
+  final update = Matrix4.identity()..translate(focalDelta.dx, focalDelta.dy);
   return update..multiply(current);
 }
 
@@ -69,12 +70,15 @@ void main() {
   const screenSize = Size(1080, 1920);
 
   group('Zoom bounds', () {
-    test('initial centred transform starts at highest zoom level (max zoom-in)', () {
-      final m = buildCentredTransform(screenSize);
-      final scale = getXYScale(m);
-      final bounds = zoomBounds(screenSize);
-      expect(scale, closeTo(bounds.maxScale, 0.001));
-    });
+    test(
+      'initial centred transform starts at highest zoom level (max zoom-in)',
+      () {
+        final m = buildCentredTransform(screenSize);
+        final scale = getXYScale(m);
+        final bounds = zoomBounds(screenSize);
+        expect(scale, closeTo(bounds.maxScale, 0.001));
+      },
+    );
 
     test('min scale (max zoom-out) covers full 100x100 grid width', () {
       final bounds = zoomBounds(screenSize);
@@ -112,7 +116,9 @@ void main() {
 
       // Zoom out by 0.5x
       final zoomed = applyZoomFrame(
-        current: m.clone(), focalPoint: fp, scaleFactor: 0.5,
+        current: m.clone(),
+        focalPoint: fp,
+        scaleFactor: 0.5,
       );
 
       final xyScale = getXYScale(zoomed);
@@ -121,33 +127,52 @@ void main() {
       expect(xyScale, closeTo(0.375, 0.001));
 
       // BUG: getMaxScaleOnAxis returns 1.0 (from Z axis), NOT 0.375
-      expect(reportedScale, equals(1.0),
-          reason: 'getMaxScaleOnAxis picks Z=1.0, masking the actual XY zoom level');
-      expect(reportedScale, isNot(closeTo(xyScale, 0.001)),
-          reason: 'Reported scale disagrees with actual XY scale');
+      expect(
+        reportedScale,
+        equals(1.0),
+        reason:
+            'getMaxScaleOnAxis picks Z=1.0, masking the actual XY zoom level',
+      );
+      expect(
+        reportedScale,
+        isNot(closeTo(xyScale, 0.001)),
+        reason: 'Reported scale disagrees with actual XY scale',
+      );
     });
 
-    test('BUG DETECTED: zoom-out clamping fails due to wrong scale reading', () {
-      final bounds = zoomBounds(screenSize);
-      var m = buildCentredTransform(screenSize);
-      const fp = Offset(540, 960);
+    test(
+      'BUG DETECTED: zoom-out clamping fails due to wrong scale reading',
+      () {
+        final bounds = zoomBounds(screenSize);
+        var m = buildCentredTransform(screenSize);
+        const fp = Offset(540, 960);
 
-      // Simulate aggressive zoom-out using getMaxScaleOnAxis (buggy)
-      for (int i = 0; i < 20; i++) {
-        final currentScale = m.getMaxScaleOnAxis(); // BUG: returns 1.0 when XY < 1.0
-        final target = (currentScale * 0.5).clamp(bounds.minScale, bounds.maxScale);
-        final sf = target / currentScale;
-        m = applyZoomFrame(
-          current: m.clone(), focalPoint: fp, scaleFactor: sf,
+        // Simulate aggressive zoom-out using getMaxScaleOnAxis (buggy)
+        for (int i = 0; i < 20; i++) {
+          final currentScale = m
+              .getMaxScaleOnAxis(); // BUG: returns 1.0 when XY < 1.0
+          final target = (currentScale * 0.5).clamp(
+            bounds.minScale,
+            bounds.maxScale,
+          );
+          final sf = target / currentScale;
+          m = applyZoomFrame(
+            current: m.clone(),
+            focalPoint: fp,
+            scaleFactor: sf,
+          );
+        }
+
+        final finalXYScale = getXYScale(m);
+        // BUG: XY scale drops WAY below the minimum because the clamp logic
+        // sees currentScale=1.0 (Z-axis) and keeps allowing zoom-out
+        expect(
+          finalXYScale,
+          lessThan(bounds.minScale),
+          reason: 'Bug: zoom-out overshoots minimum because getMaxScaleOnAxis returns Z=1.0',
         );
-      }
-
-      final finalXYScale = getXYScale(m);
-      // BUG: XY scale drops WAY below the minimum because the clamp logic
-      // sees currentScale=1.0 (Z-axis) and keeps allowing zoom-out
-      expect(finalXYScale, lessThan(bounds.minScale),
-          reason: 'Bug: zoom-out overshoots minimum because getMaxScaleOnAxis returns Z=1.0');
-    });
+      },
+    );
 
     test('FIX VERIFIED: using XY scale for clamping respects min zoom', () {
       final bounds = zoomBounds(screenSize);
@@ -157,16 +182,20 @@ void main() {
       // Simulate aggressive zoom-out using getXYScale (fixed)
       for (int i = 0; i < 20; i++) {
         final currentScale = getXYScale(m); // FIXED: reads actual XY scale
-        final target = (currentScale * 0.5).clamp(bounds.minScale, bounds.maxScale);
-        final sf = target / currentScale;
-        m = applyZoomFrame(
-          current: m.clone(), focalPoint: fp, scaleFactor: sf,
+        final target = (currentScale * 0.5).clamp(
+          bounds.minScale,
+          bounds.maxScale,
         );
+        final sf = target / currentScale;
+        m = applyZoomFrame(current: m.clone(), focalPoint: fp, scaleFactor: sf);
       }
 
       final finalXYScale = getXYScale(m);
-      expect(finalXYScale, closeTo(bounds.minScale, 0.001),
-          reason: 'Fix: XY scale correctly clamps at minimum');
+      expect(
+        finalXYScale,
+        closeTo(bounds.minScale, 0.001),
+        reason: 'Fix: XY scale correctly clamps at minimum',
+      );
     });
   });
 
@@ -175,36 +204,51 @@ void main() {
   // the explicit comment. Causes a zoom jump if finger count transitions.
   // ---------------------------------------------------------------------------
   group('BUG #2 - _lastScale reset mid-gesture causes scale jump', () {
-    test('scaleDelta accumulates correctly when lastScale tracks each frame', () {
-      final frames = [1.2, 1.5, 2.0];
-      double lastScale = 1.0;
-      double totalScale = 1.0;
-      for (final s in frames) {
-        final delta = (lastScale > 0 && lastScale.isFinite) ? (s / lastScale) : 1.0;
-        totalScale *= delta;
-        lastScale = s;
-      }
-      expect(totalScale, closeTo(2.0, 0.001));
-    });
+    test(
+      'scaleDelta accumulates correctly when lastScale tracks each frame',
+      () {
+        final frames = [1.2, 1.5, 2.0];
+        double lastScale = 1.0;
+        double totalScale = 1.0;
+        for (final s in frames) {
+          final delta = (lastScale > 0 && lastScale.isFinite)
+              ? (s / lastScale)
+              : 1.0;
+          totalScale *= delta;
+          lastScale = s;
+        }
+        expect(totalScale, closeTo(2.0, 0.001));
+      },
+    );
 
-    test('BUG DETECTED: resetting lastScale to 1.0 causes a spurious scale jump', () {
-      const gesturePreviousScale = 1.5;
-      const lastScaleBuggy   = 1.0; // erroneously reset by line 239
-      const lastScaleCorrect = gesturePreviousScale;
-      const nextGestureScale = 1.6;
+    test(
+      'BUG DETECTED: resetting lastScale to 1.0 causes a spurious scale jump',
+      () {
+        const gesturePreviousScale = 1.5;
+        const lastScaleBuggy = 1.0; // erroneously reset by line 239
+        const lastScaleCorrect = gesturePreviousScale;
+        const nextGestureScale = 1.6;
 
-      final buggyDelta   = nextGestureScale / lastScaleBuggy;  // 1.6
-      final correctDelta = nextGestureScale / lastScaleCorrect; // ~1.067
+        final buggyDelta = nextGestureScale / lastScaleBuggy; // 1.6
+        final correctDelta = nextGestureScale / lastScaleCorrect; // ~1.067
 
-      expect(buggyDelta, greaterThan(correctDelta + 0.3),
-          reason: 'Resetting lastScale produces a much larger delta than intended');
+        expect(
+          buggyDelta,
+          greaterThan(correctDelta + 0.3),
+          reason:
+              'Resetting lastScale produces a much larger delta than intended',
+        );
 
-      const currentVisualScale = 1.5;
-      final buggyNewScale   = currentVisualScale * buggyDelta;   // 2.4
-      final correctNewScale = currentVisualScale * correctDelta; // ~1.6
-      expect(buggyNewScale - correctNewScale, greaterThan(0.5),
-          reason: 'Scale jump of >0.5x is clearly visible to the user');
-    });
+        const currentVisualScale = 1.5;
+        final buggyNewScale = currentVisualScale * buggyDelta; // 2.4
+        final correctNewScale = currentVisualScale * correctDelta; // ~1.6
+        expect(
+          buggyNewScale - correctNewScale,
+          greaterThan(0.5),
+          reason: 'Scale jump of >0.5x is clearly visible to the user',
+        );
+      },
+    );
   });
 
   // ---------------------------------------------------------------------------
@@ -223,10 +267,16 @@ void main() {
       final correctShouldTap =
           !isDraggingNode && pointerDownSet && maxPointerCountDuringGesture < 2;
 
-      expect(buggyShouldTap,  isTrue,
-          reason: 'Bug: tap fires after a pinch, potentially creating an unintended node');
-      expect(correctShouldTap, isFalse,
-          reason: 'Fix: tap suppressed when gesture involved multiple pointers');
+      expect(
+        buggyShouldTap,
+        isTrue,
+        reason: 'Bug: tap fires after a pinch, potentially creating an unintended node',
+      );
+      expect(
+        correctShouldTap,
+        isFalse,
+        reason: 'Fix: tap suppressed when gesture involved multiple pointers',
+      );
     });
   });
 
@@ -243,9 +293,7 @@ void main() {
         final current = getXYScale(m);
         final target = (current * 2.0).clamp(bounds.minScale, bounds.maxScale);
         final sf = target / current;
-        m = applyZoomFrame(
-          current: m.clone(), focalPoint: fp, scaleFactor: sf,
-        );
+        m = applyZoomFrame(current: m.clone(), focalPoint: fp, scaleFactor: sf);
       }
 
       expect(getXYScale(m), closeTo(bounds.maxScale, 0.001));
@@ -260,9 +308,7 @@ void main() {
         final current = getXYScale(m);
         final target = (current * 0.1).clamp(bounds.minScale, bounds.maxScale);
         final sf = target / current;
-        m = applyZoomFrame(
-          current: m.clone(), focalPoint: fp, scaleFactor: sf,
-        );
+        m = applyZoomFrame(current: m.clone(), focalPoint: fp, scaleFactor: sf);
       }
 
       expect(getXYScale(m), closeTo(bounds.minScale, 0.001));
@@ -288,7 +334,9 @@ void main() {
       const fp = Offset(540, 960);
 
       final zoomed = applyZoomFrame(
-        current: m.clone(), focalPoint: fp, scaleFactor: 1.5,
+        current: m.clone(),
+        focalPoint: fp,
+        scaleFactor: 1.5,
       );
 
       // Scale changes
@@ -313,7 +361,7 @@ void main() {
       // Screen translation moves by focalDelta exactly
       final worldOrigin = Offset.zero;
       final screenBefore = MatrixUtils.transformPoint(m, worldOrigin);
-      final screenAfter  = MatrixUtils.transformPoint(panned, worldOrigin);
+      final screenAfter = MatrixUtils.transformPoint(panned, worldOrigin);
 
       expect(screenAfter.dx - screenBefore.dx, closeTo(fd.dx, 0.5));
       expect(screenAfter.dy - screenBefore.dy, closeTo(fd.dy, 0.5));
@@ -328,17 +376,28 @@ void main() {
       final m = buildCentredTransform(screenSize);
 
       // Attempt to pan infinitely far into empty void
-      final pannedFar = applyPanFrame(current: m.clone(), focalDelta: const Offset(50000.0, 50000.0));
+      final pannedFar = applyPanFrame(
+        current: m.clone(),
+        focalDelta: const Offset(50000.0, 50000.0),
+      );
       final clamped = clampTransformBounds(pannedFar, screenSize);
 
       // Viewport center in world coordinates must remain inside [-2400, 2400]
       final screenCenter = Offset(screenSize.width / 2, screenSize.height / 2);
       final worldCenter = screenToWorld(clamped, screenCenter);
 
-      expect(worldCenter.dx.abs(), lessThanOrEqualTo(2400.0 + 0.5),
-          reason: 'Camera center must stay within world grid bounds [-2400, 2400]');
-      expect(worldCenter.dy.abs(), lessThanOrEqualTo(2400.0 + 0.5),
-          reason: 'Camera center must stay within world grid bounds [-2400, 2400]');
+      expect(
+        worldCenter.dx.abs(),
+        lessThanOrEqualTo(2400.0 + 0.5),
+        reason:
+            'Camera center must stay within world grid bounds [-2400, 2400]',
+      );
+      expect(
+        worldCenter.dy.abs(),
+        lessThanOrEqualTo(2400.0 + 0.5),
+        reason:
+            'Camera center must stay within world grid bounds [-2400, 2400]',
+      );
     });
   });
 }

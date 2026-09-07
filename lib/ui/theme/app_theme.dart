@@ -49,7 +49,9 @@ class M3Palette {
       textPrimary: cs.onSurface,
       textMuted: cs.onSurfaceVariant,
       error: cs.error,
-      canvasGridDots: cs.onSurfaceVariant.withValues(alpha: isDark ? 0.18 : 0.28),
+      canvasGridDots: cs.onSurfaceVariant.withValues(
+        alpha: isDark ? 0.18 : 0.28,
+      ),
       isDark: isDark,
     );
   }
@@ -85,10 +87,26 @@ class M3Palette {
 typedef NeumorphicPalette = M3Palette;
 
 class NeumorphicShadows {
-  static List<BoxShadow> raised(dynamic palette, {double distance = 6.0, double blur = 12.0}) => const [];
-  static List<BoxShadow> pressed(dynamic palette, {double distance = 3.0, double blur = 6.0}) => const [];
-  static List<BoxShadow> inset(dynamic palette, {double distance = 3.0, double blur = 6.0}) => const [];
-  static List<BoxShadow> dialog(dynamic palette, {double blur = 20.0, double spread = 0.0}) => const [];
+  static List<BoxShadow> raised(
+    dynamic palette, {
+    double distance = 6.0,
+    double blur = 12.0,
+  }) => const [];
+  static List<BoxShadow> pressed(
+    dynamic palette, {
+    double distance = 3.0,
+    double blur = 6.0,
+  }) => const [];
+  static List<BoxShadow> inset(
+    dynamic palette, {
+    double distance = 3.0,
+    double blur = 6.0,
+  }) => const [];
+  static List<BoxShadow> dialog(
+    dynamic palette, {
+    double blur = 20.0,
+    double spread = 0.0,
+  }) => const [];
 }
 
 class AppTheme {
@@ -115,7 +133,7 @@ class AppTheme {
       seedColor: seedColor,
       brightness: Brightness.light,
       secondary: const Color(0xFF00BFA5), // Electric Teal
-      tertiary: const Color(0xFFFF5252),  // Coral Accent
+      tertiary: const Color(0xFFFF5252), // Coral Accent
     );
 
     return ThemeData(
@@ -160,7 +178,7 @@ class AppTheme {
       seedColor: seedColor,
       brightness: Brightness.dark,
       secondary: const Color(0xFF64FFDA), // Vivid Teal Cyan
-      tertiary: const Color(0xFFFF8A80),  // Vivid Rose
+      tertiary: const Color(0xFFFF8A80), // Vivid Rose
     );
 
     return ThemeData(

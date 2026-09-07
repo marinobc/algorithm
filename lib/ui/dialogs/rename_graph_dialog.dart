@@ -13,10 +13,8 @@ Future<SavedGraphItem?> showGraphNameDialog(
 
   final requestedName = await showDialog<String>(
     context: context,
-    builder: (ctx) => _GraphNameDialogContent(
-      initialName: initialName,
-      isEditing: isEditing,
-    ),
+    builder: (ctx) =>
+        _GraphNameDialogContent(initialName: initialName, isEditing: isEditing),
   );
 
   if (requestedName == null || requestedName.isEmpty) return null;
@@ -196,14 +194,8 @@ class _GraphNameDialogContentState extends State<_GraphNameDialogContent> {
         ),
       ),
       actions: [
-        TextButton(
-          onPressed: _cancel,
-          child: const Text('Cancelar'),
-        ),
-        FilledButton(
-          onPressed: _submit,
-          child: const Text('Aceptar'),
-        ),
+        TextButton(onPressed: _cancel, child: const Text('Cancelar')),
+        FilledButton(onPressed: _submit, child: const Text('Aceptar')),
       ],
     );
   }
