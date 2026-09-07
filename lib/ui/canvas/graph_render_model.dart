@@ -120,6 +120,8 @@ class GraphRenderModel {
     String? selectedItemId,
     bool isSelectedNode = true,
     Set<String> disconnectedNodeIds = const {},
+    Set<String> highlightedNodeIds = const {},
+    Set<String> highlightedConnectionIds = const {},
     String? pendingConnectNodeId,
     String? dragConnectingStartNodeId,
     Offset? dragConnectingCurrentPos,
@@ -150,7 +152,7 @@ class GraphRenderModel {
           isCapsule: isCapsule,
           color: Color(n.colorValue),
           isSelected: isSelectedNode && selectedItemId == n.id,
-          isHighlighted: false,
+          isHighlighted: highlightedNodeIds.contains(n.id),
           isDisconnected: disconnectedNodeIds.contains(n.id),
           isPendingConnectTarget: pendingConnectNodeId == n.id,
         ),
@@ -208,7 +210,7 @@ class GraphRenderModel {
 
       if (c.direccion == Direccion.unidireccional ||
           c.direccion == Direccion.bidireccional) {
-        final t = 0.92;
+        final t = 1.0;
         final px = GraphHitTester.evalBezier(
           t,
           curve.start.x,
@@ -243,7 +245,7 @@ class GraphRenderModel {
       }
 
       if (c.direccion == Direccion.bidireccional) {
-        final t = 0.08;
+        final t = 0.0;
         final px = GraphHitTester.evalBezier(
           t,
           curve.start.x,
@@ -329,7 +331,7 @@ class GraphRenderModel {
           labelText: labelText,
           labelPosition: labelPos,
           isSelected: isConnSelected,
-          isHighlighted: false,
+          isHighlighted: highlightedConnectionIds.contains(c.id),
         ),
       );
     }

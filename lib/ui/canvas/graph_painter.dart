@@ -1,5 +1,7 @@
 import 'dart:math';
+
 import 'package:flutter/material.dart';
+
 import '../theme/app_theme.dart';
 import 'graph_render_model.dart';
 
@@ -30,17 +32,20 @@ class GraphPainter extends CustomPainter {
       _drawDottedGrid(canvas, size);
     }
 
-    // 2. Draw Connections
+    // 2. Draw Algorithm Highlights Underlay Pass (Renders behind all graph elements)
+    _drawAlgorithmHighlightsUnderlay(canvas);
+
+    // 3. Draw Main Connections Pass
     for (final conn in renderModel.connections) {
       _drawConnection(canvas, conn);
     }
 
-    // 2.5 Draw Live Drag-to-Connect Preview Line
+    // 3.5 Draw Live Drag-to-Connect Preview Line
     if (renderModel.dragLine != null) {
       _drawDragLine(canvas, renderModel.dragLine!);
     }
 
-    // 3. Draw Neumorphic Nodes
+    // 4. Draw Neumorphic Nodes Pass
     for (final node in renderModel.nodes) {
       _drawNode(canvas, node);
     }
@@ -55,14 +60,114 @@ class GraphPainter extends CustomPainter {
 
     const gridStep = 48.0; // 1 node diameter (U)
     const startX = -2400.0; // 50 nodes left of origin
-    const endX = 2400.0;   // 50 nodes right of origin
+    const endX = 2400.0; // 50 nodes right of origin
     const startY = -2400.0; // 50 nodes above origin
-    const endY = 2400.0;   // 50 nodes below origin
+    const endY = 2400.0; // 50 nodes below origin
 
     for (double x = startX; x <= endX; x += gridStep) {
       for (double y = startY; y <= endY; y += gridStep) {
         canvas.drawCircle(Offset(x, y), 2.8, dotPaint);
       }
+    }
+  }
+
+  /// Dedicated Underlay Pass for Algorithm Highlights (Nodes, Connections, and Arrowheads).
+  /// Placed completely behind the main graph to prevent overlapping edge line clutter.
+  /// Uses White highlight in dark mode and Black highlight in light mode.
+  /// Both nodes and connections extend exactly 3.0px of solid underlay + 4.0px glow on all sides.
+  void _drawAlgorithmHighlightsUnderlay(Canvas canvas) {
+    final highlightBaseColor = palette.isDark ? Colors.white : Colors.black;
+
+    // 1. Highlighted Connections (3.0px Extra Solid Underlay Outline + Ambient Outer Glow)
+    // Main line = 2.5px width. Underlay solid line = 8.5px width (extends 3.0px beyond line on each side).
+    for (final conn in renderModel.connections.where((c) => c.isHighlighted)) {
+      final path = Path()
+        ..moveTo(conn.curve.start.dx, conn.curve.start.dy)
+        ..cubicTo(
+          conn.curve.control1.dx,
+          conn.curve.control1.dy,
+          conn.curve.control2.dx,
+          conn.curve.control2.dy,
+          conn.curve.end.dx,
+          conn.curve.end.dy,
+        );
+
+      // Outer soft ambient glow (16.5px stroke => extends 7.0px from main line, matching node inflate 7.0)
+      final glowBgPaint = Paint()
+        ..color = highlightBaseColor.withValues(alpha: palette.isDark ? 0.45 : 0.3)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 16.5
+        ..strokeCap = StrokeCap.round
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6.0);
+      canvas.drawPath(path, glowBgPaint);
+
+      // 3.0px extra solid underlay outline (8.5px stroke => extends 3.0px from main line)
+      final solidUnderlayPaint = Paint()
+        ..color = highlightBaseColor
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 8.5
+        ..strokeCap = StrokeCap.round;
+      canvas.drawPath(path, solidUnderlayPaint);
+
+      // Highlight arrowhead tips in underlay pass
+      if (conn.isDirected && conn.arrowPoint != null && conn.arrowAngle != null) {
+        _drawArrowHeadUnderlay(
+          canvas,
+          conn.arrowPoint!,
+          conn.arrowAngle!,
+          highlightBaseColor,
+        );
+      }
+      if (conn.reverseArrowPoint != null && conn.reverseArrowAngle != null) {
+        _drawArrowHeadUnderlay(
+          canvas,
+          conn.reverseArrowPoint!,
+          conn.reverseArrowAngle!,
+          highlightBaseColor,
+        );
+      }
+
+      // Highlight connection value label badge in underlay pass
+      if (conn.labelText != null &&
+          conn.labelText!.isNotEmpty &&
+          conn.labelPosition != null) {
+        _drawConnectionLabelUnderlay(
+          canvas,
+          conn.labelText!,
+          conn.labelPosition!,
+          highlightBaseColor,
+        );
+      }
+    }
+
+    // 2. Highlighted Nodes (3.0px Inflated Solid Underlay Halo + Ambient Outer Glow)
+    for (final node in renderModel.nodes.where((n) => n.isHighlighted)) {
+      final rect = Rect.fromCenter(
+        center: node.position,
+        width: node.width,
+        height: node.height,
+      );
+
+      // Outer soft ambient glow fill (inflate 7.0 => extends 7.0px from node edge)
+      final auraPaint = Paint()
+        ..color = highlightBaseColor.withValues(alpha: palette.isDark ? 0.45 : 0.3)
+        ..style = PaintingStyle.fill
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8.0);
+      final auraRRect = RRect.fromRectAndRadius(
+        rect.inflate(7.0),
+        const Radius.circular(999),
+      );
+      canvas.drawRRect(auraRRect, auraPaint);
+
+      // 3.0px inflated solid underlay fill (extends 3.0px beyond node boundary)
+      final solidFillPaint = Paint()
+        ..color = highlightBaseColor
+        ..style = PaintingStyle.fill;
+      final solidRRect = RRect.fromRectAndRadius(
+        rect.inflate(3.0),
+        const Radius.circular(999),
+      );
+      canvas.drawRRect(solidRRect, solidFillPaint);
     }
   }
 
@@ -102,19 +207,17 @@ class GraphPainter extends CustomPainter {
         conn.curve.end.dy,
       );
 
-    // Highlight / selection shadow glow
-    if (conn.isSelected || conn.isHighlighted) {
+    // Selection background glow (manual selection)
+    if (conn.isSelected && !conn.isHighlighted) {
       final highlightPaint = Paint()
-        ..color = conn.isSelected
-            ? palette.primaryAccent
-            : palette.secondaryAccent
+        ..color = palette.primaryAccent
         ..style = PaintingStyle.stroke
-        ..strokeWidth = conn.isSelected ? 6.0 : 4.0
+        ..strokeWidth = 6.0
         ..strokeCap = StrokeCap.round;
       canvas.drawPath(path, highlightPaint);
     }
 
-    // Main line paint
+    // Main line paint (preserves original connection color in the upper graph layer)
     final linePaint = Paint()
       ..color = conn.color
       ..style = PaintingStyle.stroke
@@ -129,7 +232,12 @@ class GraphPainter extends CustomPainter {
     }
 
     if (conn.reverseArrowPoint != null && conn.reverseArrowAngle != null) {
-      _drawArrowHead(canvas, conn.reverseArrowPoint!, conn.reverseArrowAngle!, conn.color);
+      _drawArrowHead(
+        canvas,
+        conn.reverseArrowPoint!,
+        conn.reverseArrowAngle!,
+        conn.color,
+      );
     }
 
     // Connection label (Neumorphic attribute badge)
@@ -137,18 +245,18 @@ class GraphPainter extends CustomPainter {
         conn.labelText!.isNotEmpty &&
         conn.labelPosition != null) {
       _drawConnectionLabel(
-          canvas, conn.labelText!, conn.labelPosition!, conn.color);
+        canvas,
+        conn.labelText!,
+        conn.labelPosition!,
+        conn.color,
+      );
     }
   }
 
-  void _drawArrowHead(
-      Canvas canvas, Offset tip, double angleRadians, Color color) {
-    final arrowPaint = Paint()
-      ..color = color
-      ..style = PaintingStyle.fill;
-
-    const arrowLength = 14.0;
-    const arrowWidth = 10.0;
+  Path _getArrowPath(Offset tip, double angleRadians) {
+    const arrowLength = 15.0;
+    const arrowWidth = 11.0;
+    const notchDepth = 4.5; // Depth of aerodynamic concave back curve
 
     final ux = cos(angleRadians);
     final uy = sin(angleRadians);
@@ -158,20 +266,74 @@ class GraphPainter extends CustomPainter {
     final bx = tip.dx - ux * arrowLength;
     final by = tip.dy - uy * arrowLength;
 
-    final pLeft = Offset(bx + nx * (arrowWidth / 2), by + ny * (arrowWidth / 2));
-    final pRight = Offset(bx - nx * (arrowWidth / 2), by - ny * (arrowWidth / 2));
+    final pLeft = Offset(
+      bx + nx * (arrowWidth / 2),
+      by + ny * (arrowWidth / 2),
+    );
+    final pRight = Offset(
+      bx - nx * (arrowWidth / 2),
+      by - ny * (arrowWidth / 2),
+    );
+    final pNotch = Offset(
+      bx + ux * notchDepth,
+      by + uy * notchDepth,
+    );
 
-    final path = Path()
+    return Path()
       ..moveTo(tip.dx, tip.dy)
       ..lineTo(pLeft.dx, pLeft.dy)
-      ..lineTo(pRight.dx, pRight.dy)
+      ..quadraticBezierTo(pNotch.dx, pNotch.dy, pRight.dx, pRight.dy)
       ..close();
+  }
 
+  void _drawArrowHeadUnderlay(
+    Canvas canvas,
+    Offset tip,
+    double angleRadians,
+    Color highlightBaseColor,
+  ) {
+    final path = _getArrowPath(tip, angleRadians);
+
+    // Outer soft ambient glow for stealth arrowhead (strokeWidth 14.0 => extends 7.0px on all sides)
+    final glowPaint = Paint()
+      ..color = highlightBaseColor.withValues(alpha: palette.isDark ? 0.45 : 0.3)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 14.0
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6.0);
+    canvas.drawPath(path, glowPaint);
+
+    // 3.0px extra solid underlay outline for stealth arrowhead (strokeWidth 6.0 => extends 3.0px on all sides)
+    final solidPaint = Paint()
+      ..color = highlightBaseColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 6.0
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+    canvas.drawPath(path, solidPaint);
+  }
+
+  void _drawArrowHead(
+    Canvas canvas,
+    Offset tip,
+    double angleRadians,
+    Color color,
+  ) {
+    final arrowPaint = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill;
+
+    final path = _getArrowPath(tip, angleRadians);
     canvas.drawPath(path, arrowPaint);
   }
 
   void _drawConnectionLabel(
-      Canvas canvas, String text, Offset position, Color color) {
+    Canvas canvas,
+    String text,
+    Offset position,
+    Color color,
+  ) {
     final textSpan = TextSpan(
       text: text,
       style: TextStyle(
@@ -217,6 +379,53 @@ class GraphPainter extends CustomPainter {
     );
   }
 
+  void _drawConnectionLabelUnderlay(
+    Canvas canvas,
+    String text,
+    Offset position,
+    Color highlightBaseColor,
+  ) {
+    final textSpan = TextSpan(
+      text: text,
+      style: const TextStyle(
+        fontSize: 12,
+        fontWeight: FontWeight.bold,
+      ),
+    );
+
+    final textPainter = TextPainter(
+      text: textSpan,
+      textDirection: TextDirection.ltr,
+    )..layout();
+
+    final baseRect = Rect.fromCenter(
+      center: position,
+      width: textPainter.width + 16,
+      height: textPainter.height + 8,
+    );
+
+    // 1. Soft ambient glow background (inflated by 7.0px on all sides)
+    final glowPaint = Paint()
+      ..color = highlightBaseColor.withValues(alpha: palette.isDark ? 0.45 : 0.3)
+      ..style = PaintingStyle.fill
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8.0);
+    final glowRRect = RRect.fromRectAndRadius(
+      baseRect.inflate(7.0),
+      const Radius.circular(19),
+    );
+    canvas.drawRRect(glowRRect, glowPaint);
+
+    // 2. Solid 3.0px inflated underlay fill (extends 3.0px beyond badge border on all sides)
+    final solidPaint = Paint()
+      ..color = highlightBaseColor
+      ..style = PaintingStyle.fill;
+    final solidRRect = RRect.fromRectAndRadius(
+      baseRect.inflate(3.0),
+      const Radius.circular(15),
+    );
+    canvas.drawRRect(solidRRect, solidPaint);
+  }
+
   void _drawNode(Canvas canvas, RenderNode node) {
     final rect = Rect.fromCenter(
       center: node.position,
@@ -232,7 +441,9 @@ class GraphPainter extends CustomPainter {
     final isCanvasLight = palette.surfaceBg.computeLuminance() > 0.45;
     final shadowColor = isCanvasLight
         ? const Color(0x33000000) // Soft dark drop shadow on light background
-        : const Color(0x66000000); // Soft ambient drop shadow on dark background
+        : const Color(
+            0x66000000,
+          ); // Soft ambient drop shadow on dark background
     canvas.drawShadow(shadowPath, shadowColor, 3.5, false);
 
     // 2. Main Node Surface Fill
@@ -245,14 +456,12 @@ class GraphPainter extends CustomPainter {
       ..style = PaintingStyle.fill;
     canvas.drawRRect(rrect, nodePaint);
 
-    // 3. Selection / Pending Target Ring
-    if (node.isSelected || node.isPendingConnectTarget || node.isHighlighted) {
+    // 3. Selection / Pending Target Ring (Highlighted nodes already have underlay aura)
+    if (node.isSelected || node.isPendingConnectTarget) {
       final highlightPaint = Paint()
         ..color = node.isSelected
             ? palette.primaryAccent
-            : (node.isPendingConnectTarget
-                ? palette.secondaryAccent
-                : palette.primaryAccent.withValues(alpha: 0.5))
+            : palette.secondaryAccent
         ..style = PaintingStyle.stroke
         ..strokeWidth = node.isSelected ? 3.5 : 2.5;
 

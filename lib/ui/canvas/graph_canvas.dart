@@ -12,6 +12,7 @@ import '../../application/providers/edicion_provider.dart';
 import '../../application/providers/grafo_invalido_provider.dart';
 import '../../application/providers/grafo_provider.dart';
 import '../../application/providers/modo_provider.dart';
+import '../../algorithms/assignment/providers/assignment_provider.dart';
 import '../../domain/models/conexion.dart';
 import '../../domain/models/direccion.dart';
 import '../../domain/models/grafo.dart';
@@ -851,12 +852,16 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
     final edicion = ref.watch(estadoEdicionProvider);
     final creacion = ref.watch(estadoCreacionProvider);
 
+    final highlights = ref.watch(highlightedElementsProvider);
+
     return GraphRenderModel.fromGrafo(
       grafo,
       palette: palette,
       selectedItemId: edicion.itemSeleccionadoId,
       isSelectedNode: edicion.esNodo,
       disconnectedNodeIds: desconectados,
+      highlightedNodeIds: highlights.nodeIds,
+      highlightedConnectionIds: highlights.connectionIds,
       pendingConnectNodeId: creacion.primerNodoSeleccionado,
       dragConnectingStartNodeId: _dragConnectingStartNodeId,
       dragConnectingCurrentPos: _dragConnectingCurrentPos,

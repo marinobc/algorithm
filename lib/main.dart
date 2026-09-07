@@ -5,6 +5,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widget_previews.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'algorithms/assignment/providers/assignment_provider.dart';
+import 'ui/widgets/floating_algorithm_card.dart';
 import 'application/providers/edicion_provider.dart';
 import 'application/providers/grafo_invalido_provider.dart';
 import 'application/providers/grafo_provider.dart';
@@ -568,7 +570,15 @@ class _GraphEditorScreenState extends ConsumerState<GraphEditorScreen> {
                 child: RepaintBoundary(child: GraphCanvas(key: _canvasKey)),
               ),
 
-              // 2. Floating Action Controls Column (Center, Undo, Redo)
+              // 2. Top Floating Algorithm Card (Min/Max toggle + Concise optimal results)
+              const Positioned(
+                top: 8,
+                left: 8,
+                right: 8,
+                child: FloatingAlgorithmCard(),
+              ),
+
+              // 3. Floating Action Controls Column (Center, Undo, Redo)
               Positioned(
                 right: 16,
                 bottom: 24,
