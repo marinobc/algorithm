@@ -19,6 +19,13 @@ class NodeRenderHelper {
       const Radius.circular(999), // M3 pill shape
     );
 
+    if (node.isOverlapping) {
+      canvas.saveLayer(
+        rect.inflate(12.0),
+        Paint()..color = const Color(0x99FFFFFF), // 60% opacity for overlapping nodes
+      );
+    }
+
     // 1. Subtle Node Drop Shadow
     final shadowPath = Path()..addRRect(rrect);
     final isCanvasLight = palette.surfaceBg.computeLuminance() > 0.45;
@@ -77,6 +84,10 @@ class NodeRenderHelper {
         node.position.dy - textPainter.height / 2,
       ),
     );
+
+    if (node.isOverlapping) {
+      canvas.restore();
+    }
   }
 
   static void drawNodeHighlightUnderlay(

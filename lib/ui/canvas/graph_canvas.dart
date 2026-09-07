@@ -374,10 +374,9 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
                 (worldPos.dx - origen.x) * (worldPos.dx - origen.x) +
                     (worldPos.dy - origen.y) * (worldPos.dy - origen.y),
               );
-              final textLength = (origen.nombre ?? origen.id).length;
               final nodeOuterRadius = max(
                 origen.radius,
-                (textLength * 8.0 + 24.0) / 2.0,
+                GraphGeometry.getNodeWidth(origen) / 2.0,
               );
               final newCurvatura = max(
                 0.0,
@@ -528,36 +527,11 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
   }
 
   void _handleNodeDragEnd(String nodeId, Offset currentWorldPos) {
-    final grafo = ref.read(grafoProvider);
-    final isValid = GraphGeometry.isValidNodePosition(
-      candidateX: currentWorldPos.dx,
-      candidateY: currentWorldPos.dy,
-      candidateId: nodeId,
-      existingNodes: grafo.nodos.values,
+    final clamped = GraphGeometry.clampNodePosition(
+      currentWorldPos.dx,
+      currentWorldPos.dy,
     );
-
-    if (!isValid) {
-      final validTarget = GraphGeometry.getNearestValidPosition(
-        candidateX: currentWorldPos.dx,
-        candidateY: currentWorldPos.dy,
-        candidateId: nodeId,
-        existingNodes: grafo.nodos.values,
-      );
-
-      _animatingNodeId = nodeId;
-      _snapBackAnimation =
-          Tween<Offset>(
-            begin: currentWorldPos,
-            end: Offset(validTarget.x, validTarget.y),
-          ).animate(
-            CurvedAnimation(
-              parent: _snapBackController,
-              curve: Curves.elasticOut,
-            ),
-          );
-
-      _snapBackController.forward(from: 0.0);
-    }
+    ref.read(grafoProvider.notifier).moverNodo(nodeId, clamped.x, clamped.y);
   }
 
   void _handleTap(Offset worldPos) {
@@ -702,11 +676,9 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
           .seleccionarConexion(hitConns.first.id);
     } else {
       // Tap empty canvas -> Create node!
-      final validPos = GraphGeometry.getNearestValidPosition(
-        candidateX: worldPos.dx,
-        candidateY: worldPos.dy,
-        candidateId: 'temp_new',
-        existingNodes: grafo.nodos.values,
+      final validPos = GraphGeometry.clampNodePosition(
+        worldPos.dx,
+        worldPos.dy,
       );
 
       ref.read(grafoProvider.notifier).agregarNodo(validPos.x, validPos.y);

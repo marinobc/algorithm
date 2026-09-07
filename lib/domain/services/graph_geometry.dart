@@ -1,5 +1,7 @@
 import 'dart:math';
 
+import 'package:flutter/material.dart';
+
 import '../models/nodo.dart';
 
 class Point2D {
@@ -42,26 +44,41 @@ class BezierCurve2D {
 }
 
 class GraphGeometry {
-  /// Calculate 12 connection points at 30-degree increments around node perimeter.
+  /// Calculates exact node width accounting for text length and padding.
+  static double getNodeWidth(Nodo nodo) {
+    final textPainter = TextPainter(
+      text: TextSpan(
+        text: nodo.nombre ?? nodo.id,
+        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout();
+
+    final minDiameter = nodo.diameter;
+    final textWidth = textPainter.width + 24.0;
+    return max(minDiameter, textWidth);
+  }
+
+  /// Calculate 12 connection points around node perimeter.
   static List<ConnectionPoint> get12ConnectionPoints(Nodo nodo) {
     final points = <ConnectionPoint>[];
     for (int i = 0; i < 12; i++) {
       final angle = i * (pi / 6.0); // 30 degrees = pi / 6
-      final px = nodo.x + nodo.radius * cos(angle);
-      final py = nodo.y + nodo.radius * sin(angle);
+      final pt = getPerimeterPoint(nodo, angle);
       points.add(
-        ConnectionPoint(point: Point2D(px, py), angleRadians: angle, index: i),
+        ConnectionPoint(point: pt, angleRadians: angle, index: i),
       );
     }
     return points;
   }
 
-  /// Select the connection point closest in angle toward the target position (tx, ty).
+  /// Select the exact perimeter connection point toward the target position (tx, ty) at any angle.
   static ConnectionPoint selectBestConnectionPoint(
     Nodo nodo,
     double tx,
-    double ty,
-  ) {
+    double ty, {
+    double? overrideWidth,
+  }) {
     final dx = tx - nodo.x;
     final dy = ty - nodo.y;
     var targetAngle = atan2(dy, dx);
@@ -69,38 +86,54 @@ class GraphGeometry {
       targetAngle += 2 * pi;
     }
 
-    final points = get12ConnectionPoints(nodo);
-    ConnectionPoint best = points[0];
-    double minDiff = 2 * pi;
-
-    for (final cp in points) {
-      double diff = (cp.angleRadians - targetAngle).abs();
-      if (diff > pi) {
-        diff = 2 * pi - diff;
-      }
-      if (diff < minDiff) {
-        minDiff = diff;
-        best = cp;
-      }
-    }
-    return best;
+    final point = getPerimeterPoint(nodo, targetAngle, overrideWidth: overrideWidth);
+    return ConnectionPoint(
+      point: point,
+      angleRadians: targetAngle,
+      index: -1,
+    );
   }
 
-  /// Calculates exact perimeter anchor point at any angle [angleRadians] for a node (accounting for capsule width).
-  static Point2D getPerimeterPoint(Nodo nodo, double angleRadians) {
-    final textLength = (nodo.nombre ?? nodo.id).length;
-    final estimatedTextWidth = textLength * 8.0 + 24.0;
-    final halfW = max(nodo.radius, estimatedTextWidth / 2.0);
+  /// Calculates exact perimeter anchor point at any angle [angleRadians] for a node
+  /// (accounting for capsule/pill width when text makes the node larger).
+  static Point2D getPerimeterPoint(Nodo nodo, double angleRadians, {double? overrideWidth}) {
     final halfH = nodo.radius;
+    final nodeWidth = overrideWidth ?? getNodeWidth(nodo);
+    final halfW = max(halfH, nodeWidth / 2.0);
 
+    if (halfW <= halfH) {
+      return Point2D(
+        nodo.x + halfH * cos(angleRadians),
+        nodo.y + halfH * sin(angleRadians),
+      );
+    }
+
+    final r = halfH;
+    final dx = halfW - halfH;
     final cosA = cos(angleRadians);
     final sinA = sin(angleRadians);
-    final denom = sqrt(
-      (cosA * cosA) / (halfW * halfW) + (sinA * sinA) / (halfH * halfH),
-    );
-    final scale = denom > 0 ? (1.0 / denom) : nodo.radius;
 
-    return Point2D(nodo.x + cosA * scale, nodo.y + sinA * scale);
+    // Check intersection with flat top or bottom edge of the capsule
+    if (sinA != 0) {
+      final tFlat = r / sinA.abs();
+      final xFlat = tFlat * cosA;
+      if (xFlat.abs() <= dx) {
+        return Point2D(
+          nodo.x + xFlat,
+          nodo.y + (sinA > 0 ? r : -r),
+        );
+      }
+    }
+
+    // Intersection with left or right semicircle cap of the capsule
+    final cx = cosA > 0 ? dx : -dx;
+    final sinSq = sinA * sinA;
+    final radTerm = r * r - cx * cx * sinSq;
+    final tCap = cosA * cx + sqrt(max(0.0, radTerm));
+    return Point2D(
+      nodo.x + tCap * cosA,
+      nodo.y + tCap * sinA,
+    );
   }
 
   /// Calculate Bezier curve between source and target node connection points.
@@ -122,15 +155,12 @@ class GraphGeometry {
     if (origen.id == destino.id) {
       // 360-Degree Circular Self-Loop connection oriented around loopAngle
       final centerAngle = loopAngle ?? (-pi / 2.0); // Top (-90 deg) by default
-      final textLength = (origen.nombre ?? origen.id).length;
-      final nodeOuterRadius = max(
-        origen.radius,
-        (textLength * 8.0 + 24.0) / 2.0,
-      );
+      final nodeWidth = getNodeWidth(origen);
+      final halfW = max(origen.radius, nodeWidth / 2.0);
 
       // Smooth circular loop radius calculation: grows cleanly with curvatura
       final loopRadius =
-          nodeOuterRadius *
+          halfW *
           (1.1 +
               (effectiveFactor < 0 ? 0.0 : effectiveFactor.clamp(0.0, 6.0)) *
                   0.6);
@@ -145,15 +175,15 @@ class GraphGeometry {
       // Circular cubic Bezier control points that form a smooth round loop
       final c1 = Point2D(
         origen.x +
-            (nodeOuterRadius + loopRadius * 1.55) * cos(centerAngle + 0.52),
+            (halfW + loopRadius * 1.55) * cos(centerAngle + 0.52),
         origen.y +
-            (nodeOuterRadius + loopRadius * 1.55) * sin(centerAngle + 0.52),
+            (halfW + loopRadius * 1.55) * sin(centerAngle + 0.52),
       );
       final c2 = Point2D(
         origen.x +
-            (nodeOuterRadius + loopRadius * 1.55) * cos(centerAngle - 0.52),
+            (halfW + loopRadius * 1.55) * cos(centerAngle - 0.52),
         origen.y +
-            (nodeOuterRadius + loopRadius * 1.55) * sin(centerAngle - 0.52),
+            (halfW + loopRadius * 1.55) * sin(centerAngle - 0.52),
       );
 
       return BezierCurve2D(start: start, control1: c1, control2: c2, end: end);
@@ -240,9 +270,7 @@ class GraphGeometry {
     );
   }
 
-  /// Evaluates whether placing a node at (candidateX, candidateY) violates
-  /// minimum distance requirements (1 node diameter spacing) with existing nodes
-  /// or exceeds the 100x100 world grid bounds.
+  /// Evaluates whether placing a node at (candidateX, candidateY) is within world grid bounds.
   static bool isValidNodePosition({
     required double candidateX,
     required double candidateY,
@@ -250,25 +278,10 @@ class GraphGeometry {
     required Iterable<Nodo> existingNodes,
     double nodeDiameter = 50.0,
   }) {
-    if (candidateX.abs() > maxNodeCoord || candidateY.abs() > maxNodeCoord) {
-      return false;
-    }
-
-    final minDistance = nodeDiameter * 2.0; // Distance between centers must be at least 2 * radius + 1 diameter = 2 diameters
-    for (final node in existingNodes) {
-      if (node.id == candidateId) continue;
-      final dx = candidateX - node.x;
-      final dy = candidateY - node.y;
-      final dist = sqrt(dx * dx + dy * dy);
-      if (dist < minDistance) {
-        return false;
-      }
-    }
-    return true;
+    return candidateX.abs() <= maxNodeCoord && candidateY.abs() <= maxNodeCoord;
   }
 
-  /// Calculates the nearest valid position using a multi-pass iterative collision solver
-  /// to ensure pushing candidate away from one node does not cause a collision with another node.
+  /// Calculates clamped position within world grid bounds without distance jump restrictions.
   static Point2D getNearestValidPosition({
     required double candidateX,
     required double candidateY,
@@ -276,76 +289,6 @@ class GraphGeometry {
     required Iterable<Nodo> existingNodes,
     double nodeDiameter = 50.0,
   }) {
-    double x = candidateX.clamp(-maxNodeCoord, maxNodeCoord);
-    double y = candidateY.clamp(-maxNodeCoord, maxNodeCoord);
-    final requiredDist = nodeDiameter * 2.0;
-
-    // Multi-pass iterative resolution (recursive collision propagation prevention)
-    const maxPasses = 15;
-    for (int pass = 0; pass < maxPasses; pass++) {
-      bool hasCollision = false;
-      for (final node in existingNodes) {
-        if (node.id == candidateId) continue;
-        final dx = x - node.x;
-        final dy = y - node.y;
-        final dist = sqrt(dx * dx + dy * dy);
-        if (dist < requiredDist) {
-          hasCollision = true;
-          if (dist == 0) {
-            // Push at 45 degree angle if exact overlap
-            x = (node.x + requiredDist * cos(pi / 4)).clamp(
-              -maxNodeCoord,
-              maxNodeCoord,
-            );
-            y = (node.y + requiredDist * sin(pi / 4)).clamp(
-              -maxNodeCoord,
-              maxNodeCoord,
-            );
-          } else {
-            final factor = requiredDist / dist;
-            x = (node.x + dx * factor).clamp(-maxNodeCoord, maxNodeCoord);
-            y = (node.y + dy * factor).clamp(-maxNodeCoord, maxNodeCoord);
-          }
-        }
-      }
-      if (!hasCollision) break;
-    }
-
-    // Safety fallback: if multi-pass bound in tight cluster, perform radial search
-    if (!isValidNodePosition(
-      candidateX: x,
-      candidateY: y,
-      candidateId: candidateId,
-      existingNodes: existingNodes,
-      nodeDiameter: nodeDiameter,
-    )) {
-      double angle = 0;
-      double radiusOffset = requiredDist;
-      while (radiusOffset <= maxNodeCoord * 2) {
-        for (int i = 0; i < 8; i++) {
-          final testX = (x + radiusOffset * cos(angle)).clamp(
-            -maxNodeCoord,
-            maxNodeCoord,
-          );
-          final testY = (y + radiusOffset * sin(angle)).clamp(
-            -maxNodeCoord,
-            maxNodeCoord,
-          );
-          if (isValidNodePosition(
-            candidateX: testX,
-            candidateY: testY,
-            candidateId: candidateId,
-            existingNodes: existingNodes,
-            nodeDiameter: nodeDiameter,
-          )) {
-            return Point2D(testX, testY);
-          }
-          angle += pi / 4;
-        }
-        radiusOffset += nodeDiameter;
-      }
-    }
-
-    return Point2D(x, y);
+    return clampNodePosition(candidateX, candidateY);
   }
 }

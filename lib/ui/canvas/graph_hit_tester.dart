@@ -13,9 +13,8 @@ class GraphHitTester {
   /// Calculates exact Euclidean distance from point [p] to a node's visual capsule boundary.
   /// Distance is <= 0.0 if point is strictly INSIDE the node capsule.
   static double distanceToNodeBoundary(Offset p, Nodo node) {
-    final textLength = (node.nombre ?? node.id).length;
-    final estimatedTextWidth = textLength * 8.0 + 24.0;
-    final halfW = max(node.radius, estimatedTextWidth / 2.0);
+    final nodeWidth = GraphGeometry.getNodeWidth(node);
+    final halfW = max(node.radius, nodeWidth / 2.0);
     final halfH = node.radius;
 
     final dx = (p.dx - node.x).abs();

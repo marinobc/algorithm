@@ -28,6 +28,7 @@ class RenderNode {
   final bool isHighlighted;
   final bool isDisconnected; // Red glow if true
   final bool isPendingConnectTarget; // Visual hint during creation
+  final bool isOverlapping; // Opacity visual indicator when stacked
 
   const RenderNode({
     required this.id,
@@ -41,6 +42,7 @@ class RenderNode {
     this.isHighlighted = false,
     this.isDisconnected = false,
     this.isPendingConnectTarget = false,
+    this.isOverlapping = false,
   });
 }
 
@@ -130,22 +132,13 @@ class GraphRenderModel {
     Offset? dragConnectingCurrentPos,
     String? dragConnectingTargetNodeId,
   }) {
-    final renderNodes = <RenderNode>[];
+    final rawNodes = <RenderNode>[];
     for (final n in grafo.nodos.values) {
-      final textPainter = TextPainter(
-        text: TextSpan(
-          text: n.nombre ?? n.id,
-          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-        ),
-        textDirection: TextDirection.ltr,
-      )..layout();
-
       final minDiameter = n.diameter;
-      final textWidth = textPainter.width + 24;
-      final isCapsule = textWidth > minDiameter;
-      final width = max(minDiameter, textWidth);
+      final width = GraphGeometry.getNodeWidth(n);
+      final isCapsule = width > minDiameter;
 
-      renderNodes.add(
+      rawNodes.add(
         RenderNode(
           id: n.id,
           nombre: n.nombre ?? n.id,
@@ -161,6 +154,46 @@ class GraphRenderModel {
         ),
       );
     }
+
+    final overlappingIds = <String>{};
+    for (int i = 0; i < rawNodes.length; i++) {
+      final rectA = Rect.fromCenter(
+        center: rawNodes[i].position,
+        width: rawNodes[i].width,
+        height: rawNodes[i].height,
+      );
+      for (int j = i + 1; j < rawNodes.length; j++) {
+        final rectB = Rect.fromCenter(
+          center: rawNodes[j].position,
+          width: rawNodes[j].width,
+          height: rawNodes[j].height,
+        );
+        if (rectA.overlaps(rectB)) {
+          overlappingIds.add(rawNodes[i].id);
+          overlappingIds.add(rawNodes[j].id);
+        }
+      }
+    }
+
+    final renderNodes = rawNodes.map((rn) {
+      if (overlappingIds.contains(rn.id)) {
+        return RenderNode(
+          id: rn.id,
+          nombre: rn.nombre,
+          position: rn.position,
+          width: rn.width,
+          height: rn.height,
+          isCapsule: rn.isCapsule,
+          color: rn.color,
+          isSelected: rn.isSelected,
+          isHighlighted: rn.isHighlighted,
+          isDisconnected: rn.isDisconnected,
+          isPendingConnectTarget: rn.isPendingConnectTarget,
+          isOverlapping: true,
+        );
+      }
+      return rn;
+    }).toList();
 
     final selectedConn = !isSelectedNode && selectedItemId != null
         ? grafo.conexiones[selectedItemId]
@@ -347,9 +380,34 @@ class GraphRenderModel {
     if (dragConnectingStartNodeId != null && dragConnectingCurrentPos != null) {
       final startNode = grafo.nodos[dragConnectingStartNodeId];
       if (startNode != null) {
+        final angleToTarget = atan2(
+          dragConnectingCurrentPos.dy - startNode.y,
+          dragConnectingCurrentPos.dx - startNode.x,
+        );
+        final startPt = GraphGeometry.getPerimeterPoint(
+          startNode,
+          angleToTarget,
+        );
+
+        Offset endPt = dragConnectingCurrentPos;
+        if (dragConnectingTargetNodeId != null) {
+          final targetNode = grafo.nodos[dragConnectingTargetNodeId];
+          if (targetNode != null) {
+            final angleFromTarget = atan2(
+              startNode.y - targetNode.y,
+              startNode.x - targetNode.x,
+            );
+            final targetPerimeter = GraphGeometry.getPerimeterPoint(
+              targetNode,
+              angleFromTarget,
+            );
+            endPt = Offset(targetPerimeter.x, targetPerimeter.y);
+          }
+        }
+
         dragLine = RenderDragLine(
-          start: Offset(startNode.x, startNode.y),
-          end: dragConnectingCurrentPos,
+          start: Offset(startPt.x, startPt.y),
+          end: endPt,
           color: palette.primaryAccent,
           targetNodeId: dragConnectingTargetNodeId,
         );

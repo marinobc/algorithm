@@ -19,62 +19,69 @@ void main() {
       expect(points[3].point.y, closeTo(100.0 + node.radius, 0.001));
     });
 
-    test('selectBestConnectionPoint chooses point facing target', () {
+    test('selectBestConnectionPoint calculates exact perimeter point at target angle', () {
       const node = Nodo(id: 'n1', colorValue: 0xFF2196F3, x: 0, y: 0);
       final bestRight = GraphGeometry.selectBestConnectionPoint(node, 100, 0);
-      expect(bestRight.index, equals(0));
+      expect(bestRight.angleRadians, closeTo(0.0, 0.001));
 
       final bestDown = GraphGeometry.selectBestConnectionPoint(node, 0, 100);
-      expect(bestDown.index, equals(3));
+      expect(bestDown.angleRadians, closeTo(3.14159 / 2, 0.001));
+
+      // Continuous angle (not snapped to 30 degrees, e.g. 15 degrees)
+      final targetX = 100.0 * 0.9659; // cos(15 deg)
+      final targetY = 100.0 * 0.2588; // sin(15 deg)
+      final bestCustom = GraphGeometry.selectBestConnectionPoint(node, targetX, targetY);
+      expect(bestCustom.angleRadians, closeTo(0.26179, 0.005)); // ~15 deg in radians
     });
 
-    test(
-      'isValidNodePosition enforces minimum distance of 1 node diameter',
-      () {
-        const existing = [Nodo(id: 'n1', colorValue: 0xFF2196F3, x: 0, y: 0)];
+    test('getPerimeterPoint anchors to outer edge of wide capsule node with text', () {
+      const nodeLongText = Nodo(
+        id: 'n1',
+        nombre: 'Nodo con un texto muy largo para probar capsula',
+        colorValue: 0xFF2196F3,
+        x: 0,
+        y: 0,
+      );
 
-        // Center-to-center distance < 100.0 (2 * diameter requirement)
-        expect(
-          GraphGeometry.isValidNodePosition(
-            candidateX: 50.0,
-            candidateY: 0.0,
-            candidateId: 'n2',
-            existingNodes: existing,
-          ),
-          isFalse,
-        );
+      final width = GraphGeometry.getNodeWidth(nodeLongText);
+      expect(width, greaterThan(100.0));
 
-        // Distance >= 100.0
-        expect(
-          GraphGeometry.isValidNodePosition(
-            candidateX: 100.0,
-            candidateY: 0.0,
-            candidateId: 'n2',
-            existingNodes: existing,
-          ),
-          isTrue,
-        );
-      },
-    );
+      final edgePointRight = GraphGeometry.getPerimeterPoint(nodeLongText, 0);
+      // Anchor X should be at half-width (edge of capsule), not fixed radius 32
+      expect(edgePointRight.x, closeTo(width / 2.0, 0.01));
+      expect(edgePointRight.y, closeTo(0.0, 0.01));
+    });
 
-    test(
-      'calculateBezierCurve for self-loop produces loop curve above node',
-      () {
-        const node = Nodo(id: 'n1', colorValue: 0xFF2196F3, x: 0, y: 0);
-        final curve = GraphGeometry.calculateBezierCurve(
-          origen: node,
-          destino: node,
-        );
+    test('isValidNodePosition allows node placement anywhere within world bounds', () {
+      const existing = [Nodo(id: 'n1', colorValue: 0xFF2196F3, x: 0, y: 0)];
 
-        expect(curve.start, isNotNull);
-        expect(curve.end, isNotNull);
-        // Control points loop above node (negative Y)
-        expect(curve.control1.y, lessThan(0));
-        expect(curve.control2.y, lessThan(0));
-      },
-    );
+      // Overlapping or close position is valid (no jump restriction)
+      expect(
+        GraphGeometry.isValidNodePosition(
+          candidateX: 10.0,
+          candidateY: 0.0,
+          candidateId: 'n2',
+          existingNodes: existing,
+        ),
+        isTrue,
+      );
+    });
 
-    test('getNearestValidPosition uses multi-pass solver to prevent cascading collisions', () {
+    test('calculateBezierCurve for self-loop produces loop curve above node', () {
+      const node = Nodo(id: 'n1', colorValue: 0xFF2196F3, x: 0, y: 0);
+      final curve = GraphGeometry.calculateBezierCurve(
+        origen: node,
+        destino: node,
+      );
+
+      expect(curve.start, isNotNull);
+      expect(curve.end, isNotNull);
+      // Control points loop above node (negative Y)
+      expect(curve.control1.y, lessThan(0));
+      expect(curve.control2.y, lessThan(0));
+    });
+
+    test('getNearestValidPosition clamps within world grid bounds without pushing nodes away', () {
       const existing = [
         Nodo(id: 'n1', colorValue: 0xFF2196F3, x: 0, y: 0),
         Nodo(id: 'n2', colorValue: 0xFF2196F3, x: 100, y: 0),
@@ -87,16 +94,8 @@ void main() {
         existingNodes: existing,
       );
 
-      // Multi-pass solver ensures pos does not collide with n1 OR n2
-      expect(
-        GraphGeometry.isValidNodePosition(
-          candidateX: pos.x,
-          candidateY: pos.y,
-          candidateId: 'n3',
-          existingNodes: existing,
-        ),
-        isTrue,
-      );
+      expect(pos.x, equals(10.0));
+      expect(pos.y, equals(0.0));
     });
 
     test('2D offsetControlX and offsetControlY curve control points', () {
