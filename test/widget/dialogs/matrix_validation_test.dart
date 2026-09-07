@@ -15,7 +15,6 @@ void main() {
     testWidgets(
       'shows "Conecta el grafo para poder ver la matriz" when graph has disconnected nodes',
       (tester) async {
-        // Disconnected graph with 2 nodes and 0 connections
         final invalidGraph = Grafo(
           nodos: {
             'n1': const Nodo(
@@ -56,7 +55,6 @@ void main() {
 
         await tester.pumpAndSettle();
 
-        // Verify the warning title message is displayed
         expect(
           find.text('Conecta el grafo para poder ver la matriz'),
           findsOneWidget,
@@ -120,14 +118,12 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      // Verify matrix title and headers are rendered instead of the block message
       expect(find.text('Matriz de Adyacencia Ponderada'), findsOneWidget);
       expect(
         find.text('Conecta el grafo para poder ver la matriz'),
         findsNothing,
       );
 
-      // Verify new summary headers and stats card are present
       expect(find.text('Suma Fila'), findsOneWidget);
       expect(find.text('Grado Fila'), findsOneWidget);
       expect(find.text('Suma Col.'), findsOneWidget);

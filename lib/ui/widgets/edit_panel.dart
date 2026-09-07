@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter/widget_previews.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../application/providers/atributos_provider.dart';
@@ -9,15 +7,15 @@ import '../../application/providers/grafo_provider.dart';
 import '../../domain/models/atributo.dart';
 import '../../domain/models/conexion.dart';
 import '../../domain/models/direccion.dart';
-import '../../domain/models/grafo.dart';
-import '../../domain/models/nodo.dart';
+import '../dialogs/connection_duplicate_dialog.dart';
+import '../dialogs/delete_confirmation_dialog.dart';
 import '../text/app_text.dart';
 import '../text/connection_text.dart';
-import 'edit_panel/connection_edit_section.dart';
-import 'edit_panel/node_edit_section.dart';
-import '../dialogs/delete_confirmation_dialog.dart';
 import '../text/dialog_text.dart';
 import '../theme/app_theme.dart';
+import 'edit_panel/connection_edit_section.dart';
+import 'edit_panel/custom_attributes_section.dart';
+import 'edit_panel/node_edit_section.dart';
 
 class EditPanel extends ConsumerStatefulWidget {
   const EditPanel({super.key});
@@ -426,94 +424,38 @@ class _EditPanelState extends ConsumerState<EditPanel> {
                 ),
               ],
               if (!isNode) ...[
-                const SizedBox(height: 16),
-                Text(
-                  ConnectionText.attributesHeader,
-                  style: TextStyle(
-                    color: colorScheme.primary,
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                for (final attr in atributosGlobales) ...[
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 10.0),
-                    child: Row(
-                      children: [
-                        SizedBox(
-                          width: 110,
-                          child: _buildM3TextField(
-                            controller: _getAttrTagNameController(
-                              attr.id,
-                              attr.nombre,
-                            ),
-                            label: 'Etiqueta',
-                            colorScheme: colorScheme,
-                            onChanged: (newTag) {
-                              final trimmed = newTag.trim();
-                              if (trimmed.isNotEmpty) {
-                                ref
-                                    .read(atributosGlobalesProvider.notifier)
-                                    .renombrarAtributo(attr.id, trimmed);
-                                ref
-                                    .read(estadoEdicionProvider.notifier)
-                                    .marcarCambioSinGuardar();
-                              }
-                            },
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: _buildM3TextField(
-                            controller: _getAttrController(attr.id),
-                            label: 'Valor',
-                            colorScheme: colorScheme,
-                            isNumeric: true,
-                            onChanged: (_) {
-                              ref
-                                  .read(estadoEdicionProvider.notifier)
-                                  .marcarCambioSinGuardar();
-                            },
-                          ),
-                        ),
-                        IconButton(
-                          icon: Icon(
-                            Icons.delete_outline,
-                            color: colorScheme.error,
-                          ),
-                          onPressed: () =>
-                              _confirmDeleteAttribute(context, attr, palette),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildM3TextField(
-                        controller: _newAttrController,
-                        label: ConnectionText.attributeName,
-                        colorScheme: colorScheme,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    FilledButton.icon(
-                      onPressed: () {
-                        final name = _newAttrController.text.trim();
-                        if (name.isNotEmpty) {
-                          ref
-                              .read(atributosGlobalesProvider.notifier)
-                              .agregarAtributo(name);
-                          _newAttrController.clear();
-                        }
-                      },
-                      icon: const Icon(Icons.add, size: 18),
-                      label: const Text('Agregar'),
-                    ),
-                  ],
+                CustomAttributesSection(
+                  atributosGlobales: atributosGlobales,
+                  colorScheme: colorScheme,
+                  palette: palette,
+                  newAttrController: _newAttrController,
+                  getAttrController: _getAttrController,
+                  getAttrTagNameController: _getAttrTagNameController,
+                  onTagRenamed: (attrId, newTag) {
+                    ref
+                        .read(atributosGlobalesProvider.notifier)
+                        .renombrarAtributo(attrId, newTag);
+                    ref
+                        .read(estadoEdicionProvider.notifier)
+                        .marcarCambioSinGuardar();
+                  },
+                  onValueChanged: () {
+                    ref
+                        .read(estadoEdicionProvider.notifier)
+                        .marcarCambioSinGuardar();
+                  },
+                  onDeleteAttribute: (attr) {
+                    _confirmDeleteAttribute(context, attr, palette);
+                  },
+                  onAddAttribute: () {
+                    final name = _newAttrController.text.trim();
+                    if (name.isNotEmpty) {
+                      ref
+                          .read(atributosGlobalesProvider.notifier)
+                          .agregarAtributo(name);
+                      _newAttrController.clear();
+                    }
+                  },
                 ),
               ],
               const SizedBox(height: 20),
@@ -616,47 +558,6 @@ class _EditPanelState extends ConsumerState<EditPanel> {
     }
   }
 
-  Widget _buildM3TextField({
-    required TextEditingController controller,
-    required String label,
-    required ColorScheme colorScheme,
-    ValueChanged<String>? onChanged,
-    bool isNumeric = false,
-  }) {
-    return TextField(
-      controller: controller,
-      style: TextStyle(color: colorScheme.onSurface, fontSize: 14),
-      onChanged: onChanged,
-      keyboardType: isNumeric
-          ? const TextInputType.numberWithOptions(decimal: true)
-          : TextInputType.text,
-      inputFormatters: isNumeric
-          ? [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))]
-          : null,
-      decoration: InputDecoration(
-        filled: true,
-        fillColor: colorScheme.surfaceContainerHighest,
-        labelText: label,
-        labelStyle: TextStyle(
-          color: colorScheme.onSurfaceVariant,
-          fontSize: 13,
-        ),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 14,
-          vertical: 12,
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide.none,
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: colorScheme.primary, width: 2.0),
-        ),
-      ),
-    );
-  }
-
   void _saveChanges() async {
     FocusScope.of(context).unfocus();
     final edicion = ref.read(estadoEdicionProvider);
@@ -702,88 +603,10 @@ class _EditPanelState extends ConsumerState<EditPanel> {
         final origName = origNode?.nombre ?? targetOrigenId;
         final destName = destNode?.nombre ?? targetDestinoId;
 
-        final shouldReplace = await showDialog<bool>(
+        final shouldReplace = await ConnectionDuplicateDialog.show(
           context: context,
-          builder: (ctx) {
-            final palette = NeumorphicPalette.of(ctx);
-            return Dialog(
-              backgroundColor: Colors.transparent,
-              elevation: 0,
-              child: Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: palette.surfaceBg,
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(
-                    color: palette.darkShadow.withValues(alpha: 0.15),
-                    width: 1.0,
-                  ),
-                  boxShadow: NeumorphicShadows.dialog(palette),
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Conexión existente',
-                      style: TextStyle(
-                        color: palette.textPrimary,
-                        fontSize: 17,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      'Ya existe una conexión en esa dirección ($origName ➔ $destName). ¿Deseas reemplazarla o cancelar?',
-                      style: TextStyle(
-                        color: palette.textPrimary,
-                        fontSize: 14,
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        TextButton(
-                          onPressed: () => Navigator.of(ctx).pop(false),
-                          child: Text(
-                            AppText.cancel,
-                            style: TextStyle(color: palette.textMuted),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        GestureDetector(
-                          onTap: () => Navigator.of(ctx).pop(true),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 18,
-                              vertical: 8,
-                            ),
-                            decoration: BoxDecoration(
-                              color: palette.primaryAccent,
-                              borderRadius: BorderRadius.circular(999),
-                              boxShadow: NeumorphicShadows.inset(
-                                palette,
-                                distance: 2,
-                                blur: 4,
-                              ),
-                            ),
-                            child: const Text(
-                              'Reemplazar',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
+          origName: origName,
+          destName: destName,
         );
 
         if (shouldReplace != true) {
@@ -836,176 +659,3 @@ class _ChoiceOption<T> {
   });
 }
 
-class _MockEdicionNotifier extends EdicionNotifier {
-  final EstadoEdicion _initial;
-  _MockEdicionNotifier(this._initial);
-
-  @override
-  EstadoEdicion build() => _initial;
-}
-
-class _MockGrafoNotifier extends GrafoNotifier {
-  final Grafo _initial;
-  _MockGrafoNotifier(this._initial);
-
-  @override
-  Grafo build() => _initial;
-}
-
-@Preview(name: 'EditPanel - Node Selected (Dark)', group: 'Widgets')
-Widget editPanelNodeSelectedDarkPreview() {
-  const sampleNode = Nodo(
-    id: 'n1',
-    x: 0,
-    y: 0,
-    colorValue: 0xFF2196F3,
-    nombre: 'Nodo de Prueba',
-  );
-  final sampleGrafo = Grafo(nodos: {'n1': sampleNode});
-
-  return ProviderScope(
-    overrides: [
-      estadoEdicionProvider.overrideWith(
-        () => _MockEdicionNotifier(
-          const EstadoEdicion(itemSeleccionadoId: 'n1', esNodo: true),
-        ),
-      ),
-      grafoProvider.overrideWith(() => _MockGrafoNotifier(sampleGrafo)),
-    ],
-    child: MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.darkTheme,
-      themeMode: ThemeMode.dark,
-      home: const Scaffold(
-        body: Align(alignment: Alignment.bottomCenter, child: EditPanel()),
-      ),
-    ),
-  );
-}
-
-@Preview(name: 'EditPanel - Node Selected (Light)', group: 'Widgets')
-Widget editPanelNodeSelectedLightPreview() {
-  const sampleNode = Nodo(
-    id: 'n1',
-    x: 0,
-    y: 0,
-    colorValue: 0xFF2196F3,
-    nombre: 'Nodo de Prueba',
-  );
-  final sampleGrafo = Grafo(nodos: {'n1': sampleNode});
-
-  return ProviderScope(
-    overrides: [
-      estadoEdicionProvider.overrideWith(
-        () => _MockEdicionNotifier(
-          const EstadoEdicion(itemSeleccionadoId: 'n1', esNodo: true),
-        ),
-      ),
-      grafoProvider.overrideWith(() => _MockGrafoNotifier(sampleGrafo)),
-    ],
-    child: MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
-      themeMode: ThemeMode.light,
-      home: const Scaffold(
-        body: Align(alignment: Alignment.bottomCenter, child: EditPanel()),
-      ),
-    ),
-  );
-}
-
-@Preview(name: 'EditPanel - Connection Selected (Dark)', group: 'Widgets')
-Widget editPanelConnectionSelectedDarkPreview() {
-  const nodeA = Nodo(
-    id: 'n1',
-    x: 0,
-    y: 0,
-    colorValue: 0xFF2196F3,
-    nombre: 'Nodo A',
-  );
-  const nodeB = Nodo(
-    id: 'n2',
-    x: 100,
-    y: 100,
-    colorValue: 0xFF4CAF50,
-    nombre: 'Nodo B',
-  );
-  const conn1 = Conexion(
-    id: 'c1',
-    nodoOrigenId: 'n1',
-    nodoDestinoId: 'n2',
-    colorValue: 0xFF2196F3,
-    direccion: Direccion.unidireccional,
-  );
-  final sampleGrafo = Grafo(
-    nodos: {'n1': nodeA, 'n2': nodeB},
-    conexiones: {'c1': conn1},
-  );
-
-  return ProviderScope(
-    overrides: [
-      estadoEdicionProvider.overrideWith(
-        () => _MockEdicionNotifier(
-          const EstadoEdicion(itemSeleccionadoId: 'c1', esNodo: false),
-        ),
-      ),
-      grafoProvider.overrideWith(() => _MockGrafoNotifier(sampleGrafo)),
-    ],
-    child: MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.darkTheme,
-      themeMode: ThemeMode.dark,
-      home: const Scaffold(
-        body: Align(alignment: Alignment.bottomCenter, child: EditPanel()),
-      ),
-    ),
-  );
-}
-
-@Preview(name: 'EditPanel - Connection Selected (Light)', group: 'Widgets')
-Widget editPanelConnectionSelectedLightPreview() {
-  const nodeA = Nodo(
-    id: 'n1',
-    x: 0,
-    y: 0,
-    colorValue: 0xFF2196F3,
-    nombre: 'Nodo A',
-  );
-  const nodeB = Nodo(
-    id: 'n2',
-    x: 100,
-    y: 100,
-    colorValue: 0xFF4CAF50,
-    nombre: 'Nodo B',
-  );
-  const conn1 = Conexion(
-    id: 'c1',
-    nodoOrigenId: 'n1',
-    nodoDestinoId: 'n2',
-    colorValue: 0xFF2196F3,
-    direccion: Direccion.unidireccional,
-  );
-  final sampleGrafo = Grafo(
-    nodos: {'n1': nodeA, 'n2': nodeB},
-    conexiones: {'c1': conn1},
-  );
-
-  return ProviderScope(
-    overrides: [
-      estadoEdicionProvider.overrideWith(
-        () => _MockEdicionNotifier(
-          const EstadoEdicion(itemSeleccionadoId: 'c1', esNodo: false),
-        ),
-      ),
-      grafoProvider.overrideWith(() => _MockGrafoNotifier(sampleGrafo)),
-    ],
-    child: MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
-      themeMode: ThemeMode.light,
-      home: const Scaffold(
-        body: Align(alignment: Alignment.bottomCenter, child: EditPanel()),
-      ),
-    ),
-  );
-}

@@ -9,49 +9,33 @@ import '../../domain/models/direccion.dart';
 import '../../domain/models/grafo.dart';
 import '../../domain/models/nodo.dart';
 import '../../domain/services/graph_geometry.dart';
-import '../../domain/services/graph_storage_service.dart';
 import 'config_provider.dart';
+import 'grafo_undo_tracker.dart';
+
+export 'loaded_graph_provider.dart';
 
 class GrafoNotifier extends Notifier<Grafo> {
-  final List<Grafo> _undoStack = [];
-  final List<Grafo> _redoStack = [];
-  Grafo? _lastSavedGraphState;
+  final GrafoUndoTracker _undoTracker = GrafoUndoTracker();
 
-  bool get puedeDeshacer => _undoStack.isNotEmpty;
-  bool get puedeRehacer => _redoStack.isNotEmpty;
+  bool get puedeDeshacer => _undoTracker.puedeDeshacer;
+  bool get puedeRehacer => _undoTracker.puedeRehacer;
+  bool get tieneCambiosSinGuardar => _undoTracker.tieneCambiosSinGuardar(state);
 
-  /// Returns true if current graph state differs from the last saved state.
-  bool get tieneCambiosSinGuardar {
-    final saved = _lastSavedGraphState;
-    if (saved == null) {
-      return state.nodos.isNotEmpty || _undoStack.isNotEmpty;
-    }
-    return state != saved;
-  }
+  void marcarPuntoGuardado() => _undoTracker.marcarPuntoGuardado(state);
 
-  /// Sets the current state snapshot as the saved checkpoint without clearing undo/redo.
-  void marcarPuntoGuardado() {
-    _lastSavedGraphState = state;
-  }
+  void _recordUndoState() => _undoTracker.recordUndoState(state);
 
-  void _recordUndoState() {
-    _undoStack.add(state);
-    _redoStack.clear();
-  }
-
-  /// Undoes the last graph mutation.
   bool deshacer() {
-    if (_undoStack.isEmpty) return false;
-    _redoStack.add(state);
-    state = _undoStack.removeLast();
+    final prev = _undoTracker.deshacer(state);
+    if (prev == null) return false;
+    state = prev;
     return true;
   }
 
-  /// Redoes the last undone graph mutation.
   bool rehacer() {
-    if (_redoStack.isEmpty) return false;
-    _undoStack.add(state);
-    state = _redoStack.removeLast();
+    final next = _undoTracker.rehacer(state);
+    if (next == null) return false;
+    state = next;
     return true;
   }
 
@@ -536,17 +520,13 @@ class GrafoNotifier extends Notifier<Grafo> {
 
   /// Clears all nodes, connections, resets state and undo/redo stacks, and sets saved checkpoint.
   void limpiarGrafo() {
-    _undoStack.clear();
-    _redoStack.clear();
-    _lastSavedGraphState = const Grafo();
+    _undoTracker.clear(const Grafo());
     state = const Grafo();
   }
 
   /// Replaces current graph state with a newly loaded graph, resets undo/redo stacks, and sets saved checkpoint.
   void cargarGrafo(Grafo nuevoGrafo) {
-    _undoStack.clear();
-    _redoStack.clear();
-    _lastSavedGraphState = nuevoGrafo;
+    _undoTracker.clear(nuevoGrafo);
     state = nuevoGrafo;
   }
 }
@@ -554,17 +534,3 @@ class GrafoNotifier extends Notifier<Grafo> {
 final grafoProvider = NotifierProvider<GrafoNotifier, Grafo>(() {
   return GrafoNotifier();
 });
-
-class LoadedGraphItemNotifier extends Notifier<SavedGraphItem?> {
-  @override
-  SavedGraphItem? build() => null;
-
-  void setLoadedItem(SavedGraphItem? item) {
-    state = item;
-  }
-}
-
-final loadedGraphItemProvider =
-    NotifierProvider<LoadedGraphItemNotifier, SavedGraphItem?>(() {
-      return LoadedGraphItemNotifier();
-    });

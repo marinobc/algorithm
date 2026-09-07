@@ -12,7 +12,7 @@ import 'package:nodos/ui/theme/app_theme.dart';
 import 'package:nodos/ui/widgets/edit_panel.dart';
 
 void main() {
-  group('DeleteConfirmationDialog Unit & Widget Tests', () {
+  group('DeleteConfirmationDialog Widget Tests', () {
     testWidgets('renders node deletion title and connection warning list', (
       tester,
     ) async {
@@ -166,7 +166,6 @@ void main() {
           ],
         );
 
-        // Select node n1 for editing
         container.read(estadoEdicionProvider.notifier).seleccionarNodo('n1');
 
         await tester.pumpWidget(
@@ -192,34 +191,28 @@ void main() {
 
         await tester.pumpAndSettle();
 
-        // Verify EditPanel is showing node properties for n1
         expect(find.byType(EditPanel), findsOneWidget);
         expect(find.text('Propiedades del Nodo'), findsOneWidget);
 
-        // Tap trash / delete button
         final trashButton = find.byIcon(Icons.delete_outline_rounded);
         expect(trashButton, findsOneWidget);
         await tester.tap(trashButton);
         await tester.pumpAndSettle();
 
-        // Verify DeleteConfirmationDialog is visible with connection warning
         expect(find.byType(DeleteConfirmationDialog), findsOneWidget);
         expect(
           find.text('También se eliminarán 1 conexiones:'),
           findsOneWidget,
         );
 
-        // Tap Eliminar in confirmation dialog
         await tester.tap(find.widgetWithText(FilledButton, 'Eliminar'));
         await tester.pumpAndSettle();
 
-        // Verify node n1 and connection c1 are removed from graph state
         final updatedGraph = container.read(grafoProvider);
         expect(updatedGraph.nodos.containsKey('n1'), isFalse);
         expect(updatedGraph.nodos.containsKey('n2'), isTrue);
         expect(updatedGraph.conexiones.containsKey('c1'), isFalse);
 
-        // Verify selection is cleared and EditPanel closes
         expect(
           container.read(estadoEdicionProvider).itemSeleccionadoId,
           isNull,
@@ -284,11 +277,9 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      // Tap trash button
       await tester.tap(find.byIcon(Icons.delete_outline_rounded));
       await tester.pumpAndSettle();
 
-      // Tap Cancel in confirmation dialog (target the text inside DeleteConfirmationDialog)
       await tester.tap(
         find.descendant(
           of: find.byType(DeleteConfirmationDialog),
@@ -297,7 +288,6 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Verify graph state is untouched
       final currentGraph = container.read(grafoProvider);
       expect(currentGraph.nodos.containsKey('n1'), isTrue);
       expect(currentGraph.conexiones.containsKey('c1'), isTrue);

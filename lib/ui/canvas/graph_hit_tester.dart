@@ -224,8 +224,9 @@ class GraphHitTester {
     // A single unidirectional/no-direction line with no pair partner stays centred.
     // A bidirectional pair always has totalInPair == 2, so this guard only fires
     // for truly isolated connections.
-    if (totalInPair <= 1 && conn.direccion != Direccion.bidireccional)
+    if (totalInPair <= 1 && conn.direccion != Direccion.bidireccional) {
       return 0.0;
+    }
     final isCanonicalOrder =
         conn.nodoOrigenId.compareTo(conn.nodoDestinoId) < 0;
     final baseSign = isCanonicalOrder ? 1.0 : -1.0;

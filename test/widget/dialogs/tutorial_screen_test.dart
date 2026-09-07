@@ -6,7 +6,7 @@ import 'package:nodos/ui/text/user_guide_text.dart';
 void main() {
   group('TutorialScreen Widget Tests', () {
     Widget buildSubject() {
-      return MaterialApp(home: const TutorialScreen());
+      return const MaterialApp(home: TutorialScreen());
     }
 
     testWidgets('renders Markdown widget with tutorial content', (
@@ -17,7 +17,6 @@ void main() {
 
       expect(tester.takeException(), isNull);
 
-      // The Markdown widget must be present.
       expect(find.byKey(const ValueKey('tutorial_markdown')), findsOneWidget);
       expect(find.textContaining('Guía de Uso'), findsWidgets);
     });
@@ -30,7 +29,6 @@ void main() {
 
       expect(tester.takeException(), isNull);
 
-      // The guide title must appear somewhere in the rendered text.
       expect(
         find.textContaining('Guía de Uso', findRichText: true),
         findsWidgets,
@@ -38,9 +36,6 @@ void main() {
     });
 
     testWidgets('shows section headers from the guide', (tester) async {
-      // Verify the guide content string contains all section headers.
-      // (Markdown renders into a ListView; widgets outside viewport are lazy
-      // and won't be found by text finders — assert on source data instead.)
       const content = UserGuideText.markdownContent;
       expect(content, contains('Interacción Directa'));
       expect(content, contains('Control del Lienzo'));
@@ -59,7 +54,6 @@ void main() {
     });
 
     testWidgets('close button pops the route', (tester) async {
-      // Push TutorialScreen on top of a dummy home so pop works.
       await tester.pumpWidget(
         MaterialApp(
           home: Builder(
@@ -76,14 +70,11 @@ void main() {
       await tester.tap(find.text('Open'));
       await tester.pumpAndSettle();
 
-      // Tutorial screen is showing.
       expect(find.byType(TutorialScreen), findsOneWidget);
 
-      // Tap the close button.
       await tester.tap(find.byKey(const ValueKey('tutorial_close_btn')));
       await tester.pumpAndSettle();
 
-      // Tutorial screen should be gone.
       expect(find.byType(TutorialScreen), findsNothing);
     });
 

@@ -56,9 +56,12 @@ class ConfigNotifier extends Notifier<ConfigEstado> {
       final savedConnType = prefs.getString(_prefConnTypeKey);
       Direccion connType = state.tipoConexionPorDefecto;
       if (savedConnType != null) {
-        if (savedConnType == 'ninguna') connType = Direccion.ninguna;
-        if (savedConnType == 'unidireccional')
+        if (savedConnType == 'ninguna') {
+          connType = Direccion.ninguna;
+        }
+        if (savedConnType == 'unidireccional') {
           connType = Direccion.unidireccional;
+        }
       }
 
       state = state.copyWith(themeMode: mode, tipoConexionPorDefecto: connType);

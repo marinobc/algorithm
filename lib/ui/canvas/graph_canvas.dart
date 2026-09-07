@@ -3,10 +3,8 @@ import 'dart:math';
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widget_previews.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../application/providers/atributos_provider.dart';
 import '../../application/providers/creacion_provider.dart';
 import '../../application/providers/edicion_provider.dart';
 import '../../application/providers/grafo_invalido_provider.dart';
@@ -14,14 +12,14 @@ import '../../application/providers/grafo_provider.dart';
 import '../../application/providers/modo_provider.dart';
 import '../../algorithms/assignment/providers/assignment_provider.dart';
 import '../../domain/models/conexion.dart';
-import '../../domain/models/direccion.dart';
 import '../../domain/models/grafo.dart';
 import '../../domain/models/nodo.dart';
 import '../../domain/services/graph_geometry.dart';
-import '../dialogs/delete_confirmation_dialog.dart';
 import '../dialogs/overlapping_elements_dialog.dart';
 import '../theme/app_theme.dart';
 import '../widgets/floating_context_menu.dart';
+import 'canvas_camera.dart';
+import 'graph_canvas_dialogs.dart';
 import 'graph_hit_tester.dart';
 import 'graph_painter.dart';
 import 'graph_render_model.dart';
@@ -36,16 +34,14 @@ class GraphCanvas extends ConsumerStatefulWidget {
 class GraphCanvasState extends ConsumerState<GraphCanvas>
     with SingleTickerProviderStateMixin {
   // Spatial Base Unit & World Grid Constants
-  static const double nodeDiameter = 64.0; // 1 Node unit (U)
-  static const double worldGridNodes =
-      100.0; // 100x100 node world grid (6400 x 6400 px)
-  static const double baseViewNodes =
-      8.0; // Default mode view starts zoomed-in (~8x8 nodes)
-  static const double minViewNodes = 5.0; // Max zoom in displays ~5x5 nodes
-  static const double maxViewNodes = 40.0; // Max zoom out displays ~40x40 nodes
+  static const double nodeDiameter = CanvasCamera.nodeDiameter;
+  static const double worldGridNodes = CanvasCamera.worldGridNodes;
+  static const double baseViewNodes = CanvasCamera.baseViewNodes;
+  static const double minViewNodes = CanvasCamera.minViewNodes;
+  static const double maxViewNodes = CanvasCamera.maxViewNodes;
 
-  // Transformation matrix for Pan & Zoom
-  Matrix4 _transform = Matrix4.identity();
+  // Camera and transformation helper
+  final CanvasCamera _camera = CanvasCamera();
 
   // Gesture state tracking
   Offset? _pointerDownScreenPosition;
@@ -114,104 +110,20 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
     super.dispose();
   }
 
-  Matrix4 get transform => _transform;
+  Matrix4 get transform => _camera.transform;
+  Matrix4 get _transform => _camera.transform;
+  set _transform(Matrix4 val) => _camera.transform = val;
 
   void _ensureValidTransform() {
-    final storage = _transform.storage;
-    bool corrupt = false;
-    for (int i = 0; i < 16; i++) {
-      if (storage[i].isNaN || storage[i].isInfinite) {
-        corrupt = true;
-        break;
-      }
-    }
-    if (corrupt) {
-      // Recover by rebuilding to base-mode centred on current screen centre
-      // rather than wiping to identity, which breaks centring.
-      if (mounted) {
-        _centrarLienzo();
-      } else {
-        _transform = Matrix4.identity();
-      }
-    } else {
-      _clampTransformBounds();
-    }
-  }
-
-  /// Clamp scale and translation so camera view never zooms or pans beyond bounds
-  void _clampTransformBounds() {
     if (!mounted) return;
-    final screenSize = MediaQuery.of(context).size;
-    if (screenSize.width <= 0 || screenSize.height <= 0) return;
-
-    final minDim = min(screenSize.width, screenSize.height);
-    final baseScale = minDim > 0
-        ? (minDim / (baseViewNodes * nodeDiameter))
-        : 1.0;
-    final minScale = baseScale * (baseViewNodes / maxViewNodes);
-    final maxScale = baseScale * (baseViewNodes / minViewNodes);
-
-    double scale = _getXYScale();
-    if (scale <= 0 || !scale.isFinite) return;
-
-    if (scale < minScale || scale > maxScale) {
-      final targetScale = scale.clamp(minScale, maxScale);
-      final factor = targetScale / scale;
-      final center = Offset(screenSize.width / 2, screenSize.height / 2);
-      final scaleUpdate = Matrix4.identity()
-        // ignore: deprecated_member_use
-        ..translate(center.dx, center.dy)
-        // ignore: deprecated_member_use
-        ..scale(factor, factor, 1.0)
-        // ignore: deprecated_member_use
-        ..translate(-center.dx, -center.dy);
-      _transform = scaleUpdate..multiply(_transform);
-      scale = targetScale;
-    }
-
-    const halfGridWidth = (worldGridNodes * nodeDiameter) / 2.0; // 2400.0
-    const halfGridHeight = (worldGridNodes * nodeDiameter) / 2.0; // 2400.0
-
-    final maxTx = halfGridWidth * scale;
-    final minTx = screenSize.width - (halfGridWidth * scale);
-
-    final maxTy = halfGridHeight * scale;
-    final minTy = screenSize.height - (halfGridHeight * scale);
-
-    final storage = _transform.storage;
-    double tx = storage[12];
-    double ty = storage[13];
-
-    if (minTx <= maxTx) {
-      tx = tx.clamp(minTx, maxTx);
-    } else {
-      tx = screenSize.width / 2.0;
-    }
-
-    if (minTy <= maxTy) {
-      ty = ty.clamp(minTy, maxTy);
-    } else {
-      ty = screenSize.height / 2.0;
-    }
-
-    storage[12] = tx;
-    storage[13] = ty;
+    _camera.ensureValidTransform(MediaQuery.of(context).size);
   }
 
-  // Extract actual XY scale from the transform matrix.
-  // IMPORTANT: Do NOT use getMaxScaleOnAxis() — it returns the Z-axis
-  // scale (always 1.0) when XY scale drops below 1.0, which completely
-  // breaks zoom-out clamping.
-  double _getXYScale() {
-    final col0 = _transform.getColumn(0);
-    return sqrt(col0.x * col0.x + col0.y * col0.y);
-  }
+  double _getXYScale() => _camera.getXYScale();
 
-  // Convert screen coordinates to canvas world coordinates
   Offset _screenToWorld(Offset screenPos) {
-    _ensureValidTransform();
-    final inverted = Matrix4.inverted(_transform);
-    return MatrixUtils.transformPoint(inverted, screenPos);
+    if (!mounted) return screenPos;
+    return _camera.screenToWorld(screenPos, MediaQuery.of(context).size);
   }
 
   DateTime? _lastTapTime;
@@ -610,32 +522,8 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
   void _centrarLienzo({bool preserveScale = true}) {
     if (!mounted) return;
     final screenSize = MediaQuery.of(context).size;
-    if (screenSize.width <= 0 || screenSize.height <= 0) return;
-
-    final minDim = min(screenSize.width, screenSize.height);
-    final baseScale = minDim > 0
-        ? (minDim / (baseViewNodes * nodeDiameter))
-        : 1.0;
-
-    double scaleToUse = baseScale;
-    if (preserveScale) {
-      final existingScale = _getXYScale();
-      if (existingScale > 0 && existingScale.isFinite) {
-        scaleToUse = existingScale;
-      }
-    }
-
-    final screenCenterX = screenSize.width / 2.0;
-    final screenCenterY = screenSize.height / 2.0;
-
-    final m = Matrix4.identity()
-      // ignore: deprecated_member_use
-      ..translate(screenCenterX, screenCenterY)
-      // ignore: deprecated_member_use
-      ..scale(scaleToUse, scaleToUse, 1.0);
-
     setState(() {
-      _transform = m;
+      _camera.centerOnScreen(screenSize, preserveScale: preserveScale);
     });
   }
 
@@ -838,77 +726,31 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
   }
 
   Future<void> _showDeleteNodeDialog(Nodo nodo) async {
-    final grafo = ref.read(grafoProvider);
-    final conexiones = grafo.obtenerConexionesDeNodo(nodo.id);
-    final atributos = ref.read(atributosGlobalesProvider);
-
-    final Map<String, String> attrNames = {
-      for (final a in atributos) a.id: a.nombre,
-    };
-    final Map<String, String> nodeNames = {
-      for (final n in grafo.nodos.values) n.id: n.nombre ?? n.id,
-    };
-
-    final confirmed = await showDialog<bool>(
+    await GraphCanvasDialogs.showDeleteNodeDialog(
       context: context,
-      builder: (context) {
-        return DeleteConfirmationDialog(
-          isNode: true,
-          nodeName: nodo.nombre ?? nodo.id,
-          connectionsToDelete: conexiones,
-          attributeNames: attrNames,
-          nodeNames: nodeNames,
-        );
+      ref: ref,
+      nodo: nodo,
+      onDeleted: () {
+        _draggedNodeId = null;
+        _animatingNodeId = null;
+        _dragConnectingStartNodeId = null;
+        _dragConnectingTargetNodeId = null;
+        _lastTapNodeId = null;
+        _contextMenuTargetId = null;
       },
     );
-
-    if (confirmed != true) return;
-    if (!mounted) return;
-
-    _draggedNodeId = null;
-    _animatingNodeId = null;
-    _dragConnectingStartNodeId = null;
-    _dragConnectingTargetNodeId = null;
-    _lastTapNodeId = null;
-    _contextMenuTargetId = null;
-
-    ref.read(estadoEdicionProvider.notifier).deseleccionar();
-    ref.read(estadoCreacionProvider.notifier).reset();
-    ref.read(grafoProvider.notifier).eliminarNodo(nodo.id);
   }
 
   Future<void> _showDeleteConnectionDialog(Conexion conexion) async {
-    final grafo = ref.read(grafoProvider);
-    final atributos = ref.read(atributosGlobalesProvider);
-
-    final Map<String, String> attrNames = {
-      for (final a in atributos) a.id: a.nombre,
-    };
-    final Map<String, String> nodeNames = {
-      for (final n in grafo.nodos.values) n.id: n.nombre ?? n.id,
-    };
-
-    final confirmed = await showDialog<bool>(
+    await GraphCanvasDialogs.showDeleteConnectionDialog(
       context: context,
-      builder: (context) {
-        return DeleteConfirmationDialog(
-          isNode: false,
-          targetConnection: conexion,
-          attributeNames: attrNames,
-          nodeNames: nodeNames,
-        );
+      ref: ref,
+      conexion: conexion,
+      onDeleted: () {
+        _draggedConnId = null;
+        _contextMenuTargetId = null;
       },
     );
-
-    if (confirmed != true) return;
-    if (!mounted) return;
-
-    _draggedConnId = null;
-    _contextMenuTargetId = null;
-
-    ref.read(estadoEdicionProvider.notifier).deseleccionar();
-    ref.read(estadoCreacionProvider.notifier).reset();
-    ref.read(grafoProvider.notifier).eliminarConexion(conexion.id);
   }
 
   GraphRenderModel _buildRenderModel() {
@@ -1076,67 +918,3 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
   }
 }
 
-class _MockGrafoNotifier extends GrafoNotifier {
-  final Grafo _initial;
-  _MockGrafoNotifier(this._initial);
-
-  @override
-  Grafo build() => _initial;
-}
-
-@Preview(name: 'GraphCanvas - Sample Graph', group: 'Canvas')
-Widget graphCanvasPreview() {
-  final sampleGraph = Grafo(
-    nodos: {
-      'n1': const Nodo(
-        id: 'n1',
-        x: -100,
-        y: -50,
-        nombre: 'Nodo A',
-        colorValue: 0xFF2196F3,
-      ),
-      'n2': const Nodo(
-        id: 'n2',
-        x: 100,
-        y: -50,
-        nombre: 'Nodo B',
-        colorValue: 0xFF4CAF50,
-      ),
-      'n3': const Nodo(
-        id: 'n3',
-        x: 0,
-        y: 100,
-        nombre: 'Nodo C',
-        colorValue: 0xFFFF9800,
-      ),
-    },
-    conexiones: {
-      'c1': const Conexion(
-        id: 'c1',
-        nodoOrigenId: 'n1',
-        nodoDestinoId: 'n2',
-        direccion: Direccion.unidireccional,
-        colorValue: 0xFF2196F3,
-      ),
-      'c2': const Conexion(
-        id: 'c2',
-        nodoOrigenId: 'n2',
-        nodoDestinoId: 'n3',
-        direccion: Direccion.bidireccional,
-        colorValue: 0xFF4CAF50,
-      ),
-    },
-  );
-
-  return ProviderScope(
-    overrides: [
-      grafoProvider.overrideWith(() => _MockGrafoNotifier(sampleGraph)),
-    ],
-    child: MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.darkTheme,
-      themeMode: ThemeMode.dark,
-      home: const Scaffold(body: GraphCanvas()),
-    ),
-  );
-}
