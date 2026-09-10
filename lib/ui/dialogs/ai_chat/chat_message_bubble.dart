@@ -21,10 +21,7 @@ class ChatMessageBubble extends StatelessWidget {
       alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.symmetric(
-          horizontal: 14,
-          vertical: 10,
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         constraints: const BoxConstraints(maxWidth: 420),
         decoration: BoxDecoration(
           color: isUser
@@ -35,10 +32,7 @@ class ChatMessageBubble extends StatelessWidget {
         child: isUser
             ? Text(
                 text,
-                style: TextStyle(
-                  color: colorScheme.onPrimary,
-                  fontSize: 13,
-                ),
+                style: TextStyle(color: colorScheme.onPrimary, fontSize: 13),
               )
             : MarkdownBody(
                 data: text,

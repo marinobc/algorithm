@@ -31,144 +31,144 @@ class CanvasControlsFabs extends ConsumerWidget {
           child: Padding(
             padding: const EdgeInsets.only(left: 20, right: 20, bottom: 24),
             child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: colorScheme.primaryContainer,
-                      borderRadius: BorderRadius.circular(12),
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: colorScheme.primaryContainer,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        Icons.alt_route_rounded,
+                        color: colorScheme.onPrimaryContainer,
+                        size: 24,
+                      ),
                     ),
-                    child: Icon(
-                      Icons.alt_route_rounded,
-                      color: colorScheme.onPrimaryContainer,
-                      size: 24,
-                    ),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Seleccionar Algoritmo',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: colorScheme.onSurface,
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Seleccionar Algoritmo',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: colorScheme.onSurface,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          'Selecciona el algoritmo a ejecutar en el lienzo',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: colorScheme.onSurfaceVariant,
+                          const SizedBox(height: 2),
+                          Text(
+                            'Selecciona el algoritmo a ejecutar en el lienzo',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: colorScheme.onSurfaceVariant,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              const Divider(height: 1),
-              const SizedBox(height: 12),
-              ...TransportationMethod.values.map((method) {
-                final isSelected =
-                    activeState.isActive && currentMethod == method;
+                  ],
+                ),
+                const SizedBox(height: 16),
+                const Divider(height: 1),
+                const SizedBox(height: 12),
+                ...TransportationMethod.values.map((method) {
+                  final isSelected =
+                      activeState.isActive && currentMethod == method;
 
-                return Card(
-                  elevation: 0,
-                  color: isSelected
-                      ? colorScheme.primaryContainer.withValues(alpha: 0.5)
-                      : colorScheme.surfaceContainerLow,
-                  margin: const EdgeInsets.only(bottom: 8),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    side: BorderSide(
-                      color: isSelected
-                          ? colorScheme.primary
-                          : colorScheme.outlineVariant,
-                      width: isSelected ? 1.5 : 1.0,
-                    ),
-                  ),
-                  child: ListTile(
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 4,
-                    ),
-                    leading: Icon(
-                      Icons.alt_route_rounded,
-                      color: isSelected
-                          ? colorScheme.primary
-                          : colorScheme.onSurfaceVariant,
-                    ),
-                    title: Text(
-                      method.displayName,
-                      style: TextStyle(
-                        fontWeight: isSelected
-                            ? FontWeight.bold
-                            : FontWeight.w600,
+                  return Card(
+                    elevation: 0,
+                    color: isSelected
+                        ? colorScheme.primaryContainer.withValues(alpha: 0.5)
+                        : colorScheme.surfaceContainerLow,
+                    margin: const EdgeInsets.only(bottom: 8),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      side: BorderSide(
                         color: isSelected
                             ? colorScheme.primary
-                            : colorScheme.onSurface,
+                            : colorScheme.outlineVariant,
+                        width: isSelected ? 1.5 : 1.0,
                       ),
                     ),
-                    subtitle: Text(
-                      'Resuelve optimización de asignación.',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: colorScheme.onSurfaceVariant,
+                    child: ListTile(
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 4,
                       ),
-                    ),
-                    trailing: isSelected
-                        ? Icon(
-                            Icons.check_circle_rounded,
-                            color: colorScheme.primary,
-                          )
-                        : Icon(
-                            Icons.arrow_forward_ios_rounded,
-                            size: 16,
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                    onTap: () {
-                      Navigator.of(ctx).pop();
-                      final validation = ref.read(
-                        transportationValidationProvider,
-                      );
-                      if (!validation.isValid) {
-                        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              validation.errorMessage ??
-                                  'Grafo no válido para asignación.',
+                      leading: Icon(
+                        Icons.alt_route_rounded,
+                        color: isSelected
+                            ? colorScheme.primary
+                            : colorScheme.onSurfaceVariant,
+                      ),
+                      title: Text(
+                        method.displayName,
+                        style: TextStyle(
+                          fontWeight: isSelected
+                              ? FontWeight.bold
+                              : FontWeight.w600,
+                          color: isSelected
+                              ? colorScheme.primary
+                              : colorScheme.onSurface,
+                        ),
+                      ),
+                      subtitle: Text(
+                        'Resuelve optimización de asignación.',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      trailing: isSelected
+                          ? Icon(
+                              Icons.check_circle_rounded,
+                              color: colorScheme.primary,
+                            )
+                          : Icon(
+                              Icons.arrow_forward_ios_rounded,
+                              size: 16,
+                              color: colorScheme.onSurfaceVariant,
                             ),
-                            behavior: SnackBarBehavior.floating,
-                          ),
+                      onTap: () {
+                        Navigator.of(ctx).pop();
+                        final validation = ref.read(
+                          transportationValidationProvider,
                         );
-                        return;
-                      }
-                      final notifier = ref.read(
-                        transportationNotifierProvider.notifier,
-                      );
-                      notifier.setMethod(method);
-                      notifier.setActive(true);
-                    },
-                  ),
-                );
-              }),
-            ],
+                        if (!validation.isValid) {
+                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                validation.errorMessage ??
+                                    'Grafo no válido para asignación.',
+                              ),
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                          return;
+                        }
+                        final notifier = ref.read(
+                          transportationNotifierProvider.notifier,
+                        );
+                        notifier.setMethod(method);
+                        notifier.setActive(true);
+                      },
+                    ),
+                  );
+                }),
+              ],
+            ),
           ),
-        ),
-      );
-    },
-  );
-}
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

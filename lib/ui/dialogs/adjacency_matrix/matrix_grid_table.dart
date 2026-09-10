@@ -61,7 +61,9 @@ class MatrixGridTable extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: isColSelected
                         ? colorScheme.secondaryContainer
-                        : colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
+                        : colorScheme.surfaceContainerHighest.withValues(
+                            alpha: 0.4,
+                          ),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
                       color: isColSelected
@@ -102,7 +104,8 @@ class MatrixGridTable extends StatelessWidget {
               context: context,
               label: 'Grado Fila',
               isSelected: selectedColumnIndex == matrixData.labels.length + 1,
-              onTap: () => onColSummaryHeaderTapped(matrixData.labels.length + 1),
+              onTap: () =>
+                  onColSummaryHeaderTapped(matrixData.labels.length + 1),
               colorScheme: colorScheme,
               isSum: false,
               width: cellWidth,
@@ -132,12 +135,17 @@ class MatrixGridTable extends StatelessWidget {
                     width: rowHeaderWidth,
                     height: cellHeight,
                     alignment: Alignment.center,
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
                     margin: const EdgeInsets.symmetric(vertical: 2),
                     decoration: BoxDecoration(
                       color: isRowSelected
                           ? colorScheme.primaryContainer
-                          : colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
+                          : colorScheme.surfaceContainerHighest.withValues(
+                              alpha: 0.4,
+                            ),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
                         color: isRowSelected
@@ -207,9 +215,13 @@ class MatrixGridTable extends StatelessWidget {
                         bg = colorScheme.primaryContainer;
                         textColor = colorScheme.onPrimaryContainer;
                       } else if (isColSelected) {
-                        bg = colorScheme.secondaryContainer.withValues(alpha: 0.35);
+                        bg = colorScheme.secondaryContainer.withValues(
+                          alpha: 0.35,
+                        );
                       } else if (isRowSelected) {
-                        bg = colorScheme.primaryContainer.withValues(alpha: 0.35);
+                        bg = colorScheme.primaryContainer.withValues(
+                          alpha: 0.35,
+                        );
                       }
 
                       final tooltipText =
@@ -224,7 +236,10 @@ class MatrixGridTable extends StatelessWidget {
                             color: colorScheme.onSurface,
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          textStyle: TextStyle(color: colorScheme.surface, fontSize: 12),
+                          textStyle: TextStyle(
+                            color: colorScheme.surface,
+                            fontSize: 12,
+                          ),
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 150),
                             width: cellWidth,
@@ -234,7 +249,10 @@ class MatrixGridTable extends StatelessWidget {
                               color: bg,
                               borderRadius: BorderRadius.circular(6),
                               border: isIntersection
-                                  ? Border.all(color: colorScheme.primary, width: 2)
+                                  ? Border.all(
+                                      color: colorScheme.primary,
+                                      width: 2,
+                                    )
                                   : null,
                             ),
                             child: Center(
@@ -291,10 +309,14 @@ class MatrixGridTable extends StatelessWidget {
                       // Suma Fila
                       _buildSummaryCell(
                         context: context,
-                        text: AdjacencyMatrixData.formatValue(matrixData.rowSums[i]),
-                        tooltip: 'Suma total de pesos para la fila ${matrixData.labels[i]}',
+                        text: AdjacencyMatrixData.formatValue(
+                          matrixData.rowSums[i],
+                        ),
+                        tooltip:
+                            'Suma total de pesos para la fila ${matrixData.labels[i]}',
                         isSum: true,
-                        isSelected: isRowSelected ||
+                        isSelected:
+                            isRowSelected ||
                             selectedColumnIndex == matrixData.labels.length,
                         colorScheme: colorScheme,
                         width: cellWidth,
@@ -307,7 +329,8 @@ class MatrixGridTable extends StatelessWidget {
                         tooltip:
                             'Grado / Conexiones activas de la fila ${matrixData.labels[i]}',
                         isSum: false,
-                        isSelected: isRowSelected ||
+                        isSelected:
+                            isRowSelected ||
                             selectedColumnIndex == matrixData.labels.length + 1,
                         colorScheme: colorScheme,
                         width: cellWidth,
@@ -345,9 +368,11 @@ class MatrixGridTable extends StatelessWidget {
                 child: _buildSummaryCell(
                   context: context,
                   text: AdjacencyMatrixData.formatValue(matrixData.colSums[j]),
-                  tooltip: 'Suma total de pesos para la columna ${matrixData.labels[j]}',
+                  tooltip:
+                      'Suma total de pesos para la columna ${matrixData.labels[j]}',
                   isSum: true,
-                  isSelected: isColSelected ||
+                  isSelected:
+                      isColSelected ||
                       selectedRowIndex == matrixData.labels.length,
                   colorScheme: colorScheme,
                   width: cellWidth,
@@ -365,7 +390,8 @@ class MatrixGridTable extends StatelessWidget {
               context: context,
               label: 'Grado Col.',
               isSelected: selectedRowIndex == matrixData.labels.length + 1,
-              onTap: () => onRowSummaryHeaderTapped(matrixData.labels.length + 1),
+              onTap: () =>
+                  onRowSummaryHeaderTapped(matrixData.labels.length + 1),
               colorScheme: colorScheme,
               isSum: false,
               width: rowHeaderWidth,
@@ -383,7 +409,8 @@ class MatrixGridTable extends StatelessWidget {
                   tooltip:
                       'Grado / Conexiones activas de la columna ${matrixData.labels[j]}',
                   isSum: false,
-                  isSelected: isColSelected ||
+                  isSelected:
+                      isColSelected ||
                       selectedRowIndex == matrixData.labels.length + 1,
                   colorScheme: colorScheme,
                   width: cellWidth,
@@ -410,17 +437,20 @@ class MatrixGridTable extends StatelessWidget {
     EdgeInsetsGeometry? margin,
   }) {
     final baseColor = isSum ? colorScheme.primary : colorScheme.secondary;
-    final baseContainer =
-        isSum ? colorScheme.primaryContainer : colorScheme.secondaryContainer;
+    final baseContainer = isSum
+        ? colorScheme.primaryContainer
+        : colorScheme.secondaryContainer;
 
-    final bgColor =
-        isSelected ? baseContainer : baseContainer.withValues(alpha: 0.3);
-    final borderColor =
-        isSelected ? baseColor : baseColor.withValues(alpha: 0.4);
+    final bgColor = isSelected
+        ? baseContainer
+        : baseContainer.withValues(alpha: 0.3);
+    final borderColor = isSelected
+        ? baseColor
+        : baseColor.withValues(alpha: 0.4);
     final textColor = isSelected
         ? (isSum
-            ? colorScheme.onPrimaryContainer
-            : colorScheme.onSecondaryContainer)
+              ? colorScheme.onPrimaryContainer
+              : colorScheme.onSecondaryContainer)
         : baseColor;
 
     return GestureDetector(
@@ -462,15 +492,17 @@ class MatrixGridTable extends StatelessWidget {
     required double height,
   }) {
     final baseColor = isSum ? colorScheme.primary : colorScheme.secondary;
-    final baseContainer =
-        isSum ? colorScheme.primaryContainer : colorScheme.secondaryContainer;
+    final baseContainer = isSum
+        ? colorScheme.primaryContainer
+        : colorScheme.secondaryContainer;
 
-    final bg =
-        isSelected ? baseContainer : baseContainer.withValues(alpha: 0.2);
+    final bg = isSelected
+        ? baseContainer
+        : baseContainer.withValues(alpha: 0.2);
     final textColor = isSelected
         ? (isSum
-            ? colorScheme.onPrimaryContainer
-            : colorScheme.onSecondaryContainer)
+              ? colorScheme.onPrimaryContainer
+              : colorScheme.onSecondaryContainer)
         : baseColor;
 
     return Tooltip(

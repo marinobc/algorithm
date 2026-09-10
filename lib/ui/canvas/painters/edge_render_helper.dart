@@ -69,10 +69,7 @@ class EdgeRenderHelper {
     }
   }
 
-  static void drawDragLine(
-    Canvas canvas,
-    RenderDragLine dragLine,
-  ) {
+  static void drawDragLine(Canvas canvas, RenderDragLine dragLine) {
     final start = dragLine.start;
     final end = dragLine.end;
 

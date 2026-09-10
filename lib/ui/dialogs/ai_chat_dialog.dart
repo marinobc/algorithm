@@ -200,11 +200,6 @@ class _AIChatDialogState extends ConsumerState<AIChatDialog> {
         Exception('No se pudo conectar con ningún modelo de Gemini.');
   }
 
-
-
-
-
-
   void _processGraphActions(String responseText) {
     AIGraphCommandExecutor.processGraphActions(
       responseText: responseText,
@@ -213,8 +208,6 @@ class _AIChatDialogState extends ConsumerState<AIChatDialog> {
       isMounted: () => mounted,
     );
   }
-
-
 
   @override
   Widget build(BuildContext context) {

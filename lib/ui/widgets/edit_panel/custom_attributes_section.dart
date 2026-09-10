@@ -12,7 +12,7 @@ class CustomAttributesSection extends StatelessWidget {
   final TextEditingController newAttrController;
   final TextEditingController Function(String attrId) getAttrController;
   final TextEditingController Function(String attrId, String currentName)
-      getAttrTagNameController;
+  getAttrTagNameController;
   final void Function(String attrId, String newTag) onTagRenamed;
   final VoidCallback onValueChanged;
   final void Function(Atributo attr) onDeleteAttribute;
@@ -77,10 +77,7 @@ class CustomAttributesSection extends StatelessWidget {
                   ),
                 ),
                 IconButton(
-                  icon: Icon(
-                    Icons.delete_outline,
-                    color: colorScheme.error,
-                  ),
+                  icon: Icon(Icons.delete_outline, color: colorScheme.error),
                   onPressed: () => onDeleteAttribute(attr),
                 ),
               ],

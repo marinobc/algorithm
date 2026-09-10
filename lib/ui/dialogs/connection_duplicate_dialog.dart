@@ -22,10 +22,8 @@ class ConnectionDuplicateDialog extends StatelessWidget {
   }) {
     return showDialog<bool>(
       context: context,
-      builder: (ctx) => ConnectionDuplicateDialog(
-        origName: origName,
-        destName: destName,
-      ),
+      builder: (ctx) =>
+          ConnectionDuplicateDialog(origName: origName, destName: destName),
     );
   }
 
@@ -62,10 +60,7 @@ class ConnectionDuplicateDialog extends StatelessWidget {
             const SizedBox(height: 12),
             Text(
               'Ya existe una conexión en esa dirección ($origName ➔ $destName). ¿Deseas reemplazarla o cancelar?',
-              style: TextStyle(
-                color: palette.textPrimary,
-                fontSize: 14,
-              ),
+              style: TextStyle(color: palette.textPrimary, fontSize: 14),
             ),
             const SizedBox(height: 20),
             Row(

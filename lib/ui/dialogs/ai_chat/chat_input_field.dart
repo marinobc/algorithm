@@ -21,7 +21,8 @@ class ChatInputField extends StatelessWidget {
             controller: controller,
             onSubmitted: (_) => onSend(),
             decoration: InputDecoration(
-              hintText: 'Consulta la matriz, guía o pide crear/modificar el grafo...',
+              hintText:
+                  'Consulta la matriz, guía o pide crear/modificar el grafo...',
               filled: true,
               fillColor: colorScheme.surfaceContainerHighest,
               border: OutlineInputBorder(

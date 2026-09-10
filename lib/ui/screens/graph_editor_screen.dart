@@ -375,7 +375,9 @@ class _GraphEditorScreenState extends ConsumerState<GraphEditorScreen> {
               child: const FloatingAlgorithmCard(),
             ),
             Positioned(
-              bottom: (edicion.itemSeleccionadoId != null ? 240 : 16) + bottomPadding,
+              bottom:
+                  (edicion.itemSeleccionadoId != null ? 240 : 16) +
+                  bottomPadding,
               right: 16,
               child: CanvasControlsFabs(
                 onResetView: () {

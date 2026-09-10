@@ -34,17 +34,10 @@ class MatrixStatsFooter extends StatelessWidget {
             side: BorderSide(color: colorScheme.outlineVariant),
           ),
           child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 12,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Row(
               children: [
-                Icon(
-                  Icons.hub_rounded,
-                  color: colorScheme.primary,
-                  size: 20,
-                ),
+                Icon(Icons.hub_rounded, color: colorScheme.primary, size: 20),
                 const SizedBox(width: 12),
                 Text(
                   'Total de Nodos: $totalNodes',
@@ -69,10 +62,7 @@ class MatrixStatsFooter extends StatelessWidget {
             side: BorderSide(color: colorScheme.outlineVariant),
           ),
           child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 12,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Row(
               children: [
                 Icon(
@@ -104,10 +94,7 @@ class MatrixStatsFooter extends StatelessWidget {
             side: BorderSide(color: colorScheme.outlineVariant),
           ),
           child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 12,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [

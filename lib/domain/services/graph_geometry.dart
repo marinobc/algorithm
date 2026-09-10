@@ -65,9 +65,7 @@ class GraphGeometry {
     for (int i = 0; i < 12; i++) {
       final angle = i * (pi / 6.0); // 30 degrees = pi / 6
       final pt = getPerimeterPoint(nodo, angle);
-      points.add(
-        ConnectionPoint(point: pt, angleRadians: angle, index: i),
-      );
+      points.add(ConnectionPoint(point: pt, angleRadians: angle, index: i));
     }
     return points;
   }
@@ -86,17 +84,21 @@ class GraphGeometry {
       targetAngle += 2 * pi;
     }
 
-    final point = getPerimeterPoint(nodo, targetAngle, overrideWidth: overrideWidth);
-    return ConnectionPoint(
-      point: point,
-      angleRadians: targetAngle,
-      index: -1,
+    final point = getPerimeterPoint(
+      nodo,
+      targetAngle,
+      overrideWidth: overrideWidth,
     );
+    return ConnectionPoint(point: point, angleRadians: targetAngle, index: -1);
   }
 
   /// Calculates exact perimeter anchor point at any angle [angleRadians] for a node
   /// (accounting for capsule/pill width when text makes the node larger).
-  static Point2D getPerimeterPoint(Nodo nodo, double angleRadians, {double? overrideWidth}) {
+  static Point2D getPerimeterPoint(
+    Nodo nodo,
+    double angleRadians, {
+    double? overrideWidth,
+  }) {
     final halfH = nodo.radius;
     final nodeWidth = overrideWidth ?? getNodeWidth(nodo);
     final halfW = max(halfH, nodeWidth / 2.0);
@@ -118,10 +120,7 @@ class GraphGeometry {
       final tFlat = r / sinA.abs();
       final xFlat = tFlat * cosA;
       if (xFlat.abs() <= dx) {
-        return Point2D(
-          nodo.x + xFlat,
-          nodo.y + (sinA > 0 ? r : -r),
-        );
+        return Point2D(nodo.x + xFlat, nodo.y + (sinA > 0 ? r : -r));
       }
     }
 
@@ -130,10 +129,7 @@ class GraphGeometry {
     final sinSq = sinA * sinA;
     final radTerm = r * r - cx * cx * sinSq;
     final tCap = cosA * cx + sqrt(max(0.0, radTerm));
-    return Point2D(
-      nodo.x + tCap * cosA,
-      nodo.y + tCap * sinA,
-    );
+    return Point2D(nodo.x + tCap * cosA, nodo.y + tCap * sinA);
   }
 
   /// Calculate Bezier curve between source and target node connection points.
@@ -174,16 +170,12 @@ class GraphGeometry {
 
       // Circular cubic Bezier control points that form a smooth round loop
       final c1 = Point2D(
-        origen.x +
-            (halfW + loopRadius * 1.55) * cos(centerAngle + 0.52),
-        origen.y +
-            (halfW + loopRadius * 1.55) * sin(centerAngle + 0.52),
+        origen.x + (halfW + loopRadius * 1.55) * cos(centerAngle + 0.52),
+        origen.y + (halfW + loopRadius * 1.55) * sin(centerAngle + 0.52),
       );
       final c2 = Point2D(
-        origen.x +
-            (halfW + loopRadius * 1.55) * cos(centerAngle - 0.52),
-        origen.y +
-            (halfW + loopRadius * 1.55) * sin(centerAngle - 0.52),
+        origen.x + (halfW + loopRadius * 1.55) * cos(centerAngle - 0.52),
+        origen.y + (halfW + loopRadius * 1.55) * sin(centerAngle - 0.52),
       );
 
       return BezierCurve2D(start: start, control1: c1, control2: c2, end: end);

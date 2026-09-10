@@ -369,7 +369,9 @@ class _EditPanelState extends ConsumerState<EditPanel> {
                     ),
                     IconButton(
                       onPressed: () {
-                        ref.read(estadoEdicionProvider.notifier).deseleccionar();
+                        ref
+                            .read(estadoEdicionProvider.notifier)
+                            .deseleccionar();
                       },
                       icon: const Icon(Icons.close),
                     ),
@@ -661,4 +663,3 @@ class _ChoiceOption<T> {
     required this.onSelect,
   });
 }
-

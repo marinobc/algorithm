@@ -155,7 +155,9 @@ class _AdjacencyMatrixScreenState extends ConsumerState<AdjacencyMatrixScreen> {
                                     onColumnHeaderTapped: (j) {
                                       setState(() {
                                         _selectedColumnIndex =
-                                            _selectedColumnIndex == j ? null : j;
+                                            _selectedColumnIndex == j
+                                            ? null
+                                            : j;
                                       });
                                     },
                                     onRowHeaderTapped: (i) {
@@ -167,13 +169,17 @@ class _AdjacencyMatrixScreenState extends ConsumerState<AdjacencyMatrixScreen> {
                                     onColSummaryHeaderTapped: (idx) {
                                       setState(() {
                                         _selectedColumnIndex =
-                                            _selectedColumnIndex == idx ? null : idx;
+                                            _selectedColumnIndex == idx
+                                            ? null
+                                            : idx;
                                       });
                                     },
                                     onRowSummaryHeaderTapped: (idx) {
                                       setState(() {
                                         _selectedRowIndex =
-                                            _selectedRowIndex == idx ? null : idx;
+                                            _selectedRowIndex == idx
+                                            ? null
+                                            : idx;
                                       });
                                     },
                                     colorScheme: colorScheme,
@@ -191,7 +197,8 @@ class _AdjacencyMatrixScreenState extends ConsumerState<AdjacencyMatrixScreen> {
                       totalConnections: grafo.conexiones.length,
                       maxDegree: matrixData.maxDegree,
                       minDegree: matrixData.minDegree,
-                      hasSelection: _selectedRowIndex != null ||
+                      hasSelection:
+                          _selectedRowIndex != null ||
                           _selectedColumnIndex != null,
                       onClearSelection: () {
                         setState(() {

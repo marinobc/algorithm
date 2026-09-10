@@ -22,7 +22,10 @@ class NodeRenderHelper {
     if (node.isOverlapping) {
       canvas.saveLayer(
         rect.inflate(12.0),
-        Paint()..color = const Color(0x99FFFFFF), // 60% opacity for overlapping nodes
+        Paint()
+          ..color = const Color(
+            0x99FFFFFF,
+          ), // 60% opacity for overlapping nodes
       );
     }
 
