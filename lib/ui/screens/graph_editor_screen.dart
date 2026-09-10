@@ -287,6 +287,7 @@ class _GraphEditorScreenState extends ConsumerState<GraphEditorScreen> {
     final palette = NeumorphicPalette.of(context);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
 
     final loadedItem = ref.watch(loadedGraphItemProvider);
     final edicion = ref.watch(estadoEdicionProvider);
@@ -374,7 +375,7 @@ class _GraphEditorScreenState extends ConsumerState<GraphEditorScreen> {
               child: const FloatingAlgorithmCard(),
             ),
             Positioned(
-              bottom: edicion.itemSeleccionadoId != null ? 240 : 16,
+              bottom: (edicion.itemSeleccionadoId != null ? 240 : 16) + bottomPadding,
               right: 16,
               child: CanvasControlsFabs(
                 onResetView: () {

@@ -16,6 +16,7 @@ class CanvasControlsFabs extends ConsumerWidget {
 
     showModalBottomSheet(
       context: context,
+      useSafeArea: true,
       showDragHandle: true,
       backgroundColor: colorScheme.surface,
       shape: const RoundedRectangleBorder(
@@ -25,9 +26,11 @@ class CanvasControlsFabs extends ConsumerWidget {
         final activeState = ref.watch(transportationNotifierProvider);
         final currentMethod = activeState.selectedMethod;
 
-        return Padding(
-          padding: const EdgeInsets.only(left: 20, right: 20, bottom: 24),
-          child: Column(
+        return SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.only(left: 20, right: 20, bottom: 24),
+            child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -161,10 +164,11 @@ class CanvasControlsFabs extends ConsumerWidget {
               }),
             ],
           ),
-        );
-      },
-    );
-  }
+        ),
+      );
+    },
+  );
+}
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

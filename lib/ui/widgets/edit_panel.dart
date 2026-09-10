@@ -347,151 +347,154 @@ class _EditPanelState extends ConsumerState<EditPanel> {
       elevation: 8,
       color: colorScheme.surfaceContainer,
       borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-      child: Container(
-        padding: const EdgeInsets.all(20.0),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    itemTitle,
-                    style: TextStyle(
-                      color: colorScheme.primary,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+      child: SafeArea(
+        top: false,
+        child: Container(
+          padding: const EdgeInsets.all(20.0),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      itemTitle,
+                      style: TextStyle(
+                        color: colorScheme.primary,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
-                  IconButton(
-                    onPressed: () {
-                      ref.read(estadoEdicionProvider.notifier).deseleccionar();
-                    },
-                    icon: const Icon(Icons.close),
-                  ),
-                ],
-              ),
-              Divider(color: colorScheme.outlineVariant),
-              if (isNode) ...[
-                NodeEditSection(
-                  nameController: _nameController,
-                  colorScheme: colorScheme,
-                  palette: palette,
-                  selectedColorValue: _selectedColor,
-                  onNameChanged: (_) {
-                    ref
-                        .read(estadoEdicionProvider.notifier)
-                        .marcarCambioSinGuardar();
-                  },
-                  onColorSelected: (colorVal) {
-                    setState(() {
-                      _selectedColor = colorVal;
-                    });
-                    ref
-                        .read(estadoEdicionProvider.notifier)
-                        .marcarCambioSinGuardar();
-                  },
+                    IconButton(
+                      onPressed: () {
+                        ref.read(estadoEdicionProvider.notifier).deseleccionar();
+                      },
+                      icon: const Icon(Icons.close),
+                    ),
+                  ],
                 ),
-              ],
-              if (!isNode) ...[
-                ConnectionEditSection(
-                  colorScheme: colorScheme,
-                  isSelfLoop: isSelfLoop,
-                  selectedDireccion: _selectedDireccion,
-                  currentDirectionOptionId: currentDirectionOptionId,
-                  directionOptions: directionOptions
-                      .map(
-                        (opt) => ChoiceChipOption(
-                          id: opt.id,
-                          label: opt.label,
-                          onSelect: opt.onSelect,
-                        ),
-                      )
-                      .toList(),
-                  loopAngle: conn?.loopAngle ?? (-3.14159 / 2),
-                  onLoopAngleChanged: (val) {
-                    if (conn != null) {
-                      ref
-                          .read(grafoProvider.notifier)
-                          .actualizarConexion(conn.id, loopAngle: val);
+                Divider(color: colorScheme.outlineVariant),
+                if (isNode) ...[
+                  NodeEditSection(
+                    nameController: _nameController,
+                    colorScheme: colorScheme,
+                    palette: palette,
+                    selectedColorValue: _selectedColor,
+                    onNameChanged: (_) {
                       ref
                           .read(estadoEdicionProvider.notifier)
                           .marcarCambioSinGuardar();
-                    }
-                  },
-                ),
-              ],
-              if (!isNode) ...[
-                CustomAttributesSection(
-                  atributosGlobales: atributosGlobales,
-                  colorScheme: colorScheme,
-                  palette: palette,
-                  newAttrController: _newAttrController,
-                  getAttrController: _getAttrController,
-                  getAttrTagNameController: _getAttrTagNameController,
-                  onTagRenamed: (attrId, newTag) {
-                    ref
-                        .read(atributosGlobalesProvider.notifier)
-                        .renombrarAtributo(attrId, newTag);
-                    ref
-                        .read(estadoEdicionProvider.notifier)
-                        .marcarCambioSinGuardar();
-                  },
-                  onValueChanged: () {
-                    ref
-                        .read(estadoEdicionProvider.notifier)
-                        .marcarCambioSinGuardar();
-                  },
-                  onDeleteAttribute: (attr) {
-                    _confirmDeleteAttribute(context, attr, palette);
-                  },
-                  onAddAttribute: () {
-                    final name = _newAttrController.text.trim();
-                    if (name.isNotEmpty) {
+                    },
+                    onColorSelected: (colorVal) {
+                      setState(() {
+                        _selectedColor = colorVal;
+                      });
                       ref
-                          .read(atributosGlobalesProvider.notifier)
-                          .agregarAtributo(name);
-                      _newAttrController.clear();
-                    }
-                  },
-                ),
-              ],
-              const SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  IconButton.filledTonal(
-                    style: IconButton.styleFrom(
-                      backgroundColor: colorScheme.errorContainer,
-                      foregroundColor: colorScheme.onErrorContainer,
-                    ),
-                    icon: const Icon(Icons.delete_outline_rounded),
-                    tooltip: 'Eliminar',
-                    onPressed: () => _confirmDeleteItem(context),
-                  ),
-                  Row(
-                    children: [
-                      OutlinedButton(
-                        onPressed: () {
-                          FocusScope.of(context).unfocus();
-                          ref
-                              .read(estadoEdicionProvider.notifier)
-                              .deseleccionar();
-                        },
-                        child: const Text(AppText.cancel),
-                      ),
-                      const SizedBox(width: 8),
-                      FilledButton(
-                        onPressed: _saveChanges,
-                        child: const Text(AppText.save),
-                      ),
-                    ],
+                          .read(estadoEdicionProvider.notifier)
+                          .marcarCambioSinGuardar();
+                    },
                   ),
                 ],
-              ),
-            ],
+                if (!isNode) ...[
+                  ConnectionEditSection(
+                    colorScheme: colorScheme,
+                    isSelfLoop: isSelfLoop,
+                    selectedDireccion: _selectedDireccion,
+                    currentDirectionOptionId: currentDirectionOptionId,
+                    directionOptions: directionOptions
+                        .map(
+                          (opt) => ChoiceChipOption(
+                            id: opt.id,
+                            label: opt.label,
+                            onSelect: opt.onSelect,
+                          ),
+                        )
+                        .toList(),
+                    loopAngle: conn?.loopAngle ?? (-3.14159 / 2),
+                    onLoopAngleChanged: (val) {
+                      if (conn != null) {
+                        ref
+                            .read(grafoProvider.notifier)
+                            .actualizarConexion(conn.id, loopAngle: val);
+                        ref
+                            .read(estadoEdicionProvider.notifier)
+                            .marcarCambioSinGuardar();
+                      }
+                    },
+                  ),
+                ],
+                if (!isNode) ...[
+                  CustomAttributesSection(
+                    atributosGlobales: atributosGlobales,
+                    colorScheme: colorScheme,
+                    palette: palette,
+                    newAttrController: _newAttrController,
+                    getAttrController: _getAttrController,
+                    getAttrTagNameController: _getAttrTagNameController,
+                    onTagRenamed: (attrId, newTag) {
+                      ref
+                          .read(atributosGlobalesProvider.notifier)
+                          .renombrarAtributo(attrId, newTag);
+                      ref
+                          .read(estadoEdicionProvider.notifier)
+                          .marcarCambioSinGuardar();
+                    },
+                    onValueChanged: () {
+                      ref
+                          .read(estadoEdicionProvider.notifier)
+                          .marcarCambioSinGuardar();
+                    },
+                    onDeleteAttribute: (attr) {
+                      _confirmDeleteAttribute(context, attr, palette);
+                    },
+                    onAddAttribute: () {
+                      final name = _newAttrController.text.trim();
+                      if (name.isNotEmpty) {
+                        ref
+                            .read(atributosGlobalesProvider.notifier)
+                            .agregarAtributo(name);
+                        _newAttrController.clear();
+                      }
+                    },
+                  ),
+                ],
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    IconButton.filledTonal(
+                      style: IconButton.styleFrom(
+                        backgroundColor: colorScheme.errorContainer,
+                        foregroundColor: colorScheme.onErrorContainer,
+                      ),
+                      icon: const Icon(Icons.delete_outline_rounded),
+                      tooltip: 'Eliminar',
+                      onPressed: () => _confirmDeleteItem(context),
+                    ),
+                    Row(
+                      children: [
+                        OutlinedButton(
+                          onPressed: () {
+                            FocusScope.of(context).unfocus();
+                            ref
+                                .read(estadoEdicionProvider.notifier)
+                                .deseleccionar();
+                          },
+                          child: const Text(AppText.cancel),
+                        ),
+                        const SizedBox(width: 8),
+                        FilledButton(
+                          onPressed: _saveChanges,
+                          child: const Text(AppText.save),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
