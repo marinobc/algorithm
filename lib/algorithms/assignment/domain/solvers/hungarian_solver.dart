@@ -74,7 +74,7 @@ class TransportationSolverHelper {
       wasBalanced = true;
       if (totalSupply > totalDemand) {
         final diff = totalSupply - totalDemand;
-        dummyAdded = 'Ficticio (Destino)';
+        dummyAdded = '0 (Destino)';
         destLabels.add(dummyAdded);
         dem.add(diff);
         for (int i = 0; i < costs.length; i++) {
@@ -82,7 +82,7 @@ class TransportationSolverHelper {
         }
       } else {
         final diff = totalDemand - totalSupply;
-        dummyAdded = 'Ficticio (Origen)';
+        dummyAdded = '0 (Origen)';
         origLabels.add(dummyAdded);
         supp.add(diff);
         final dummyRow = List<double>.filled(destLabels.length, dummyCost);
@@ -165,11 +165,11 @@ class HungarianAssignmentSolver implements ITransportationSolver {
 
     // Pad matrix up to square n x n if origins or destinations lengths differ
     while (origLabels.length < n) {
-      origLabels.add('Ficticio (Origen ${origLabels.length + 1})');
+      origLabels.add('0 (Origen ${origLabels.length + 1})');
       costs.add(List<double>.filled(n, 0.0));
     }
     while (destLabels.length < n) {
-      destLabels.add('Ficticio (Destino ${destLabels.length + 1})');
+      destLabels.add('0 (Destino ${destLabels.length + 1})');
       for (int i = 0; i < n; i++) {
         costs[i].add(0.0);
       }

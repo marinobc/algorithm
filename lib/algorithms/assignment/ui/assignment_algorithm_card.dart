@@ -4,9 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../ui/widgets/base_algorithm_card.dart';
 import '../domain/models/assignment_models.dart';
 import '../providers/assignment_provider.dart';
+import 'assignment_details_screen.dart';
 
-/// Domain-specific floating card for the Assignment (Hungarian) Algorithm.
-/// Uses [BaseAlgorithmCard] for a standardized, modular UI appearance.
+/// Streamlined floating card overlay for the Assignment (Hungarian) Algorithm.
+/// Renders initial summary metrics and an action button to open full details screen.
 class AssignmentAlgorithmCard extends ConsumerWidget {
   const AssignmentAlgorithmCard({super.key});
 
@@ -17,7 +18,6 @@ class AssignmentAlgorithmCard extends ConsumerWidget {
     if (!state.isActive || !validation.isValid) return const SizedBox.shrink();
 
     final result = ref.watch(transportationResultProvider);
-    final problem = ref.watch(transportationProblemDataProvider);
     final colorScheme = Theme.of(context).colorScheme;
 
     final currentGoal = state.optimizationGoal;
@@ -79,7 +79,7 @@ class AssignmentAlgorithmCard extends ConsumerWidget {
                   Text(
                     isMin ? 'Costo Mínimo (Z)' : 'Ganancia Máxima (Z)',
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: 12,
                       fontWeight: FontWeight.w600,
                       color: isMin
                           ? colorScheme.onPrimaryContainer
@@ -89,7 +89,7 @@ class AssignmentAlgorithmCard extends ConsumerWidget {
                   Text(
                     'Z = ${result.totalCost.toStringAsFixed(2).replaceAll(RegExp(r'\.00$'), '')}',
                     style: TextStyle(
-                      fontSize: 16,
+                      fontSize: 15,
                       fontWeight: FontWeight.w800,
                       color: isMin
                           ? colorScheme.onPrimaryContainer
@@ -103,76 +103,35 @@ class AssignmentAlgorithmCard extends ConsumerWidget {
               'No se pudo obtener resultado.',
               style: TextStyle(fontSize: 12, color: colorScheme.error),
             ),
-      body: (result != null && problem != null)
-          ? Wrap(
-              spacing: 6,
-              runSpacing: 4,
-              children: _buildAssignmentChips(result, problem, colorScheme),
+      body: result != null
+          ? SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  visualDensity: VisualDensity.compact,
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 4,
+                    horizontal: 12,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                icon: const Icon(Icons.analytics_outlined, size: 16),
+                label: const Text(
+                  'Ver Detalles y Matriz Completa',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                ),
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const AssignmentDetailsScreen(),
+                    ),
+                  );
+                },
+              ),
             )
           : null,
     );
-  }
-
-  List<Widget> _buildAssignmentChips(
-    TransportationResult result,
-    TransportationProblemData problem,
-    ColorScheme colorScheme,
-  ) {
-    final widgets = <Widget>[];
-
-    for (int i = 0; i < result.allocationMatrix.length; i++) {
-      for (int j = 0; j < result.allocationMatrix[i].length; j++) {
-        if (result.allocationMatrix[i][j] > 0) {
-          final isFicticio =
-              i >= problem.origins.length || j >= problem.destinations.length;
-          final origLabel = i < problem.origins.length
-              ? problem.origins[i].nombre
-              : 'Descartado';
-          final destLabel = j < problem.destinations.length
-              ? problem.destinations[j].nombre
-              : 'Descartado';
-          final costVal =
-              (i < problem.costMatrix.length &&
-                  j < problem.costMatrix[i].length)
-              ? problem.costMatrix[i][j]
-              : 0.0;
-
-          final labelText = isFicticio
-              ? '$origLabel ➔ $destLabel'
-              : '$origLabel ➔ $destLabel (${costVal.toStringAsFixed(0)})';
-
-          widgets.add(
-            RawChip(
-              visualDensity: VisualDensity.compact,
-              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 0),
-              label: Text(
-                labelText,
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                  color: isFicticio
-                      ? colorScheme.onSurfaceVariant.withValues(alpha: 0.7)
-                      : colorScheme.onSurfaceVariant,
-                ),
-              ),
-              backgroundColor: isFicticio
-                  ? colorScheme.surfaceContainer
-                  : colorScheme.surfaceContainerHighest,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-                side: BorderSide(
-                  color: isFicticio
-                      ? colorScheme.outlineVariant.withValues(alpha: 0.5)
-                      : colorScheme.outlineVariant,
-                  width: 0.5,
-                ),
-              ),
-            ),
-          );
-        }
-      }
-    }
-    return widgets;
   }
 }
