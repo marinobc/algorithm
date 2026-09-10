@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../algorithms/assignment/domain/models/assignment_models.dart';
 import '../../algorithms/assignment/providers/assignment_provider.dart';
+import '../../algorithms/johnson/providers/johnson_provider.dart';
 import '../../application/providers/grafo_provider.dart';
 import '../../debug/graph_debug_fab.dart';
 
@@ -25,6 +26,7 @@ class CanvasControlsFabs extends ConsumerWidget {
       builder: (ctx) {
         final activeState = ref.watch(transportationNotifierProvider);
         final currentMethod = activeState.selectedMethod;
+        final johnsonState = ref.watch(johnsonNotifierProvider);
 
         return SafeArea(
           top: false,
@@ -77,6 +79,8 @@ class CanvasControlsFabs extends ConsumerWidget {
                 const SizedBox(height: 16),
                 const Divider(height: 1),
                 const SizedBox(height: 12),
+
+                // 1. Assignment Algorithm Card
                 ...TransportationMethod.values.map((method) {
                   final isSelected =
                       activeState.isActive && currentMethod == method;
@@ -153,6 +157,10 @@ class CanvasControlsFabs extends ConsumerWidget {
                           );
                           return;
                         }
+                        // Deactivate other algorithms
+                        ref
+                            .read(johnsonNotifierProvider.notifier)
+                            .setActive(false);
                         final notifier = ref.read(
                           transportationNotifierProvider.notifier,
                         );
@@ -162,6 +170,87 @@ class CanvasControlsFabs extends ConsumerWidget {
                     ),
                   );
                 }),
+
+                // 2. Johnson's Algorithm Card
+                Card(
+                  elevation: 0,
+                  color: johnsonState.isActive
+                      ? colorScheme.primaryContainer.withValues(alpha: 0.5)
+                      : colorScheme.surfaceContainerLow,
+                  margin: const EdgeInsets.only(bottom: 8),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    side: BorderSide(
+                      color: johnsonState.isActive
+                          ? colorScheme.primary
+                          : colorScheme.outlineVariant,
+                      width: johnsonState.isActive ? 1.5 : 1.0,
+                    ),
+                  ),
+                  child: ListTile(
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 4,
+                    ),
+                    leading: Icon(
+                      Icons.timeline_rounded,
+                      color: johnsonState.isActive
+                          ? colorScheme.primary
+                          : colorScheme.onSurfaceVariant,
+                    ),
+                    title: Text(
+                      'Algoritmo de Johnson',
+                      style: TextStyle(
+                        fontWeight: johnsonState.isActive
+                            ? FontWeight.bold
+                            : FontWeight.w600,
+                        color: johnsonState.isActive
+                            ? colorScheme.primary
+                            : colorScheme.onSurface,
+                      ),
+                    ),
+                    subtitle: Text(
+                      'Calcula tiempos tempranos, tardíos, holgura y ruta crítica.',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    trailing: johnsonState.isActive
+                        ? Icon(
+                            Icons.check_circle_rounded,
+                            color: colorScheme.primary,
+                          )
+                        : Icon(
+                            Icons.arrow_forward_ios_rounded,
+                            size: 16,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                    onTap: () {
+                      Navigator.of(ctx).pop();
+                      final validation = ref.read(johnsonValidationProvider);
+                      if (!validation.isValid) {
+                        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              validation.errorMessage ?? 'Grafo no válido para el algoritmo de Johnson.',
+                            ),
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
+                        return;
+                      }
+                      // Deactivate other algorithms
+                      ref
+                          .read(transportationNotifierProvider.notifier)
+                          .setActive(false);
+                      ref
+                          .read(johnsonNotifierProvider.notifier)
+                          .setActive(true);
+                    },
+                  ),
+                ),
               ],
             ),
           ),

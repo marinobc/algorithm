@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../application/providers/grafo_provider.dart';
 import '../../../../domain/highlights/algorithm_highlight.dart';
+import '../../johnson/providers/johnson_provider.dart';
 import '../domain/models/assignment_models.dart';
 import '../domain/services/assignment_matrix_extractor.dart';
 import '../domain/services/assignment_validator.dart';
@@ -164,23 +165,24 @@ final algorithmHighlightProvider = Provider<AlgorithmHighlight>((ref) {
     for (int j = 0; j < result.allocationMatrix[i].length; j++) {
       final alloc = result.allocationMatrix[i][j];
       if (alloc > 0) {
-        if (i < problem.origins.length) {
+        // Only highlight real origin -> real destination assignments.
+        // Exclude dummy (ficticio) origin/destination assignments.
+        final isRealOrigin = i < problem.origins.length;
+        final isRealDestination = j < problem.destinations.length;
+
+        if (isRealOrigin && isRealDestination) {
           final origId = problem.origins[i].id;
+          final destId = problem.destinations[j].id;
+
           nodeIds.add(origId);
+          nodeIds.add(destId);
 
-          if (j < problem.destinations.length) {
-            final destId = problem.destinations[j].id;
-            nodeIds.add(destId);
-
-            // Find matching connection in graph
-            for (final conn in grafo.conexiones.values) {
-              if (conn.nodoOrigenId == origId && conn.nodoDestinoId == destId) {
-                connIds.add(conn.id);
-              }
+          // Find matching connection in graph
+          for (final conn in grafo.conexiones.values) {
+            if (conn.nodoOrigenId == origId && conn.nodoDestinoId == destId) {
+              connIds.add(conn.id);
             }
           }
-        } else if (j < problem.destinations.length) {
-          nodeIds.add(problem.destinations[j].id);
         }
       }
     }
@@ -193,7 +195,15 @@ final algorithmHighlightProvider = Provider<AlgorithmHighlight>((ref) {
   );
 });
 
-/// Alias provider for backwards compatibility
-final highlightedElementsProvider = Provider<AlgorithmHighlight>(
-  (ref) => ref.watch(algorithmHighlightProvider),
-);
+/// Combined provider for active algorithm highlights across all graph algorithms
+final highlightedElementsProvider = Provider<AlgorithmHighlight>((ref) {
+  final assignmentHighlight = ref.watch(algorithmHighlightProvider);
+  if (assignmentHighlight.isNotEmpty) {
+    return assignmentHighlight;
+  }
+  final johnsonHighlight = ref.watch(johnsonHighlightProvider);
+  if (johnsonHighlight.isNotEmpty) {
+    return johnsonHighlight;
+  }
+  return const AlgorithmHighlight();
+});
