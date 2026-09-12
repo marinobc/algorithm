@@ -103,7 +103,12 @@ class _NodeEditSectionState extends State<NodeEditSection> {
         const SizedBox(height: 8),
         TextField(
           controller: widget.nameController,
-          onTap: () => widget.nameController.clear(),
+          onTap: () {
+            widget.nameController.selection = TextSelection(
+              baseOffset: 0,
+              extentOffset: widget.nameController.text.length,
+            );
+          },
           onChanged: widget.onNameChanged,
           style: TextStyle(color: colorScheme.onSurface, fontSize: 14),
           decoration: InputDecoration(

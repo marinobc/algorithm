@@ -115,7 +115,16 @@ class CustomAttributesSection extends StatelessWidget {
   }) {
     return TextField(
       controller: controller,
-      onTap: () => controller.clear(),
+      onTap: () {
+        if (isNumeric) {
+          controller.clear();
+        } else {
+          controller.selection = TextSelection(
+            baseOffset: 0,
+            extentOffset: controller.text.length,
+          );
+        }
+      },
       style: TextStyle(color: colorScheme.onSurface, fontSize: 14),
       onChanged: onChanged,
       keyboardType: isNumeric

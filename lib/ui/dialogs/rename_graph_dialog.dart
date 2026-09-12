@@ -186,7 +186,12 @@ class _GraphNameDialogContentState extends State<_GraphNameDialogContent> {
       content: TextField(
         controller: _controller,
         autofocus: true,
-        onTap: () => _controller.clear(),
+        onTap: () {
+          _controller.selection = TextSelection(
+            baseOffset: 0,
+            extentOffset: _controller.text.length,
+          );
+        },
         textInputAction: TextInputAction.done,
         onSubmitted: (_) => _submit(),
         decoration: const InputDecoration(
