@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../theme/app_theme.dart';
 import '../widgets/video_resource_card.dart';
 import '../widgets/web_explanation_navbar.dart';
@@ -24,9 +25,7 @@ class AssignmentAlgoScreen extends StatelessWidget {
       backgroundColor: palette.canvasBg,
       body: Column(
         children: [
-          const WebExplanationNavbar(
-            activePage: ExplanationWebPage.assignment,
-          ),
+          const WebExplanationNavbar(activePage: ExplanationWebPage.assignment),
           Expanded(
             child: SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
@@ -51,29 +50,111 @@ class AssignmentAlgoScreen extends StatelessWidget {
                             _buildConceptCard(context, colorScheme),
                             const SizedBox(height: 36),
 
-                            // Video Tutorial Card
+                            _buildLearningSection(
+                              context,
+                              colorScheme,
+                              'Ejemplos cotidianos',
+                              'Asignar repartidores a pedidos, profesores a cursos o máquinas a trabajos son problemas de asignación: cada recurso recibe una tarea y buscamos el menor costo total.',
+                              Icons.lightbulb_outline_rounded,
+                            ),
+                            const SizedBox(height: 36),
+
                             const VideoResourceCard(
-                              title:
-                                  '🎥 Video Recomendado: Asignación por Matriz de Ceros Explicada',
-                              description:
-                                  'Mira cómo restar mínimos por filas y columnas para resolver problemas de asignación 1 a 1.',
-                              videoUrl:
-                                  'https://www.youtube.com/watch?v=T4TrFA39AJU&t=673s',
+                              title: '🎥 Video Recomendado: Asignación por Matriz de Ceros Explicada',
+                              description: 'Mira cómo restar mínimos por filas y columnas para resolver problemas de asignación 1 a 1.',
+                              videoUrl: 'https://www.youtube.com/watch?v=T4TrFA39AJU&t=673s',
                               durationOrAuthor: 'Explicación en Video',
                             ),
                             const SizedBox(height: 48),
 
-                            // Algorithm Steps (Matrix of Zeros Method)
+                            _buildLearningSection(
+                              context,
+                              colorScheme,
+                              'Representación mediante matriz de costos',
+                              'Las filas representan recursos y las columnas tareas. Cada celda contiene el costo de asignar ese recurso a esa tarea. Una solución válida selecciona una celda por fila y por columna.',
+                              Icons.table_chart_outlined,
+                            ),
+                            const SizedBox(height: 36),
+
+                            _buildModelSection(context, colorScheme),
+                            const SizedBox(height: 36),
+
+                            _buildMethodsSection(context, colorScheme),
+                            const SizedBox(height: 48),
+
+                            const VideoResourceCard(
+                              title: 'Video 2: métodos de asignación',
+                              description: 'Refuerza las estrategias para encontrar una combinación óptima y comparar sus resultados.',
+                              videoUrl:
+                                  'https://www.youtube.com/watch?v=_XvIC2KvWvo',
+                              durationOrAuthor: 'Métodos de solución',
+                            ),
+                            const SizedBox(height: 48),
+
+                            _buildLearningSection(
+                              context,
+                              colorScheme,
+                              'Algoritmo Húngaro',
+                              'Es un procedimiento exacto para resolver matrices cuadradas de costos. Convierte el problema en una estructura de ceros y encuentra una selección independiente que cubre todas las filas y columnas.',
+                              Icons.auto_graph_rounded,
+                            ),
+                            const SizedBox(height: 48),
+
                             _buildStepsSection(context, colorScheme, width),
                             const SizedBox(height: 48),
 
-                            // Human Everyday Analogy Card
-                            _buildHumanAnalogyCard(context, colorScheme),
+                            const VideoResourceCard(
+                              title:
+                                  'Video 3: explicación del algoritmo húngaro',
+                              description: 'Observa la transformación de la matriz y la elección de ceros paso a paso.',
+                              videoUrl: 'https://youtu.be/Rjts-iAq1XE?utm_source=chatgpt.com',
+                              durationOrAuthor: 'Explicación principal',
+                            ),
                             const SizedBox(height: 48),
 
-                            // Conceptual Considerations
-                            _buildConceptualFeaturesSection(context, colorScheme),
+                            _buildExampleSection(context, colorScheme),
+                            const SizedBox(height: 48),
+
+                            const VideoResourceCard(
+                              title: 'Video 4: ejemplo resuelto',
+                              description: 'Compara este procedimiento con otra resolución completa de un problema de asignación.',
+                              videoUrl: 'https://youtu.be/0Zgdui3GqZo?utm_source=chatgpt.com',
+                              durationOrAuthor: 'Ejercicio guiado',
+                            ),
+                            const SizedBox(height: 48),
+
+                            _buildImplementationSection(context, colorScheme),
+                            const SizedBox(height: 48),
+
+                            _buildConceptualFeaturesSection(
+                              context,
+                              colorScheme,
+                            ),
+                            const SizedBox(height: 48),
+
+                            _buildApplicationsSection(context, colorScheme),
+                            const SizedBox(height: 48),
+
+                            const VideoResourceCard(
+                              title: 'Video 5: aplicaciones de la asignación',
+                              description: 'Cierra la lección con ejemplos de cómo este modelo ayuda a tomar decisiones eficientes.',
+                              videoUrl:
+                                  'https://www.youtube.com/watch?v=qPkMRXhEQHI',
+                              durationOrAuthor: 'Aplicaciones reales',
+                            ),
                             const SizedBox(height: 56),
+
+                            /* Video anterior conservado como Video 1. */
+                            /*
+                            const VideoResourceCard(
+                              title: 'Video recomendado: método húngaro',
+                              description: 'Sigue paso a paso la reducción de la matriz y la selección de asignaciones óptimas.',
+                              videoUrl:
+                                  'https://www.youtube.com/watch?v=_XvIC2KvWvo',
+                              durationOrAuthor: 'Método Húngaro',
+                            ),
+                            */
+                            _buildHumanAnalogyCard(context, colorScheme),
 
                             // CTA Card
                             _buildCtaCard(context, colorScheme),
@@ -277,15 +358,16 @@ class AssignmentAlgoScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: colorScheme.primaryContainer.withValues(alpha: 0.25),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: colorScheme.primary.withValues(alpha: 0.3),
-        ),
+        border: Border.all(color: colorScheme.primary.withValues(alpha: 0.3)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.local_shipping_rounded,
-              color: Color(0xFF7C4DFF), size: 36),
+          const Icon(
+            Icons.local_shipping_rounded,
+            color: Color(0xFF7C4DFF),
+            size: 36,
+          ),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
@@ -316,6 +398,298 @@ class AssignmentAlgoScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildLearningSection(
+    BuildContext context,
+    ColorScheme colorScheme,
+    String title,
+    String description,
+    IconData icon,
+  ) {
+    return Container(
+      padding: const EdgeInsets.all(26),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.4),
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: const Color(0xFF7C4DFF), size: 30),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 21,
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.onSurface,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  description,
+                  style: TextStyle(
+                    fontSize: 15,
+                    height: 1.5,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMethodsSection(BuildContext context, ColorScheme colorScheme) {
+    final methods = [
+      (
+        'Fuerza bruta',
+        'Prueba todas las combinaciones. Es sencilla de entender, pero crece demasiado rápido cuando aumentan los elementos.',
+        Icons.all_inclusive_rounded,
+      ),
+      (
+        'Algoritmo Húngaro',
+        'Encuentra una solución óptima mediante reducciones y ceros independientes, con un costo computacional mucho menor.',
+        Icons.auto_awesome_rounded,
+      ),
+      (
+        'Branch and Bound',
+        'Explora alternativas y descarta ramas que ya no pueden mejorar la mejor solución encontrada.',
+        Icons.account_tree_rounded,
+      ),
+    ];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'MÉTODOS PARA RESOLVERLO',
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w800,
+            letterSpacing: 1.4,
+            color: colorScheme.primary,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          'Tres caminos para buscar la mejor asignación',
+          style: TextStyle(
+            fontSize: 25,
+            fontWeight: FontWeight.bold,
+            color: colorScheme.onSurface,
+          ),
+        ),
+        const SizedBox(height: 20),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final columns = constraints.maxWidth >= 800 ? 3 : 1;
+            return GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: methods.length,
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: columns,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
+                mainAxisExtent: 174,
+              ),
+              itemBuilder: (context, index) {
+                final method = methods[index];
+                return Container(
+                  padding: const EdgeInsets.all(18),
+                  decoration: BoxDecoration(
+                    color: colorScheme.surfaceContainerLow,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: colorScheme.outlineVariant.withValues(alpha: 0.4),
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(method.$3, color: const Color(0xFF7C4DFF), size: 26),
+                      const SizedBox(height: 10),
+                      Text(
+                        method.$1,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: colorScheme.onSurface,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Expanded(
+                        child: Text(
+                          method.$2,
+                          style: TextStyle(
+                            fontSize: 13,
+                            height: 1.35,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildExampleSection(BuildContext context, ColorScheme colorScheme) {
+    return _buildLearningSection(
+      context,
+      colorScheme,
+      'Ejemplo resuelto paso a paso',
+      'Supón tres técnicos y tres instalaciones. Después de reducir filas y columnas, se cubren los ceros y se elige una pareja por técnico. La suma de las celdas seleccionadas es el costo total de la solución.',
+      Icons.fact_check_outlined,
+    );
+  }
+
+  Widget _buildImplementationSection(
+    BuildContext context,
+    ColorScheme colorScheme,
+  ) {
+    return _buildLearningSection(
+      context,
+      colorScheme,
+      'Implementación y complejidad',
+      'En código, la matriz puede almacenarse como una lista de listas. El método Húngaro suele resolverse en O(n³), mientras que probar todas las permutaciones con fuerza bruta crece como O(n!). Por eso el algoritmo resulta práctico para matrices grandes.',
+      Icons.code_rounded,
+    );
+  }
+
+  Widget _buildApplicationsSection(
+    BuildContext context,
+    ColorScheme colorScheme,
+  ) {
+    return _buildLearningSection(
+      context,
+      colorScheme,
+      'Aplicaciones reales',
+      'Se utiliza para asignar trabajadores a turnos, vehículos a rutas, máquinas a órdenes de producción, anuncios a espacios y estudiantes a proyectos, siempre buscando reducir tiempo, distancia o costo.',
+      Icons.public_rounded,
+    );
+  }
+
+  Widget _buildModelSection(BuildContext context, ColorScheme colorScheme) {
+    final items = [
+      (
+        'Recursos',
+        'Personas, máquinas o vehículos que deben recibir una tarea.',
+        Icons.groups_rounded,
+      ),
+      (
+        'Tareas',
+        'Trabajos o destinos que deben cubrirse exactamente una vez.',
+        Icons.task_alt_rounded,
+      ),
+      (
+        'Costo',
+        'Tiempo, distancia o dinero asociado a cada pareja recurso-tarea.',
+        Icons.payments_outlined,
+      ),
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'CÓMO SE PLANTEA',
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w800,
+            letterSpacing: 1.4,
+            color: colorScheme.primary,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          'Del problema real a la matriz',
+          style: TextStyle(
+            fontSize: 26,
+            fontWeight: FontWeight.bold,
+            color: colorScheme.onSurface,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Cada fila representa un recurso y cada columna una tarea. La celda en su intersección guarda el costo de realizar esa asignación.',
+          style: TextStyle(
+            fontSize: 15,
+            height: 1.5,
+            color: colorScheme.onSurfaceVariant,
+          ),
+        ),
+        const SizedBox(height: 20),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final columns = constraints.maxWidth >= 800 ? 3 : 1;
+            return GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: items.length,
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: columns,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
+                mainAxisExtent: 142,
+              ),
+              itemBuilder: (context, index) {
+                final item = items[index];
+                return Container(
+                  padding: const EdgeInsets.all(18),
+                  decoration: BoxDecoration(
+                    color: colorScheme.surfaceContainerLow,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: colorScheme.outlineVariant.withValues(alpha: 0.4),
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(item.$3, color: const Color(0xFF7C4DFF), size: 26),
+                      const SizedBox(height: 9),
+                      Text(
+                        item.$1,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: colorScheme.onSurface,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Expanded(
+                        child: Text(
+                          item.$2,
+                          style: TextStyle(
+                            fontSize: 13,
+                            height: 1.35,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            );
+          },
+        ),
+      ],
+    );
+  }
+
   Widget _buildStepsSection(
     BuildContext context,
     ColorScheme colorScheme,
@@ -325,26 +699,22 @@ class AssignmentAlgoScreen extends StatelessWidget {
       {
         'step': 'Paso 1',
         'title': 'Reducción por Filas',
-        'desc':
-            'Resta el menor número de cada fila a todos los elementos de esa fila. ¡Ahora cada fila tiene al menos un cero!',
+        'desc': 'Resta el menor número de cada fila a todos los elementos de esa fila. ¡Ahora cada fila tiene al menos un cero!',
       },
       {
         'step': 'Paso 2',
         'title': 'Reducción por Columnas',
-        'desc':
-            'Resta el menor número de cada columna a todas sus celdas para multiplicar los ceros disponibles en la tabla.',
+        'desc': 'Resta el menor número de cada columna a todas sus celdas para multiplicar los ceros disponibles en la tabla.',
       },
       {
         'step': 'Paso 3',
         'title': 'Cubrir Ceros con Líneas',
-        'desc':
-            'Trazas el mínimo número de líneas (horizontales o verticales) para tachar todos los ceros existentes.',
+        'desc': 'Trazas el mínimo número de líneas (horizontales o verticales) para tachar todos los ceros existentes.',
       },
       {
         'step': 'Paso 4',
         'title': 'Asignar Parejas Óptimas',
-        'desc':
-            'Cuando las líneas son iguales al número de filas, seleccionas las casillas con ceros para emparejar cada recurso a su tarea.',
+        'desc': 'Cuando las líneas son iguales al número de filas, seleccionas las casillas con ceros para emparejar cada recurso a su tarea.',
       },
     ];
 
@@ -457,8 +827,11 @@ class AssignmentAlgoScreen extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Icon(Icons.lightbulb_outline_rounded,
-                  color: Color(0xFF7C4DFF), size: 28),
+              const Icon(
+                Icons.lightbulb_outline_rounded,
+                color: Color(0xFF7C4DFF),
+                size: 28,
+              ),
               const SizedBox(width: 12),
               Text(
                 'Propiedades Destacadas',
