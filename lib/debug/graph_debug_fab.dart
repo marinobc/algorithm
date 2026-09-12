@@ -72,8 +72,13 @@ class GraphDebugFab extends ConsumerWidget {
                   if (input.contains('{')) {
                     final jsonStartIndex = input.indexOf('{');
                     final jsonEndIndex = input.lastIndexOf('}');
-                    if (jsonStartIndex != -1 && jsonEndIndex != -1 && jsonEndIndex > jsonStartIndex) {
-                      jsonText = input.substring(jsonStartIndex, jsonEndIndex + 1);
+                    if (jsonStartIndex != -1 &&
+                        jsonEndIndex != -1 &&
+                        jsonEndIndex > jsonStartIndex) {
+                      jsonText = input.substring(
+                        jsonStartIndex,
+                        jsonEndIndex + 1,
+                      );
                     }
                   }
 
@@ -146,8 +151,10 @@ class GraphDebugFab extends ConsumerWidget {
             }
             summary.writeln('// Connections (${grafo.conexiones.length}):');
             for (final c in grafo.conexiones.values) {
-              final orig = grafo.nodos[c.nodoOrigenId]?.nombre ?? c.nodoOrigenId;
-              final dest = grafo.nodos[c.nodoDestinoId]?.nombre ?? c.nodoDestinoId;
+              final orig =
+                  grafo.nodos[c.nodoOrigenId]?.nombre ?? c.nodoOrigenId;
+              final dest =
+                  grafo.nodos[c.nodoDestinoId]?.nombre ?? c.nodoDestinoId;
               final attrStr = c.atributos
                   .map((a) => '${a.atributoId}: ${a.valor}')
                   .join(', ');
@@ -168,7 +175,11 @@ class GraphDebugFab extends ConsumerWidget {
                 SnackBar(
                   content: Row(
                     children: [
-                      const Icon(Icons.bug_report, color: Colors.white, size: 20),
+                      const Icon(
+                        Icons.bug_report,
+                        color: Colors.white,
+                        size: 20,
+                      ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
@@ -191,4 +202,3 @@ class GraphDebugFab extends ConsumerWidget {
     );
   }
 }
-

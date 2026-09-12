@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../screens/assignment_algo_screen.dart';
 import '../screens/home_library_screen.dart';
 import '../screens/johnson_algo_screen.dart';
@@ -10,10 +11,7 @@ enum ExplanationWebPage { algorithms, graphs, assignment, johnson }
 class WebExplanationNavbar extends StatelessWidget {
   final ExplanationWebPage activePage;
 
-  const WebExplanationNavbar({
-    super.key,
-    required this.activePage,
-  });
+  const WebExplanationNavbar({super.key, required this.activePage});
 
   void _navigateTo(BuildContext context, ExplanationWebPage page) {
     if (page == activePage) return;
@@ -77,10 +75,14 @@ class WebExplanationNavbar extends StatelessWidget {
             children: [
               // Logo and Title
               InkWell(
-                onTap: () => _navigateTo(context, ExplanationWebPage.algorithms),
+                onTap: () =>
+                    _navigateTo(context, ExplanationWebPage.algorithms),
                 borderRadius: BorderRadius.circular(12),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 4,
+                  ),
                   child: Row(
                     children: [
                       Container(
@@ -150,7 +152,10 @@ class WebExplanationNavbar extends StatelessWidget {
                   if (width < 850)
                     PopupMenuButton<ExplanationWebPage>(
                       tooltip: 'Navegar Temas',
-                      icon: Icon(Icons.menu_rounded, color: colorScheme.primary),
+                      icon: Icon(
+                        Icons.menu_rounded,
+                        color: colorScheme.primary,
+                      ),
                       onSelected: (page) => _navigateTo(context, page),
                       itemBuilder: (context) => [
                         const PopupMenuItem(
@@ -212,15 +217,14 @@ class WebExplanationNavbar extends StatelessWidget {
     return TextButton.icon(
       onPressed: () => _navigateTo(context, page),
       style: TextButton.styleFrom(
-        foregroundColor:
-            isActive ? colorScheme.primary : colorScheme.onSurfaceVariant,
+        foregroundColor: isActive
+            ? colorScheme.primary
+            : colorScheme.onSurfaceVariant,
         backgroundColor: isActive
             ? colorScheme.primaryContainer.withValues(alpha: 0.6)
             : Colors.transparent,
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
       icon: Icon(icon, size: 16),
       label: Text(

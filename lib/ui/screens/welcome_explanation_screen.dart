@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../theme/app_theme.dart';
 import '../widgets/video_resource_card.dart';
 import '../widgets/web_explanation_navbar.dart';
@@ -51,9 +52,7 @@ class _WelcomeExplanationScreenState extends State<WelcomeExplanationScreen> {
       body: Column(
         children: [
           // 1. Web Header / Navbar
-          const WebExplanationNavbar(
-            activePage: ExplanationWebPage.algorithms,
-          ),
+          const WebExplanationNavbar(activePage: ExplanationWebPage.algorithms),
 
           // 2. Main Web Scrollable Body
           Expanded(
@@ -86,8 +85,7 @@ class _WelcomeExplanationScreenState extends State<WelcomeExplanationScreen> {
                               context,
                               badge: 'BASES PARA ENTENDERLOS',
                               title: 'Partes y propiedades de un algoritmo',
-                              subtitle:
-                                  'Antes de programar, conviene identificar qué recibe, qué transforma y qué resultado debe entregar.',
+                              subtitle: 'Antes de programar, conviene identificar qué recibe, qué transforma y qué resultado debe entregar.',
                             ),
                             const SizedBox(height: 28),
                             _buildAlgorithmBasicsSection(
@@ -101,9 +99,9 @@ class _WelcomeExplanationScreenState extends State<WelcomeExplanationScreen> {
                             _buildSectionHeader(
                               context,
                               badge: 'APOYO MULTIMEDIA',
-                              title: 'Videos para profundizar antes de programar',
-                              subtitle:
-                                  'Recursos cortos para reforzar el razonamiento paso a paso y ver cómo se explican los algoritmos con ejemplos.',
+                              title:
+                                  'Videos para profundizar antes de programar',
+                              subtitle: 'Recursos cortos para reforzar el razonamiento paso a paso y ver cómo se explican los algoritmos con ejemplos.',
                             ),
                             const SizedBox(height: 28),
                             _buildPracticeVideosSection(context, screenWidth),
@@ -129,9 +127,9 @@ class _WelcomeExplanationScreenState extends State<WelcomeExplanationScreen> {
                             _buildSectionHeader(
                               context,
                               badge: 'RECURSOS AUDIOVISUALES',
-                              title: 'Videos para reforzar la idea de algoritmo',
-                              subtitle:
-                                  'Dos explicaciones introductorias para conectar la teoría con ejemplos y procesos paso a paso.',
+                              title:
+                                  'Videos para reforzar la idea de algoritmo',
+                              subtitle: 'Dos explicaciones introductorias para conectar la teoría con ejemplos y procesos paso a paso.',
                             ),
                             const SizedBox(height: 28),
                             _buildVideosSection(context, screenWidth),
@@ -145,8 +143,7 @@ class _WelcomeExplanationScreenState extends State<WelcomeExplanationScreen> {
                                 context,
                                 badge: 'APLICACIONES EN EL MUNDO REAL',
                                 title: '3 Ejemplos Prácticos de Algoritmos',
-                                subtitle:
-                                    'Descubre cómo la lógica algorítmica resuelve problemas cotidianos a gran escala.',
+                                subtitle: 'Descubre cómo la lógica algorítmica resuelve problemas cotidianos a gran escala.',
                               ),
                             ),
                             const SizedBox(height: 32),
@@ -430,22 +427,19 @@ class _WelcomeExplanationScreenState extends State<WelcomeExplanationScreen> {
       {
         'icon': Icons.input_rounded,
         'title': 'Entrada',
-        'text':
-            'Los datos iniciales del problema: números, nombres, nodos, costos, tiempos o cualquier información que el algoritmo necesita.',
+        'text': 'Los datos iniciales del problema: números, nombres, nodos, costos, tiempos o cualquier información que el algoritmo necesita.',
         'color': const Color(0xFF00BFA5),
       },
       {
         'icon': Icons.settings_suggest_rounded,
         'title': 'Proceso',
-        'text':
-            'La secuencia de pasos: comparar, ordenar, calcular, validar condiciones y transformar los datos con una lógica definida.',
+        'text': 'La secuencia de pasos: comparar, ordenar, calcular, validar condiciones y transformar los datos con una lógica definida.',
         'color': const Color(0xFF7C4DFF),
       },
       {
         'icon': Icons.output_rounded,
         'title': 'Salida',
-        'text':
-            'El resultado final: una ruta, una asignación, una lista ordenada, una decisión o una respuesta que resuelve el problema.',
+        'text': 'El resultado final: una ruta, una asignación, una lista ordenada, una decisión o una respuesta que resuelve el problema.',
         'color': const Color(0xFFFF5252),
       },
     ];
@@ -588,9 +582,7 @@ class _WelcomeExplanationScreenState extends State<WelcomeExplanationScreen> {
       decoration: BoxDecoration(
         color: colorScheme.primary.withValues(alpha: 0.07),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: colorScheme.primary.withValues(alpha: 0.16),
-        ),
+        border: Border.all(color: colorScheme.primary.withValues(alpha: 0.16)),
       ),
       child: LayoutBuilder(
         builder: (context, constraints) {
@@ -598,8 +590,8 @@ class _WelcomeExplanationScreenState extends State<WelcomeExplanationScreen> {
           final crossAxisCount = width >= 900
               ? 4
               : width >= 560
-                  ? 2
-                  : 1;
+              ? 2
+              : 1;
 
           return GridView.builder(
             shrinkWrap: true,
@@ -712,8 +704,7 @@ class _WelcomeExplanationScreenState extends State<WelcomeExplanationScreen> {
           context,
           badge: 'DIFERENCIA IMPORTANTE',
           title: 'Algoritmo no es lo mismo que programa',
-          subtitle:
-              'Primero se diseña la solución; después se convierte en código ejecutable.',
+          subtitle: 'Primero se diseña la solución; después se convierte en código ejecutable.',
         ),
         const SizedBox(height: 28),
         if (width < 760)
@@ -737,10 +728,7 @@ class _WelcomeExplanationScreenState extends State<WelcomeExplanationScreen> {
     );
   }
 
-  Widget _buildComparisonCard(
-    BuildContext context,
-    Map<String, Object> data,
-  ) {
+  Widget _buildComparisonCard(BuildContext context, Map<String, Object> data) {
     final colorScheme = Theme.of(context).colorScheme;
     final accent = data['accent'] as Color;
     final items = data['items'] as List<String>;
@@ -750,9 +738,7 @@ class _WelcomeExplanationScreenState extends State<WelcomeExplanationScreen> {
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(
-          color: accent.withValues(alpha: 0.3),
-        ),
+        border: Border.all(color: accent.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -989,28 +975,21 @@ class _WelcomeExplanationScreenState extends State<WelcomeExplanationScreen> {
     const videos = [
       VideoResourceCard(
         title: 'Introducción visual a los algoritmos',
-        description:
-            'Un recurso de apoyo para entender cómo una serie de instrucciones ordenadas permite resolver problemas de forma clara y repetible.',
+        description: 'Un recurso de apoyo para entender cómo una serie de instrucciones ordenadas permite resolver problemas de forma clara y repetible.',
         videoUrl: 'https://www.youtube.com/watch?v=U3CGMyjzlvM',
         durationOrAuthor: 'Video introductorio',
       ),
       VideoResourceCard(
         title: 'Algoritmos explicados paso a paso',
-        description:
-            'Material complementario para repasar conceptos básicos, ejemplos y la lógica detrás de la resolución estructurada de problemas.',
-        videoUrl:
-            'https://www.youtube.com/watch?v=FS9u9cIGf3o&list=PLYYyYpMvAtD1Gu8o1734Ld22LTDxlfKfO',
+        description: 'Material complementario para repasar conceptos básicos, ejemplos y la lógica detrás de la resolución estructurada de problemas.',
+        videoUrl: 'https://www.youtube.com/watch?v=FS9u9cIGf3o&list=PLYYyYpMvAtD1Gu8o1734Ld22LTDxlfKfO',
         durationOrAuthor: 'Lista de reproducción',
       ),
     ];
 
     if (width < 760) {
       return Column(
-        children: [
-          videos[0],
-          const SizedBox(height: 20),
-          videos[1],
-        ],
+        children: [videos[0], const SizedBox(height: 20), videos[1]],
       );
     }
 
@@ -1028,15 +1007,13 @@ class _WelcomeExplanationScreenState extends State<WelcomeExplanationScreen> {
     const videos = [
       VideoResourceCard(
         title: 'Razonamiento algorítmico con ejemplos',
-        description:
-            'Un complemento para ver cómo se organiza una solución desde una idea inicial hasta una secuencia clara de pasos.',
+        description: 'Un complemento para ver cómo se organiza una solución desde una idea inicial hasta una secuencia clara de pasos.',
         videoUrl: 'https://www.youtube.com/watch?v=jRlxZCU4zo8',
         durationOrAuthor: 'Video de apoyo',
       ),
       VideoResourceCard(
         title: 'Algoritmos explicados de forma práctica',
-        description:
-            'Refuerza la relación entre problema, datos, proceso y resultado mediante una explicación visual orientada a principiantes.',
+        description: 'Refuerza la relación entre problema, datos, proceso y resultado mediante una explicación visual orientada a principiantes.',
         videoUrl: 'https://www.youtube.com/watch?v=Tu9OQSff-gw&t=4s',
         durationOrAuthor: 'Ejemplo práctico',
       ),
@@ -1044,11 +1021,7 @@ class _WelcomeExplanationScreenState extends State<WelcomeExplanationScreen> {
 
     if (width < 760) {
       return Column(
-        children: [
-          videos[0],
-          const SizedBox(height: 20),
-          videos[1],
-        ],
+        children: [videos[0], const SizedBox(height: 20), videos[1]],
       );
     }
 
@@ -1096,10 +1069,7 @@ class _WelcomeExplanationScreenState extends State<WelcomeExplanationScreen> {
         const SizedBox(height: 8),
         Text(
           subtitle,
-          style: TextStyle(
-            fontSize: 16,
-            color: colorScheme.onSurfaceVariant,
-          ),
+          style: TextStyle(fontSize: 16, color: colorScheme.onSurfaceVariant),
         ),
       ],
     );
@@ -1121,10 +1091,8 @@ class _WelcomeExplanationScreenState extends State<WelcomeExplanationScreen> {
         'subtitle': 'Google Maps, Waze, Logística',
         'icon': Icons.map_rounded,
         'color': const Color(0xFF00BFA5),
-        'image':
-            'https://images.unsplash.com/photo-1524661135-423995f22d0b?w=600&auto=format&fit=crop',
-        'description':
-            'Al solicitar una ruta en tu teléfono, un algoritmo analiza miles de calles, intersecciones y condiciones de tráfico en vivo para calcular en milisegundos el trayecto óptimo hasta tu destino.',
+        'image': 'https://images.unsplash.com/photo-1524661135-423995f22d0b?w=600&auto=format&fit=crop',
+        'description': 'Al solicitar una ruta en tu teléfono, un algoritmo analiza miles de calles, intersecciones y condiciones de tráfico en vivo para calcular en milisegundos el trayecto óptimo hasta tu destino.',
       },
       {
         'number': '02',
@@ -1132,10 +1100,8 @@ class _WelcomeExplanationScreenState extends State<WelcomeExplanationScreen> {
         'subtitle': 'Google, Spotify, Redes Sociales',
         'icon': Icons.manage_search_rounded,
         'color': const Color(0xFF7C4DFF),
-        'image':
-            'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?w=600&auto=format&fit=crop',
-        'description':
-            'Cuando buscas información o escuchas música, los algoritmos examinan e indexan millones de datos para mostrarte de inmediato los resultados más relevantes según tu contexto e historial.',
+        'image': 'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?w=600&auto=format&fit=crop',
+        'description': 'Cuando buscas información o escuchas música, los algoritmos examinan e indexan millones de datos para mostrarte de inmediato los resultados más relevantes según tu contexto e historial.',
       },
       {
         'number': '03',
@@ -1143,10 +1109,8 @@ class _WelcomeExplanationScreenState extends State<WelcomeExplanationScreen> {
         'subtitle': 'Filtros, Precios, Catálogos',
         'icon': Icons.sort_rounded,
         'color': const Color(0xFFFF5252),
-        'image':
-            'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&auto=format&fit=crop',
-        'description':
-            'Desde ordenar contactos o correos electrónicos por fecha hasta estructurar inventarios de tiendas electrónicas, los algoritmos de ordenamiento permiten priorizar datos velozmente.',
+        'image': 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&auto=format&fit=crop',
+        'description': 'Desde ordenar contactos o correos electrónicos por fecha hasta estructurar inventarios de tiendas electrónicas, los algoritmos de ordenamiento permiten priorizar datos velozmente.',
       },
     ];
 
@@ -1180,10 +1144,7 @@ class _WelcomeExplanationScreenState extends State<WelcomeExplanationScreen> {
   }
 
   // --- Example Web Card ---
-  Widget _buildExampleWebCard(
-    BuildContext context,
-    Map<String, dynamic> data,
-  ) {
+  Widget _buildExampleWebCard(BuildContext context, Map<String, dynamic> data) {
     final colorScheme = Theme.of(context).colorScheme;
     final accentColor = data['color'] as Color;
 
@@ -1311,11 +1272,7 @@ class _WelcomeExplanationScreenState extends State<WelcomeExplanationScreen> {
       ),
       child: Column(
         children: [
-          const Icon(
-            Icons.hub_outlined,
-            size: 48,
-            color: Colors.white,
-          ),
+          const Icon(Icons.hub_outlined, size: 48, color: Colors.white),
           const SizedBox(height: 16),
           const Text(
             '¿Listo para poner a prueba estos conceptos?',
@@ -1330,10 +1287,7 @@ class _WelcomeExplanationScreenState extends State<WelcomeExplanationScreen> {
           const Text(
             'Accede a la biblioteca interactiva para crear, editar y visualizar grafos en tiempo real.',
             textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 15,
-              color: Colors.white70,
-            ),
+            style: TextStyle(fontSize: 15, color: Colors.white70),
           ),
           const SizedBox(height: 24),
           ElevatedButton.icon(
@@ -1341,10 +1295,7 @@ class _WelcomeExplanationScreenState extends State<WelcomeExplanationScreen> {
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.white,
               foregroundColor: colorScheme.primary,
-              padding: const EdgeInsets.symmetric(
-                horizontal: 32,
-                vertical: 18,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 18),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(14),
               ),
@@ -1353,10 +1304,7 @@ class _WelcomeExplanationScreenState extends State<WelcomeExplanationScreen> {
             icon: const Icon(Icons.arrow_forward_rounded, size: 22),
             label: const Text(
               'Ir a la Aplicación Principal',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
           ),
         ],
