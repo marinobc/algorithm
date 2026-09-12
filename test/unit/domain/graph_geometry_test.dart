@@ -30,8 +30,15 @@ void main() {
       // Continuous angle (not snapped to 30 degrees, e.g. 15 degrees)
       final targetX = 100.0 * 0.9659; // cos(15 deg)
       final targetY = 100.0 * 0.2588; // sin(15 deg)
-      final bestCustom = GraphGeometry.selectBestConnectionPoint(node, targetX, targetY);
-      expect(bestCustom.angleRadians, closeTo(0.26179, 0.005)); // ~15 deg in radians
+      final bestCustom = GraphGeometry.selectBestConnectionPoint(
+        node,
+        targetX,
+        targetY,
+      );
+      expect(
+        bestCustom.angleRadians,
+        closeTo(0.26179, 0.005),
+      ); // ~15 deg in radians
     });
 
     test('getPerimeterPoint anchors to outer edge of wide capsule node with text', () {
@@ -52,34 +59,40 @@ void main() {
       expect(edgePointRight.y, closeTo(0.0, 0.01));
     });
 
-    test('isValidNodePosition allows node placement anywhere within world bounds', () {
-      const existing = [Nodo(id: 'n1', colorValue: 0xFF2196F3, x: 0, y: 0)];
+    test(
+      'isValidNodePosition allows node placement anywhere within world bounds',
+      () {
+        const existing = [Nodo(id: 'n1', colorValue: 0xFF2196F3, x: 0, y: 0)];
 
-      // Overlapping or close position is valid (no jump restriction)
-      expect(
-        GraphGeometry.isValidNodePosition(
-          candidateX: 10.0,
-          candidateY: 0.0,
-          candidateId: 'n2',
-          existingNodes: existing,
-        ),
-        isTrue,
-      );
-    });
+        // Overlapping or close position is valid (no jump restriction)
+        expect(
+          GraphGeometry.isValidNodePosition(
+            candidateX: 10.0,
+            candidateY: 0.0,
+            candidateId: 'n2',
+            existingNodes: existing,
+          ),
+          isTrue,
+        );
+      },
+    );
 
-    test('calculateBezierCurve for self-loop produces loop curve above node', () {
-      const node = Nodo(id: 'n1', colorValue: 0xFF2196F3, x: 0, y: 0);
-      final curve = GraphGeometry.calculateBezierCurve(
-        origen: node,
-        destino: node,
-      );
+    test(
+      'calculateBezierCurve for self-loop produces loop curve above node',
+      () {
+        const node = Nodo(id: 'n1', colorValue: 0xFF2196F3, x: 0, y: 0);
+        final curve = GraphGeometry.calculateBezierCurve(
+          origen: node,
+          destino: node,
+        );
 
-      expect(curve.start, isNotNull);
-      expect(curve.end, isNotNull);
-      // Control points loop above node (negative Y)
-      expect(curve.control1.y, lessThan(0));
-      expect(curve.control2.y, lessThan(0));
-    });
+        expect(curve.start, isNotNull);
+        expect(curve.end, isNotNull);
+        // Control points loop above node (negative Y)
+        expect(curve.control1.y, lessThan(0));
+        expect(curve.control2.y, lessThan(0));
+      },
+    );
 
     test('getNearestValidPosition clamps within world grid bounds without pushing nodes away', () {
       const existing = [
