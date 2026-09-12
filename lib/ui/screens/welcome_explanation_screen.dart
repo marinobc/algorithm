@@ -84,6 +84,50 @@ class _WelcomeExplanationScreenState extends State<WelcomeExplanationScreen> {
 
                             _buildSectionHeader(
                               context,
+                              badge: 'BASES PARA ENTENDERLOS',
+                              title: 'Partes y propiedades de un algoritmo',
+                              subtitle:
+                                  'Antes de programar, conviene identificar qué recibe, qué transforma y qué resultado debe entregar.',
+                            ),
+                            const SizedBox(height: 28),
+                            _buildAlgorithmBasicsSection(
+                              context,
+                              colorScheme,
+                              screenWidth,
+                            ),
+
+                            const SizedBox(height: 56),
+
+                            _buildSectionHeader(
+                              context,
+                              badge: 'APOYO MULTIMEDIA',
+                              title: 'Videos para profundizar antes de programar',
+                              subtitle:
+                                  'Recursos cortos para reforzar el razonamiento paso a paso y ver cómo se explican los algoritmos con ejemplos.',
+                            ),
+                            const SizedBox(height: 28),
+                            _buildPracticeVideosSection(context, screenWidth),
+
+                            const SizedBox(height: 56),
+
+                            _buildAlgorithmVsProgramSection(
+                              context,
+                              colorScheme,
+                              screenWidth,
+                            ),
+
+                            const SizedBox(height: 56),
+
+                            _buildStepByStepSection(
+                              context,
+                              colorScheme,
+                              screenWidth,
+                            ),
+
+                            const SizedBox(height: 56),
+
+                            _buildSectionHeader(
+                              context,
                               badge: 'RECURSOS AUDIOVISUALES',
                               title: 'Videos para reforzar la idea de algoritmo',
                               subtitle:
@@ -377,6 +421,570 @@ class _WelcomeExplanationScreenState extends State<WelcomeExplanationScreen> {
     );
   }
 
+  Widget _buildAlgorithmBasicsSection(
+    BuildContext context,
+    ColorScheme colorScheme,
+    double width,
+  ) {
+    final parts = [
+      {
+        'icon': Icons.input_rounded,
+        'title': 'Entrada',
+        'text':
+            'Los datos iniciales del problema: números, nombres, nodos, costos, tiempos o cualquier información que el algoritmo necesita.',
+        'color': const Color(0xFF00BFA5),
+      },
+      {
+        'icon': Icons.settings_suggest_rounded,
+        'title': 'Proceso',
+        'text':
+            'La secuencia de pasos: comparar, ordenar, calcular, validar condiciones y transformar los datos con una lógica definida.',
+        'color': const Color(0xFF7C4DFF),
+      },
+      {
+        'icon': Icons.output_rounded,
+        'title': 'Salida',
+        'text':
+            'El resultado final: una ruta, una asignación, una lista ordenada, una decisión o una respuesta que resuelve el problema.',
+        'color': const Color(0xFFFF5252),
+      },
+    ];
+
+    final properties = [
+      {
+        'icon': Icons.checklist_rounded,
+        'title': 'Preciso',
+        'text': 'Cada instrucción debe entenderse sin ambigüedad.',
+      },
+      {
+        'icon': Icons.flag_rounded,
+        'title': 'Finito',
+        'text': 'Debe terminar después de una cantidad limitada de pasos.',
+      },
+      {
+        'icon': Icons.route_rounded,
+        'title': 'Ordenado',
+        'text': 'Los pasos siguen una secuencia lógica.',
+      },
+      {
+        'icon': Icons.speed_rounded,
+        'title': 'Eficiente',
+        'text': 'Busca ahorrar tiempo, memoria o esfuerzo.',
+      },
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildResponsiveInfoGrid(
+          context,
+          width,
+          parts
+              .map(
+                (item) => _buildInfoCard(
+                  context,
+                  icon: item['icon'] as IconData,
+                  title: item['title'] as String,
+                  text: item['text'] as String,
+                  accentColor: item['color'] as Color,
+                ),
+              )
+              .toList(),
+        ),
+        const SizedBox(height: 24),
+        _buildPropertiesStrip(context, colorScheme, properties),
+      ],
+    );
+  }
+
+  Widget _buildResponsiveInfoGrid(
+    BuildContext context,
+    double width,
+    List<Widget> children,
+  ) {
+    if (width < 760) {
+      return Column(
+        children: [
+          for (var i = 0; i < children.length; i++) ...[
+            children[i],
+            if (i != children.length - 1) const SizedBox(height: 16),
+          ],
+        ],
+      );
+    }
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        for (var i = 0; i < children.length; i++) ...[
+          Expanded(child: children[i]),
+          if (i != children.length - 1) const SizedBox(width: 18),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildInfoCard(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required String text,
+    required Color accentColor,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.all(22),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.45),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 46,
+            height: 46,
+            decoration: BoxDecoration(
+              color: accentColor.withValues(alpha: 0.14),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Icon(icon, color: accentColor, size: 25),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+              color: colorScheme.onSurface,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            text,
+            style: TextStyle(
+              fontSize: 14,
+              height: 1.45,
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPropertiesStrip(
+    BuildContext context,
+    ColorScheme colorScheme,
+    List<Map<String, Object>> properties,
+  ) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(22),
+      decoration: BoxDecoration(
+        color: colorScheme.primary.withValues(alpha: 0.07),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: colorScheme.primary.withValues(alpha: 0.16),
+        ),
+      ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final width = constraints.maxWidth;
+          final crossAxisCount = width >= 900
+              ? 4
+              : width >= 560
+                  ? 2
+                  : 1;
+
+          return GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: crossAxisCount,
+              crossAxisSpacing: 14,
+              mainAxisSpacing: 14,
+              mainAxisExtent: 104,
+            ),
+            itemCount: properties.length,
+            itemBuilder: (context, index) {
+              final item = properties[index];
+              return _buildPropertyPill(
+                context,
+                icon: item['icon'] as IconData,
+                title: item['title'] as String,
+                text: item['text'] as String,
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildPropertyPill(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required String text,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.35),
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: colorScheme.primary, size: 22),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                    color: colorScheme.onSurface,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  text,
+                  style: TextStyle(
+                    fontSize: 12,
+                    height: 1.35,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAlgorithmVsProgramSection(
+    BuildContext context,
+    ColorScheme colorScheme,
+    double width,
+  ) {
+    final comparison = [
+      {
+        'title': 'Algoritmo',
+        'icon': Icons.schema_rounded,
+        'accent': const Color(0xFF00BFA5),
+        'items': [
+          'Describe la estrategia para resolver un problema.',
+          'Puede escribirse en lenguaje natural, pseudocódigo o diagramas.',
+          'Se enfoca en la lógica antes de pensar en un lenguaje específico.',
+        ],
+      },
+      {
+        'title': 'Programa',
+        'icon': Icons.code_rounded,
+        'accent': const Color(0xFF7C4DFF),
+        'items': [
+          'Implementa el algoritmo en un lenguaje de programación.',
+          'Debe respetar sintaxis, librerías, plataforma y entorno.',
+          'Convierte la lógica en algo ejecutable por una computadora.',
+        ],
+      },
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionHeader(
+          context,
+          badge: 'DIFERENCIA IMPORTANTE',
+          title: 'Algoritmo no es lo mismo que programa',
+          subtitle:
+              'Primero se diseña la solución; después se convierte en código ejecutable.',
+        ),
+        const SizedBox(height: 28),
+        if (width < 760)
+          Column(
+            children: [
+              _buildComparisonCard(context, comparison[0]),
+              const SizedBox(height: 18),
+              _buildComparisonCard(context, comparison[1]),
+            ],
+          )
+        else
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(child: _buildComparisonCard(context, comparison[0])),
+              const SizedBox(width: 24),
+              Expanded(child: _buildComparisonCard(context, comparison[1])),
+            ],
+          ),
+      ],
+    );
+  }
+
+  Widget _buildComparisonCard(
+    BuildContext context,
+    Map<String, Object> data,
+  ) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final accent = data['accent'] as Color;
+    final items = data['items'] as List<String>;
+
+    return Container(
+      padding: const EdgeInsets.all(26),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(
+          color: accent.withValues(alpha: 0.3),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: accent.withValues(alpha: 0.14),
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                child: Icon(data['icon'] as IconData, color: accent),
+              ),
+              const SizedBox(width: 14),
+              Text(
+                data['title'] as String,
+                style: TextStyle(
+                  fontSize: 21,
+                  fontWeight: FontWeight.w900,
+                  color: colorScheme.onSurface,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          ...items.map(
+            (item) => Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(Icons.check_circle_rounded, color: accent, size: 18),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      item,
+                      style: TextStyle(
+                        fontSize: 14,
+                        height: 1.45,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStepByStepSection(
+    BuildContext context,
+    ColorScheme colorScheme,
+    double width,
+  ) {
+    final steps = [
+      {
+        'number': '1',
+        'title': 'Definir el problema',
+        'text': '¿Qué necesito resolver y cuál sería una respuesta correcta?',
+      },
+      {
+        'number': '2',
+        'title': 'Identificar los datos',
+        'text': 'Reconocer entradas, restricciones y casos especiales.',
+      },
+      {
+        'number': '3',
+        'title': 'Diseñar la secuencia',
+        'text': 'Ordenar las acciones, condiciones y repeticiones necesarias.',
+      },
+      {
+        'number': '4',
+        'title': 'Probar y mejorar',
+        'text': 'Verificar resultados y optimizar recursos si hace falta.',
+      },
+    ];
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(30),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.45),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: colorScheme.tertiary.withValues(alpha: 0.14),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Icon(
+                  Icons.timeline_rounded,
+                  color: colorScheme.tertiary,
+                  size: 30,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'EJEMPLO GUIADO',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 1.2,
+                        color: colorScheme.tertiary,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Cómo pensar un algoritmo antes de programarlo',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w900,
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 26),
+          _buildStepFlow(context, steps, width),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStepFlow(
+    BuildContext context,
+    List<Map<String, String>> steps,
+    double width,
+  ) {
+    if (width < 820) {
+      return Column(
+        children: [
+          for (var i = 0; i < steps.length; i++) ...[
+            _buildStepTile(context, steps[i]),
+            if (i != steps.length - 1) const SizedBox(height: 14),
+          ],
+        ],
+      );
+    }
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        for (var i = 0; i < steps.length; i++) ...[
+          Expanded(child: _buildStepTile(context, steps[i])),
+          if (i != steps.length - 1)
+            Padding(
+              padding: const EdgeInsets.only(top: 42),
+              child: Icon(
+                Icons.arrow_forward_rounded,
+                color: Theme.of(context).colorScheme.outline,
+              ),
+            ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildStepTile(BuildContext context, Map<String, String> step) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.35),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 34,
+            height: 34,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: colorScheme.tertiary,
+              shape: BoxShape.circle,
+            ),
+            child: Text(
+              step['number']!,
+              style: TextStyle(
+                color: colorScheme.onTertiary,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ),
+          const SizedBox(height: 14),
+          Text(
+            step['title']!,
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w800,
+              color: colorScheme.onSurface,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            step['text']!,
+            style: TextStyle(
+              fontSize: 13,
+              height: 1.4,
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildVideosSection(BuildContext context, double width) {
     const videos = [
       VideoResourceCard(
@@ -393,6 +1001,44 @@ class _WelcomeExplanationScreenState extends State<WelcomeExplanationScreen> {
         videoUrl:
             'https://www.youtube.com/watch?v=FS9u9cIGf3o&list=PLYYyYpMvAtD1Gu8o1734Ld22LTDxlfKfO',
         durationOrAuthor: 'Lista de reproducción',
+      ),
+    ];
+
+    if (width < 760) {
+      return Column(
+        children: [
+          videos[0],
+          const SizedBox(height: 20),
+          videos[1],
+        ],
+      );
+    }
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(child: videos[0]),
+        const SizedBox(width: 24),
+        Expanded(child: videos[1]),
+      ],
+    );
+  }
+
+  Widget _buildPracticeVideosSection(BuildContext context, double width) {
+    const videos = [
+      VideoResourceCard(
+        title: 'Razonamiento algorítmico con ejemplos',
+        description:
+            'Un complemento para ver cómo se organiza una solución desde una idea inicial hasta una secuencia clara de pasos.',
+        videoUrl: 'https://www.youtube.com/watch?v=jRlxZCU4zo8',
+        durationOrAuthor: 'Video de apoyo',
+      ),
+      VideoResourceCard(
+        title: 'Algoritmos explicados de forma práctica',
+        description:
+            'Refuerza la relación entre problema, datos, proceso y resultado mediante una explicación visual orientada a principiantes.',
+        videoUrl: 'https://www.youtube.com/watch?v=Tu9OQSff-gw&t=4s',
+        durationOrAuthor: 'Ejemplo práctico',
       ),
     ];
 
