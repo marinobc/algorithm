@@ -472,7 +472,7 @@ class _WelcomeExplanationScreenState extends State<WelcomeExplanationScreen> {
         crossAxisCount: crossAxisCount,
         crossAxisSpacing: 20,
         mainAxisSpacing: 20,
-        mainAxisExtent: 420,
+        mainAxisExtent: 455,
       ),
       itemCount: examples.length,
       itemBuilder: (context, index) {
