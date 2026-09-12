@@ -115,6 +115,7 @@ class CustomAttributesSection extends StatelessWidget {
   }) {
     return TextField(
       controller: controller,
+      onTap: () => controller.clear(),
       style: TextStyle(color: colorScheme.onSurface, fontSize: 14),
       onChanged: onChanged,
       keyboardType: isNumeric
