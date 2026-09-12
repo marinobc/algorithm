@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../theme/app_theme.dart';
 import '../widgets/video_resource_card.dart';
 import '../widgets/web_explanation_navbar.dart';
@@ -24,9 +25,7 @@ class JohnsonAlgoScreen extends StatelessWidget {
       backgroundColor: palette.canvasBg,
       body: Column(
         children: [
-          const WebExplanationNavbar(
-            activePage: ExplanationWebPage.johnson,
-          ),
+          const WebExplanationNavbar(activePage: ExplanationWebPage.johnson),
           Expanded(
             child: SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
@@ -51,19 +50,49 @@ class JohnsonAlgoScreen extends StatelessWidget {
                             _buildConceptCard(context, colorScheme),
                             const SizedBox(height: 36),
 
+                            _buildLearningSection(
+                              context,
+                              colorScheme,
+                              '¿Qué problema resuelve?',
+                              'Johnson ayuda a encontrar la duración mínima de un proyecto cuando sus actividades dependen unas de otras. Permite saber qué tareas no pueden retrasarse sin mover la fecha final.',
+                              Icons.flag_outlined,
+                            ),
+                            const SizedBox(height: 36),
+
+                            _buildProjectElementsSection(context, colorScheme),
+                            const SizedBox(height: 36),
+
                             // Video Tutorial Card
                             const VideoResourceCard(
-                              title:
-                                  '🎥 Video Recomendado: Cálculo de Ruta Crítica y Redes',
-                              description:
-                                  'Aprende a realizar la pasada de ida (máximos) y de regreso (mínimos) con un ejercicio resuelto paso a paso.',
-                              videoUrl: 'https://www.youtube.com/watch?v=YfFRfyLxY1Y',
+                              title: '🎥 Video Recomendado: Cálculo de Ruta Crítica y Redes',
+                              description: 'Aprende a realizar la pasada de ida (máximos) y de regreso (mínimos) con un ejercicio resuelto paso a paso.',
+                              videoUrl:
+                                  'https://www.youtube.com/watch?v=YfFRfyLxY1Y',
                               durationOrAuthor: 'Explicación en Video',
+                            ),
+                            const SizedBox(height: 48),
+
+                            const VideoResourceCard(
+                              title:
+                                  'Video 2: introducción al método de Johnson',
+                              description: 'Relaciona las actividades, sus dependencias y los tiempos necesarios para completar un proyecto.',
+                              videoUrl:
+                                  'https://www.youtube.com/watch?v=0YBxkeS0qFM',
+                              durationOrAuthor: 'Introducción guiada',
                             ),
                             const SizedBox(height: 48),
 
                             // Step-by-Step Algorithm Workflow (Forward & Backward)
                             _buildWorkflowSection(context, colorScheme, width),
+                            const SizedBox(height: 48),
+
+                            const VideoResourceCard(
+                              title: 'Video 3: cálculo de tiempos y holguras',
+                              description: 'Refuerza la pasada hacia adelante y hacia atrás con una explicación visual.',
+                              videoUrl:
+                                  'https://www.youtube.com/watch?v=fjrZecb6e8A',
+                              durationOrAuthor: 'Procedimiento paso a paso',
+                            ),
                             const SizedBox(height: 48),
 
                             // Human Everyday Example Card
@@ -72,6 +101,21 @@ class JohnsonAlgoScreen extends StatelessWidget {
 
                             // Critical Path Explanation
                             _buildCriticalPathSection(context, colorScheme),
+                            const SizedBox(height: 56),
+
+                            _buildExampleAndComplexitySection(
+                              context,
+                              colorScheme,
+                            ),
+                            const SizedBox(height: 48),
+
+                            const VideoResourceCard(
+                              title: 'Video 4: ejemplo completo del algoritmo',
+                              description: 'Cierra la explicación con un ejercicio aplicado para interpretar la ruta crítica.',
+                              videoUrl:
+                                  'https://www.youtube.com/watch?v=ZJJhLHeQXoM',
+                              durationOrAuthor: 'Ejemplo aplicado',
+                            ),
                             const SizedBox(height: 56),
 
                             // CTA Card
@@ -277,15 +321,16 @@ class JohnsonAlgoScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: colorScheme.secondaryContainer.withValues(alpha: 0.25),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: colorScheme.secondary.withValues(alpha: 0.3),
-        ),
+        border: Border.all(color: colorScheme.secondary.withValues(alpha: 0.3)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.foundation_rounded,
-              color: Color(0xFF00BFA5), size: 36),
+          const Icon(
+            Icons.foundation_rounded,
+            color: Color(0xFF00BFA5),
+            size: 36,
+          ),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
@@ -316,6 +361,82 @@ class JohnsonAlgoScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildLearningSection(
+    BuildContext context,
+    ColorScheme colorScheme,
+    String title,
+    String description,
+    IconData icon,
+  ) {
+    return Container(
+      padding: const EdgeInsets.all(26),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.4),
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: const Color(0xFF00BFA5), size: 30),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 21,
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.onSurface,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  description,
+                  style: TextStyle(
+                    fontSize: 15,
+                    height: 1.5,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProjectElementsSection(
+    BuildContext context,
+    ColorScheme colorScheme,
+  ) {
+    return _buildLearningSection(
+      context,
+      colorScheme,
+      'Cómo se representa un proyecto',
+      'Cada nodo representa un evento o hito y cada conexión representa una actividad con duración. Las flechas muestran el orden obligatorio: una tarea solo comienza cuando sus predecesoras han terminado.',
+      Icons.account_tree_outlined,
+    );
+  }
+
+  Widget _buildExampleAndComplexitySection(
+    BuildContext context,
+    ColorScheme colorScheme,
+  ) {
+    return _buildLearningSection(
+      context,
+      colorScheme,
+      'Ejemplo, implementación y complejidad',
+      'En una obra, preparar el terreno, comprar materiales y construir pueden formar caminos distintos. Johnson recorre la red y conserva los máximos de llegada. Con una lista de actividades y sus dependencias, el cálculo se realiza en tiempo lineal O(V + E), donde V son eventos y E conexiones.',
+      Icons.code_rounded,
+    );
+  }
+
   Widget _buildWorkflowSection(
     BuildContext context,
     ColorScheme colorScheme,
@@ -326,15 +447,13 @@ class JohnsonAlgoScreen extends StatelessWidget {
         'num': '1',
         'title': 'Pasada de Ida (De Ida)',
         'subtitle': 'Sumar y elegir el MÁXIMO',
-        'desc':
-            'Avanza sumando la duración de cada tarea. En los nodos donde convergen varias actividades antecedoras, escoge siempre el valor máximo.',
+        'desc': 'Avanza sumando la duración de cada tarea. En los nodos donde convergen varias actividades antecedoras, escoge siempre el valor máximo.',
       },
       {
         'num': '2',
         'title': 'Pasada de Regreso (De Regreso)',
         'subtitle': 'Restar y elegir el MÍNIMO',
-        'desc':
-            'Retrocede restando las duraciones. En los nodos donde parten o se separan varias actividades hacia adelante, escoge siempre el valor mínimo.',
+        'desc': 'Retrocede restando las duraciones. En los nodos donde parten o se separan varias actividades hacia adelante, escoge siempre el valor mínimo.',
       },
     ];
 
@@ -466,8 +585,11 @@ class JohnsonAlgoScreen extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Icon(Icons.explore_outlined,
-                  color: Color(0xFF00BFA5), size: 28),
+              const Icon(
+                Icons.explore_outlined,
+                color: Color(0xFF00BFA5),
+                size: 28,
+              ),
               const SizedBox(width: 12),
               Text(
                 'Holguras y Ruta Crítica',
