@@ -10,7 +10,7 @@ import 'ui/theme/app_theme.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   try {
-    await dotenv.load(fileName: ".env");
+    await dotenv.load(fileName: ".env", isOptional: true);
   } catch (_) {
     // If .env is missing or unreadable, safely continue with fallback
   }

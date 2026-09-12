@@ -37,7 +37,7 @@ class _AIChatDialogState extends ConsumerState<AIChatDialog> {
   void initState() {
     super.initState();
     _apiKey =
-        dotenv.env['GEMINI_API_KEY'] ??
+        (dotenv.isInitialized ? dotenv.env['GEMINI_API_KEY'] : null) ??
         (const String.fromEnvironment('GEMINI_API_KEY').isNotEmpty
             ? const String.fromEnvironment('GEMINI_API_KEY')
             : null);
