@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../widgets/video_resource_card.dart';
 import '../widgets/web_explanation_navbar.dart';
 import 'home_library_screen.dart';
 
@@ -78,6 +79,18 @@ class _WelcomeExplanationScreenState extends State<WelcomeExplanationScreen> {
                           children: [
                             // Explanation Web Card / Banner
                             _buildExplanationWebSection(context, colorScheme),
+
+                            const SizedBox(height: 56),
+
+                            _buildSectionHeader(
+                              context,
+                              badge: 'RECURSOS AUDIOVISUALES',
+                              title: 'Videos para reforzar la idea de algoritmo',
+                              subtitle:
+                                  'Dos explicaciones introductorias para conectar la teoría con ejemplos y procesos paso a paso.',
+                            ),
+                            const SizedBox(height: 28),
+                            _buildVideosSection(context, screenWidth),
 
                             const SizedBox(height: 56),
 
@@ -361,6 +374,45 @@ class _WelcomeExplanationScreenState extends State<WelcomeExplanationScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildVideosSection(BuildContext context, double width) {
+    const videos = [
+      VideoResourceCard(
+        title: 'Introducción visual a los algoritmos',
+        description:
+            'Un recurso de apoyo para entender cómo una serie de instrucciones ordenadas permite resolver problemas de forma clara y repetible.',
+        videoUrl: 'https://www.youtube.com/watch?v=U3CGMyjzlvM',
+        durationOrAuthor: 'Video introductorio',
+      ),
+      VideoResourceCard(
+        title: 'Algoritmos explicados paso a paso',
+        description:
+            'Material complementario para repasar conceptos básicos, ejemplos y la lógica detrás de la resolución estructurada de problemas.',
+        videoUrl:
+            'https://www.youtube.com/watch?v=FS9u9cIGf3o&list=PLYYyYpMvAtD1Gu8o1734Ld22LTDxlfKfO',
+        durationOrAuthor: 'Lista de reproducción',
+      ),
+    ];
+
+    if (width < 760) {
+      return Column(
+        children: [
+          videos[0],
+          const SizedBox(height: 20),
+          videos[1],
+        ],
+      );
+    }
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(child: videos[0]),
+        const SizedBox(width: 24),
+        Expanded(child: videos[1]),
+      ],
     );
   }
 
