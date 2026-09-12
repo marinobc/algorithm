@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../theme/app_theme.dart';
 import '../widgets/video_resource_card.dart';
 import '../widgets/web_explanation_navbar.dart';
@@ -24,9 +25,7 @@ class WhatAreGraphsScreen extends StatelessWidget {
       backgroundColor: palette.canvasBg,
       body: Column(
         children: [
-          const WebExplanationNavbar(
-            activePage: ExplanationWebPage.graphs,
-          ),
+          const WebExplanationNavbar(activePage: ExplanationWebPage.graphs),
           Expanded(
             child: SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
@@ -53,11 +52,20 @@ class WhatAreGraphsScreen extends StatelessWidget {
 
                             // Video Tutorial Card
                             const VideoResourceCard(
-                              title: '🎥 Video Recomendado: Introducción Didáctica a los Grafos',
-                              description:
-                                  'Aprende de forma visual con ejemplos interactivos qué son los nodos y las conexiones.',
-                              videoUrl: 'https://www.youtube.com/watch?v=mZMJJV6jDec',
+                              title: 'Video recomendado: Introducción a los grafos',
+                              description: 'Aprende de forma visual con ejemplos interactivos qué son los nodos y las conexiones.',
+                              videoUrl:
+                                  'https://www.youtube.com/watch?v=vnNFiNVy9KM',
                               durationOrAuthor: 'Explicación en Video',
+                            ),
+                            const SizedBox(height: 20),
+                            const VideoResourceCard(
+                              title:
+                                  'Video recomendado: conceptos fundamentales',
+                              description: 'Refuerza la diferencia entre vértices, aristas y las relaciones que modelan.',
+                              videoUrl:
+                                  'https://www.youtube.com/watch?v=F5Xjpg0-NhM',
+                              durationOrAuthor: 'Teoría de Grafos',
                             ),
                             const SizedBox(height: 48),
 
@@ -65,12 +73,40 @@ class WhatAreGraphsScreen extends StatelessWidget {
                             _buildAnatomySection(context, colorScheme, width),
                             const SizedBox(height: 48),
 
+                            _buildApplicationsSection(context, colorScheme),
+                            const SizedBox(height: 48),
+
+                            _buildGraphVocabularySection(context, colorScheme),
+                            const SizedBox(height: 48),
+
+                            const VideoResourceCard(
+                              title: 'Video recomendado: tipos de grafos',
+                              description: 'Descubre cómo cambian los grafos cuando sus conexiones tienen dirección o peso.',
+                              videoUrl:
+                                  'https://www.youtube.com/watch?v=_A9EpjnmZz4',
+                              durationOrAuthor: 'Clasificación y ejemplos',
+                            ),
+                            const SizedBox(height: 48),
+
                             // 3. Human Real-World Analogy Card
                             _buildHumanAnalogyCard(context, colorScheme),
                             const SizedBox(height: 48),
 
                             // 4. Types of Graphs
-                            _buildGraphTypesSection(context, colorScheme, width),
+                            _buildGraphTypesSection(
+                              context,
+                              colorScheme,
+                              width,
+                            ),
+                            const SizedBox(height: 48),
+
+                            const VideoResourceCard(
+                              title: 'Video recomendado: grafos en acción',
+                              description: 'Conecta la teoría con problemas reales de rutas, redes y toma de decisiones.',
+                              videoUrl:
+                                  'https://www.youtube.com/watch?v=dIBxZU__3QA',
+                              durationOrAuthor: 'Aplicaciones prácticas',
+                            ),
                             const SizedBox(height: 48),
 
                             // 5. Matrix Representation
@@ -280,15 +316,16 @@ class WhatAreGraphsScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: colorScheme.tertiaryContainer.withValues(alpha: 0.25),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: colorScheme.tertiary.withValues(alpha: 0.3),
-        ),
+        border: Border.all(color: colorScheme.tertiary.withValues(alpha: 0.3)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.emoji_objects_rounded,
-              color: colorScheme.tertiary, size: 36),
+          Icon(
+            Icons.emoji_objects_rounded,
+            color: colorScheme.tertiary,
+            size: 36,
+          ),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
@@ -313,6 +350,241 @@ class WhatAreGraphsScreen extends StatelessWidget {
                 ),
               ],
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildApplicationsSection(
+    BuildContext context,
+    ColorScheme colorScheme,
+  ) {
+    final applications = [
+      (
+        'Mapas y transporte',
+        'Las ciudades son nodos y las carreteras son aristas con distancia o tiempo.',
+        Icons.map_outlined,
+      ),
+      (
+        'Internet',
+        'Los dispositivos y servidores se conectan para enviar información por distintas rutas.',
+        Icons.language_rounded,
+      ),
+      (
+        'Recomendaciones',
+        'Las relaciones entre usuarios, productos o contenidos ayudan a encontrar opciones relevantes.',
+        Icons.recommend_rounded,
+      ),
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'LOS GRAFOS EN LA VIDA REAL',
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w800,
+            letterSpacing: 1.4,
+            color: colorScheme.primary,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          'Una misma idea, muchas aplicaciones',
+          style: TextStyle(
+            fontSize: 26,
+            fontWeight: FontWeight.bold,
+            color: colorScheme.onSurface,
+          ),
+        ),
+        const SizedBox(height: 20),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final columns = constraints.maxWidth >= 800
+                ? 3
+                : constraints.maxWidth >= 500
+                ? 2
+                : 1;
+            return GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: applications.length,
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: columns,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
+                mainAxisExtent: 156,
+              ),
+              itemBuilder: (context, index) {
+                final application = applications[index];
+                return Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: colorScheme.surfaceContainerLow,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: colorScheme.outlineVariant.withValues(alpha: 0.4),
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        application.$3,
+                        color: colorScheme.secondary,
+                        size: 26,
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        application.$1,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: colorScheme.onSurface,
+                        ),
+                      ),
+                      const SizedBox(height: 5),
+                      Expanded(
+                        child: Text(
+                          application.$2,
+                          style: TextStyle(
+                            fontSize: 13,
+                            height: 1.35,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildGraphVocabularySection(
+    BuildContext context,
+    ColorScheme colorScheme,
+  ) {
+    final concepts = [
+      (
+        'Grado',
+        'Cantidad de aristas que inciden en un nodo. En un grafo dirigido se distingue entre grado de entrada y de salida.',
+        Icons.numbers_rounded,
+      ),
+      (
+        'Camino',
+        'Secuencia de nodos conectados. Los algoritmos de rutas buscan caminos con menor distancia, costo o tiempo.',
+        Icons.route_rounded,
+      ),
+      (
+        'Ciclo',
+        'Camino que comienza y termina en el mismo nodo. Es común en dependencias, circuitos y redes de transporte.',
+        Icons.loop_rounded,
+      ),
+      (
+        'Conectividad',
+        'Indica si es posible llegar de una parte del grafo a otra. Los nodos aislados forman componentes separados.',
+        Icons.account_tree_outlined,
+      ),
+    ];
+
+    return Container(
+      padding: const EdgeInsets.all(28),
+      decoration: BoxDecoration(
+        color: colorScheme.secondaryContainer.withValues(alpha: 0.22),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(
+          color: colorScheme.secondary.withValues(alpha: 0.28),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'VOCABULARIO ESENCIAL',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 1.4,
+              color: colorScheme.secondary,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'Cuatro ideas para leer cualquier grafo',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: colorScheme.onSurface,
+            ),
+          ),
+          const SizedBox(height: 18),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final columns = constraints.maxWidth >= 720 ? 2 : 1;
+              return GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: concepts.length,
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: columns,
+                  crossAxisSpacing: 14,
+                  mainAxisSpacing: 14,
+                  mainAxisExtent: 128,
+                ),
+                itemBuilder: (context, index) {
+                  final concept = concepts[index];
+                  return Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: colorScheme.surface.withValues(alpha: 0.72),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(
+                          concept.$3,
+                          color: colorScheme.secondary,
+                          size: 24,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                concept.$1,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: colorScheme.onSurface,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Expanded(
+                                child: Text(
+                                  concept.$2,
+                                  style: TextStyle(
+                                    fontSize: 12.5,
+                                    height: 1.3,
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              );
+            },
           ),
         ],
       ),
@@ -360,8 +632,7 @@ class WhatAreGraphsScreen extends StatelessWidget {
                     title: '1. Nodos o Vértices',
                     icon: Icons.circle_outlined,
                     color: const Color(0xFF7C4DFF),
-                    description:
-                        'Son las entidades individuales de la red que guardan datos como su nombre o estado.',
+                    description: 'Son las entidades individuales de la red que guardan datos como su nombre o estado.',
                   ),
                 ),
                 SizedBox(width: isWide ? 16 : 0, height: isWide ? 0 : 16),
@@ -372,8 +643,7 @@ class WhatAreGraphsScreen extends StatelessWidget {
                     title: '2. Aristas o Enlaces',
                     icon: Icons.alt_route_rounded,
                     color: const Color(0xFF00BFA5),
-                    description:
-                        'Son los enlaces que indican interacción o posibilidad de viaje de un nodo a otro.',
+                    description: 'Son los enlaces que indican interacción o posibilidad de viaje de un nodo a otro.',
                   ),
                 ),
                 SizedBox(width: isWide ? 16 : 0, height: isWide ? 0 : 16),
@@ -384,8 +654,7 @@ class WhatAreGraphsScreen extends StatelessWidget {
                     title: '3. Pesos o Costos',
                     icon: Icons.tune_rounded,
                     color: const Color(0xFFFF5252),
-                    description:
-                        'Es el "costo", la distancia o el tiempo que toma atravesar esa conexión concreta.',
+                    description: 'Es el "costo", la distancia o el tiempo que toma atravesar esa conexión concreta.',
                   ),
                 ),
               ],
