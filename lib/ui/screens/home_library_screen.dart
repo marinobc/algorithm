@@ -4,9 +4,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../application/providers/edicion_provider.dart';
 import '../../application/providers/grafo_invalido_provider.dart';
 import '../../application/providers/grafo_provider.dart';
+import '../../domain/models/grafo.dart';
 import '../../domain/services/graph_storage_service.dart';
 import '../dialogs/adjacency_matrix_dialog.dart';
 import '../dialogs/config_dialog.dart';
+import '../dialogs/new_graph_dialogs.dart';
 import '../dialogs/rename_graph_dialog.dart';
 import '../theme/app_theme.dart';
 import '../widgets/library/graph_card_widget.dart';
@@ -68,7 +70,7 @@ class _HomeLibraryScreenState extends ConsumerState<HomeLibraryScreen> {
     });
   }
 
-  void _openGraphEditor([SavedGraphItem? item]) {
+  void _openGraphEditor([SavedGraphItem? item, Grafo? initialGraph]) {
     if (item != null) {
       try {
         final graph = GraphStorageService.importFromJson(item.jsonContent);
@@ -80,6 +82,9 @@ class _HomeLibraryScreenState extends ConsumerState<HomeLibraryScreen> {
         ).showSnackBar(SnackBar(content: Text('Error al cargar el grafo: $e')));
         return;
       }
+    } else if (initialGraph != null) {
+      ref.read(grafoProvider.notifier).cargarGrafo(initialGraph);
+      ref.read(loadedGraphItemProvider.notifier).setLoadedItem(null);
     } else {
       ref.read(grafoProvider.notifier).limpiarGrafo();
       ref.read(loadedGraphItemProvider.notifier).setLoadedItem(null);
@@ -91,6 +96,20 @@ class _HomeLibraryScreenState extends ConsumerState<HomeLibraryScreen> {
     Navigator.of(context)
         .push(MaterialPageRoute(builder: (_) => const GraphEditorScreen()))
         .then((_) => _loadGraphs());
+  }
+
+  Future<void> _createNewGraph() async {
+    final mode = await showNewGraphModeDialog(context);
+    if (!mounted || mode == null) return;
+
+    if (mode == NewGraphMode.visualDesign) {
+      _openGraphEditor();
+      return;
+    }
+
+    final graph = await showAdjacencyMatrixImportDialog(context);
+    if (!mounted || graph == null) return;
+    _openGraphEditor(null, graph);
   }
 
   void _openGraphMatrix(SavedGraphItem item) {
@@ -319,7 +338,7 @@ class _HomeLibraryScreenState extends ConsumerState<HomeLibraryScreen> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         heroTag: 'fab_new_graph_home',
-        onPressed: () => _openGraphEditor(null),
+        onPressed: _createNewGraph,
         icon: const Icon(Icons.add_rounded),
         label: const Text('Nuevo Grafo'),
       ),

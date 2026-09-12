@@ -9,8 +9,9 @@ class EdgeRenderHelper {
   static void drawConnection(
     Canvas canvas,
     RenderConnectionLine conn,
-    NeumorphicPalette palette,
-  ) {
+    NeumorphicPalette palette, {
+    double opacity = 1.0,
+  }) {
     final path = Path()
       ..moveTo(conn.curve.start.dx, conn.curve.start.dy)
       ..cubicTo(
@@ -25,7 +26,7 @@ class EdgeRenderHelper {
     // Selection background glow (manual selection)
     if (conn.isSelected && !conn.isHighlighted) {
       final highlightPaint = Paint()
-        ..color = palette.primaryAccent
+        ..color = palette.primaryAccent.withValues(alpha: opacity)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 6.0
         ..strokeCap = StrokeCap.round;
@@ -34,7 +35,7 @@ class EdgeRenderHelper {
 
     // Main line paint
     final linePaint = Paint()
-      ..color = conn.color
+      ..color = conn.color.withValues(alpha: opacity)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.5
       ..strokeCap = StrokeCap.round;
@@ -43,7 +44,12 @@ class EdgeRenderHelper {
 
     // Arrow for directed connections
     if (conn.isDirected && conn.arrowPoint != null && conn.arrowAngle != null) {
-      drawArrowHead(canvas, conn.arrowPoint!, conn.arrowAngle!, conn.color);
+      drawArrowHead(
+        canvas,
+        conn.arrowPoint!,
+        conn.arrowAngle!,
+        conn.color.withValues(alpha: opacity),
+      );
     }
 
     if (conn.reverseArrowPoint != null && conn.reverseArrowAngle != null) {
@@ -51,7 +57,7 @@ class EdgeRenderHelper {
         canvas,
         conn.reverseArrowPoint!,
         conn.reverseArrowAngle!,
-        conn.color,
+        conn.color.withValues(alpha: opacity),
       );
     }
 
@@ -65,6 +71,7 @@ class EdgeRenderHelper {
         conn.labelPosition!,
         conn.color,
         palette,
+        opacity: opacity,
       );
     }
   }
@@ -171,12 +178,13 @@ class EdgeRenderHelper {
     String text,
     Offset position,
     Color color,
-    NeumorphicPalette palette,
-  ) {
+    NeumorphicPalette palette, {
+    double opacity = 1.0,
+  }) {
     final textSpan = TextSpan(
       text: text,
       style: TextStyle(
-        color: palette.textPrimary,
+        color: palette.textPrimary.withValues(alpha: opacity),
         fontSize: 12,
         fontWeight: FontWeight.bold,
       ),
@@ -197,11 +205,11 @@ class EdgeRenderHelper {
     );
 
     final bgPaint = Paint()
-      ..color = palette.surfaceBg
+      ..color = palette.surfaceBg.withValues(alpha: opacity)
       ..style = PaintingStyle.fill;
 
     final borderPaint = Paint()
-      ..color = color
+      ..color = color.withValues(alpha: opacity)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.5;
 

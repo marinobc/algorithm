@@ -35,9 +35,18 @@ class GraphPainter extends CustomPainter {
     // 2. Draw Algorithm Highlights Underlay Pass
     _drawAlgorithmHighlightsUnderlay(canvas);
 
-    // 3. Draw Main Connections Pass
+    final hasAlgorithmPath = renderModel.connections.any(
+      (connection) => connection.isHighlighted,
+    );
+
+    // Dim alternatives while an algorithm solution is active.
     for (final conn in renderModel.connections) {
-      EdgeRenderHelper.drawConnection(canvas, conn, palette);
+      EdgeRenderHelper.drawConnection(
+        canvas,
+        conn,
+        palette,
+        opacity: hasAlgorithmPath && !conn.isHighlighted ? 0.18 : 1.0,
+      );
     }
 
     // 3.5 Draw Live Drag-to-Connect Preview Line
@@ -48,6 +57,15 @@ class GraphPainter extends CustomPainter {
     // 4. Draw Neumorphic Nodes Pass
     for (final node in renderModel.nodes) {
       NodeRenderHelper.drawNode(canvas, node, palette);
+    }
+
+    // Keep the selected path, arrows and values above the nodes.
+    if (hasAlgorithmPath) {
+      for (final conn in renderModel.connections.where(
+        (connection) => connection.isHighlighted,
+      )) {
+        EdgeRenderHelper.drawConnection(canvas, conn, palette);
+      }
     }
 
     canvas.restore();
