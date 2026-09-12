@@ -11,6 +11,7 @@ import '../dialogs/rename_graph_dialog.dart';
 import '../theme/app_theme.dart';
 import '../widgets/library/graph_card_widget.dart';
 import 'graph_editor_screen.dart';
+import 'welcome_explanation_screen.dart';
 
 class HomeLibraryScreen extends ConsumerStatefulWidget {
   const HomeLibraryScreen({super.key});
@@ -212,6 +213,17 @@ class _HomeLibraryScreenState extends ConsumerState<HomeLibraryScreen> {
         backgroundColor: colorScheme.surfaceContainerHigh,
         elevation: 1,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.home_rounded),
+            tooltip: 'Página Principal - Algoritmos',
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const WelcomeExplanationScreen(),
+                ),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.settings_outlined),
             tooltip: 'Configuración del Sistema',

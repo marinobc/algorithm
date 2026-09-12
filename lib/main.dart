@@ -4,7 +4,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'application/providers/theme_provider.dart';
-import 'ui/screens/home_library_screen.dart';
+import 'ui/screens/welcome_explanation_screen.dart';
 import 'ui/theme/app_theme.dart';
 
 void main() async {
@@ -38,7 +38,7 @@ class MainApp extends ConsumerWidget {
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: themeMode,
-      home: const HomeLibraryScreen(),
+      home: const WelcomeExplanationScreen(),
     );
   }
 }
