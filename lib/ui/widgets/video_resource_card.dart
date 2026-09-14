@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:youtube_player_iframe/youtube_player_iframe.dart';
@@ -33,10 +34,7 @@ class VideoResourceCard extends StatelessWidget {
   void _openVideo(BuildContext context) {
     showDialog(
       context: context,
-      builder: (_) => _InlineVideoModal(
-        title: title,
-        videoUrl: videoUrl,
-      ),
+      builder: (_) => _InlineVideoModal(title: title, videoUrl: videoUrl),
     );
   }
 
@@ -309,10 +307,7 @@ class _InlineVideoModal extends StatefulWidget {
   final String title;
   final String videoUrl;
 
-  const _InlineVideoModal({
-    required this.title,
-    required this.videoUrl,
-  });
+  const _InlineVideoModal({required this.title, required this.videoUrl});
 
   @override
   State<_InlineVideoModal> createState() => _InlineVideoModalState();
@@ -363,26 +358,24 @@ class _InlineVideoModalState extends State<_InlineVideoModal> {
     const standardCardWidth = 720.0;
 
     // Available screen space considering modal margins
-    final maxAvailableWidth = math.min(standardCardWidth, mediaQuery.size.width * 0.90);
+    final maxAvailableWidth = math.min(
+      standardCardWidth,
+      mediaQuery.size.width * 0.90,
+    );
     final maxAvailableHeight = mediaQuery.size.height * 0.85;
 
     // Max height allowed for the video player to fit within screen canvas
     final maxVideoHeight = math.max(100.0, maxAvailableHeight - headerHeight);
 
     // Compute exact video width: stays at standard card width, but shrinks horizontally if screen height is constrained
-    final videoWidth = math.min(
-      maxAvailableWidth,
-      maxVideoHeight * (16 / 9),
-    );
+    final videoWidth = math.min(maxAvailableWidth, maxVideoHeight * (16 / 9));
 
     return YoutubePlayerControllerProvider(
       controller: _controller,
       child: Dialog(
         backgroundColor: colorScheme.surface,
         surfaceTintColor: Colors.transparent,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(24),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         clipBehavior: Clip.antiAlias,
         insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
         child: SizedBox(
@@ -450,6 +443,3 @@ class _InlineVideoModalState extends State<_InlineVideoModal> {
     );
   }
 }
-
-
-

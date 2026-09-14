@@ -49,7 +49,6 @@ class WebExplanationShell extends StatelessWidget {
     );
   }
 
-
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;

@@ -4,7 +4,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/grafo.dart';
 
-
 class GraphVersion {
   final int versionNumber;
   final String fecha;

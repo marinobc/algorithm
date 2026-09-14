@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../../domain/services/graph_storage_service.dart';
 
-
 /// Modal dialog for loading a saved graph slot.
 class LoadGraphDialog extends StatefulWidget {
   const LoadGraphDialog({super.key});
@@ -46,7 +45,10 @@ class _LoadGraphDialogState extends State<LoadGraphDialog> {
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text('Eliminar Grafo', style: TextStyle(color: colorScheme.error)),
+        title: Text(
+          'Eliminar Grafo',
+          style: TextStyle(color: colorScheme.error),
+        ),
         content: Text(
           '¿Está seguro de eliminar "${item.nombre}"?\nEsta acción no se puede deshacer.',
         ),
@@ -81,7 +83,9 @@ class _LoadGraphDialogState extends State<LoadGraphDialog> {
 
     final filteredGraphs = _savedGraphs.where((item) {
       if (_searchQuery.trim().isEmpty) return true;
-      return item.nombre.toLowerCase().contains(_searchQuery.trim().toLowerCase());
+      return item.nombre.toLowerCase().contains(
+        _searchQuery.trim().toLowerCase(),
+      );
     }).toList();
 
     return Dialog(
@@ -161,134 +165,147 @@ class _LoadGraphDialogState extends State<LoadGraphDialog> {
                       ),
                     )
                   : filteredGraphs.isEmpty
-                      ? Center(
-                          child: Padding(
-                            padding: const EdgeInsets.all(36.0),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.inventory_2_outlined,
-                                  size: 48,
-                                  color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-                                ),
-                                const SizedBox(height: 12),
-                                Text(
-                                  _savedGraphs.isEmpty
-                                      ? 'No tienes ningún grafo guardado aún.'
-                                      : 'No se encontraron grafos con ese nombre.',
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: colorScheme.onSurfaceVariant,
-                                  ),
-                                ),
-                              ],
+                  ? Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(36.0),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.inventory_2_outlined,
+                              size: 48,
+                              color: colorScheme.onSurfaceVariant.withValues(
+                                alpha: 0.5,
+                              ),
                             ),
-                          ),
-                        )
-                      : ListView.separated(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 12,
-                          ),
-                          itemCount: filteredGraphs.length,
-                          separatorBuilder: (context, index) => const SizedBox(height: 8),
-                          itemBuilder: (context, index) {
-                            final item = filteredGraphs[index];
-                            return Material(
-                              color: colorScheme.surfaceContainerLow,
-                              borderRadius: BorderRadius.circular(16),
-                              child: InkWell(
-                                borderRadius: BorderRadius.circular(16),
-                                onTap: () => Navigator.of(context).pop(item),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(12),
-                                  child: Row(
-                                    children: [
-                                      // 3-step Cluster Icon (Small <5, Medium 5-9, Large 10+)
-                                      GraphClusterIconWidget(
-                                        nodeCount: item.nodoCount,
-                                        size: 48,
-                                      ),
-                                      const SizedBox(width: 14),
+                            const SizedBox(height: 12),
+                            Text(
+                              _savedGraphs.isEmpty
+                                  ? 'No tienes ningún grafo guardado aún.'
+                                  : 'No se encontraron grafos con ese nombre.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+                  : ListView.separated(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 12,
+                      ),
+                      itemCount: filteredGraphs.length,
+                      separatorBuilder: (context, index) =>
+                          const SizedBox(height: 8),
+                      itemBuilder: (context, index) {
+                        final item = filteredGraphs[index];
+                        return Material(
+                          color: colorScheme.surfaceContainerLow,
+                          borderRadius: BorderRadius.circular(16),
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(16),
+                            onTap: () => Navigator.of(context).pop(item),
+                            child: Padding(
+                              padding: const EdgeInsets.all(12),
+                              child: Row(
+                                children: [
+                                  // 3-step Cluster Icon (Small <5, Medium 5-9, Large 10+)
+                                  GraphClusterIconWidget(
+                                    nodeCount: item.nodoCount,
+                                    size: 48,
+                                  ),
+                                  const SizedBox(width: 14),
 
-                                      // Details
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                  // Details
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          item.nombre,
+                                          style: TextStyle(
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.bold,
+                                            color: colorScheme.onSurface,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Wrap(
+                                          spacing: 8,
+                                          crossAxisAlignment:
+                                              WrapCrossAlignment.center,
                                           children: [
                                             Text(
-                                              item.nombre,
+                                              '${item.nodoCount} Nodos • ${item.conexionCount} Aristas',
                                               style: TextStyle(
-                                                fontSize: 15,
-                                                fontWeight: FontWeight.bold,
-                                                color: colorScheme.onSurface,
+                                                fontSize: 12,
+                                                color: colorScheme
+                                                    .onSurfaceVariant,
                                               ),
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
                                             ),
-                                            const SizedBox(height: 4),
-                                            Wrap(
-                                              spacing: 8,
-                                              crossAxisAlignment: WrapCrossAlignment.center,
-                                              children: [
-                                                Text(
-                                                  '${item.nodoCount} Nodos • ${item.conexionCount} Aristas',
-                                                  style: TextStyle(
-                                                    fontSize: 12,
-                                                    color: colorScheme.onSurfaceVariant,
-                                                  ),
-                                                ),
-                                                Text(
-                                                  '• ${item.fecha}',
-                                                  style: TextStyle(
-                                                    fontSize: 11,
-                                                    color: colorScheme.onSurfaceVariant
-                                                        .withValues(alpha: 0.7),
-                                                  ),
-                                                ),
-                                              ],
+                                            Text(
+                                              '• ${item.fecha}',
+                                              style: TextStyle(
+                                                fontSize: 11,
+                                                color: colorScheme
+                                                    .onSurfaceVariant
+                                                    .withValues(alpha: 0.7),
+                                              ),
                                             ),
                                           ],
                                         ),
-                                      ),
-                                      const SizedBox(width: 8),
-
-                                      // Action Buttons
-                                      IconButton(
-                                        icon: Icon(
-                                          Icons.delete_outline_rounded,
-                                          color: colorScheme.error.withValues(alpha: 0.85),
-                                          size: 22,
-                                        ),
-                                        tooltip: 'Eliminar',
-                                        onPressed: () => _deleteGraph(item),
-                                      ),
-
-                                      const SizedBox(width: 4),
-                                      FilledButton.icon(
-                                        onPressed: () => Navigator.of(context).pop(item),
-                                        style: FilledButton.styleFrom(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 14,
-                                            vertical: 8,
-                                          ),
-                                          visualDensity: VisualDensity.compact,
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(10),
-                                          ),
-                                        ),
-                                        icon: const Icon(Icons.download_rounded, size: 16),
-                                        label: const Text('Cargar'),
-                                      ),
-                                    ],
+                                      ],
+                                    ),
                                   ),
-                                ),
+                                  const SizedBox(width: 8),
+
+                                  // Action Buttons
+                                  IconButton(
+                                    icon: Icon(
+                                      Icons.delete_outline_rounded,
+                                      color: colorScheme.error.withValues(
+                                        alpha: 0.85,
+                                      ),
+                                      size: 22,
+                                    ),
+                                    tooltip: 'Eliminar',
+                                    onPressed: () => _deleteGraph(item),
+                                  ),
+
+                                  const SizedBox(width: 4),
+                                  FilledButton.icon(
+                                    onPressed: () =>
+                                        Navigator.of(context).pop(item),
+                                    style: FilledButton.styleFrom(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 14,
+                                        vertical: 8,
+                                      ),
+                                      visualDensity: VisualDensity.compact,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                    ),
+                                    icon: const Icon(
+                                      Icons.download_rounded,
+                                      size: 16,
+                                    ),
+                                    label: const Text('Cargar'),
+                                  ),
+                                ],
                               ),
-                            );
-                          },
-                        ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
             ),
           ],
         ),
@@ -357,5 +374,3 @@ class GraphClusterIconWidget extends StatelessWidget {
     );
   }
 }
-
-

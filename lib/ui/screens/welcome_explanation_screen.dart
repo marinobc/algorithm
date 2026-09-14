@@ -28,8 +28,6 @@ class _WelcomeExplanationScreenState extends State<WelcomeExplanationScreen> {
     );
   }
 
-
-
   void _scrollToExamples() {
     final context = _examplesKey.currentContext;
     if (context != null) {

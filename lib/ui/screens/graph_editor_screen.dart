@@ -214,14 +214,15 @@ class _GraphEditorScreenState extends ConsumerState<GraphEditorScreen> {
     }
   }
 
-
   void _onCargarGraphSelected() async {
     final selectedItem = await LoadGraphDialog.show(context);
     if (selectedItem == null || !mounted) return;
 
     final canProceed = await _promptUnsavedChanges();
     if (canProceed && mounted) {
-      final loadedGraph = GraphStorageService.importFromJson(selectedItem.jsonContent);
+      final loadedGraph = GraphStorageService.importFromJson(
+        selectedItem.jsonContent,
+      );
       ref.read(grafoProvider.notifier).cargarGrafo(loadedGraph);
       ref.read(loadedGraphItemProvider.notifier).setLoadedItem(selectedItem);
       ref.read(estadoEdicionProvider.notifier).desmarcarCambiosSinGuardar();
@@ -235,7 +236,6 @@ class _GraphEditorScreenState extends ConsumerState<GraphEditorScreen> {
       );
     }
   }
-
 
   void _onVaciarGrafoSelected() async {
     final canProceed = await _promptUnsavedChanges(isNewGraph: true);
@@ -252,7 +252,6 @@ class _GraphEditorScreenState extends ConsumerState<GraphEditorScreen> {
       );
     }
   }
-
 
   void _navigateToScreen(Widget targetScreen) async {
     final canProceed = await _promptUnsavedChanges();
