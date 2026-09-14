@@ -14,12 +14,16 @@ import '../dialogs/ai_chat_dialog.dart';
 import '../dialogs/config_dialog.dart';
 import '../dialogs/rename_graph_dialog.dart';
 import '../dialogs/tutorial_screen.dart';
+import '../screens/assignment_algo_screen.dart';
+import '../screens/home_library_screen.dart';
+import '../screens/johnson_algo_screen.dart';
+import '../screens/welcome_explanation_screen.dart';
+import '../screens/what_are_graphs_screen.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/canvas_controls_fabs.dart';
 import '../widgets/edit_panel.dart';
 import '../widgets/floating_algorithm_card.dart';
-import '../widgets/invalid_graph_banner.dart';
 
 class GraphEditorScreen extends ConsumerStatefulWidget {
   const GraphEditorScreen({super.key});
@@ -282,6 +286,14 @@ class _GraphEditorScreenState extends ConsumerState<GraphEditorScreen> {
     }
   }
 
+  void _navigateToScreen(Widget targetScreen) async {
+    final canProceed = await _promptUnsavedChanges();
+    if (canProceed && mounted) {
+      Navigator.of(context)
+          .pushReplacement(MaterialPageRoute(builder: (_) => targetScreen));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final palette = NeumorphicPalette.of(context);
@@ -341,7 +353,6 @@ class _GraphEditorScreenState extends ConsumerState<GraphEditorScreen> {
             ],
           ),
           actions: [
-            const InvalidGraphBanner(),
             Builder(
               builder: (menuCtx) => IconButton(
                 icon: const Icon(Icons.menu_rounded),
@@ -364,6 +375,13 @@ class _GraphEditorScreenState extends ConsumerState<GraphEditorScreen> {
           onSaveJpg: _saveGraphAsJpg,
           onOpenTutorial: _openTutorialScreen,
           onOpenConfig: _openConfigModal,
+          onGoToInicio: () =>
+              _navigateToScreen(const WelcomeExplanationScreen()),
+          onGoToBiblioteca: () => _navigateToScreen(const HomeLibraryScreen()),
+          onGoToGrafos: () => _navigateToScreen(const WhatAreGraphsScreen()),
+          onGoToAsignacion: () =>
+              _navigateToScreen(const AssignmentAlgoScreen()),
+          onGoToJohnson: () => _navigateToScreen(const JohnsonAlgoScreen()),
         ),
         body: Stack(
           children: [
