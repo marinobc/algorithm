@@ -20,6 +20,7 @@ class _ConfigScreenState extends ConsumerState<ConfigScreen> {
   late TextEditingController _valController;
   late ThemeMode _selectedTheme;
   late Direccion _selectedConnType;
+  late bool _mostrarDebug;
 
   @override
   void initState() {
@@ -30,6 +31,7 @@ class _ConfigScreenState extends ConsumerState<ConfigScreen> {
     );
     _selectedTheme = currentConfig.themeMode;
     _selectedConnType = currentConfig.tipoConexionPorDefecto;
+    _mostrarDebug = currentConfig.mostrarBotonesDebug;
   }
 
   @override
@@ -119,8 +121,7 @@ class _ConfigScreenState extends ConsumerState<ConfigScreen> {
                           RadioOptionCard<Direccion>(
                             value: Direccion.unidireccional,
                             groupValue: _selectedConnType,
-                            title:
-                                'Conexión Dirigida (Flecha Origen ➔ Destino)',
+                            title: 'Conexión Dirigida (Origen -> Destino)',
                             subtitle:
                                 'Asigna dirección unidireccional por defecto',
                             icon: Icons.arrow_forward_rounded,
@@ -280,6 +281,50 @@ class _ConfigScreenState extends ConsumerState<ConfigScreen> {
                             },
                           ),
                         ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Section 4: Developer Tools Toggle
+                  Card(
+                    elevation: 1,
+                    color: colorScheme.surfaceContainerLow,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 8,
+                      ),
+                      child: SwitchListTile(
+                        contentPadding: EdgeInsets.zero,
+                        secondary: Icon(
+                          Icons.bug_report_outlined,
+                          color: _mostrarDebug
+                              ? colorScheme.primary
+                              : colorScheme.onSurfaceVariant,
+                          size: 22,
+                        ),
+                        title: const Text(
+                          'Botones de Debug',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        subtitle: const Text(
+                          'Muestra los botones de copiar/pegar grafo en el editor',
+                          style: TextStyle(fontSize: 12),
+                        ),
+                        value: _mostrarDebug,
+                        onChanged: (val) {
+                          setState(() => _mostrarDebug = val);
+                          ref
+                              .read(configProvider.notifier)
+                              .setMostrarBotonesDebug(val);
+                        },
                       ),
                     ),
                   ),

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../algorithms/assignment/domain/models/assignment_models.dart';
 import '../../algorithms/assignment/providers/assignment_provider.dart';
 import '../../algorithms/johnson/providers/johnson_provider.dart';
+import '../../application/providers/config_provider.dart';
 import '../../application/providers/grafo_provider.dart';
 import '../../debug/graph_debug_fab.dart';
 
@@ -266,6 +267,7 @@ class CanvasControlsFabs extends ConsumerWidget {
     final canUndo = notifier.puedeDeshacer;
     final canRedo = notifier.puedeRehacer;
     final colorScheme = Theme.of(context).colorScheme;
+    final mostrarDebug = ref.watch(configProvider).mostrarBotonesDebug;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -315,9 +317,11 @@ class CanvasControlsFabs extends ConsumerWidget {
         ),
         const SizedBox(height: 12),
 
-        // Debug FAB for exporting/copying graph test data
-        const GraphDebugFab(),
-        const SizedBox(height: 10),
+        // Debug FABs (only shown when enabled in config)
+        if (mostrarDebug) ...[
+          const GraphDebugFab(),
+          const SizedBox(height: 10),
+        ],
 
         // Algoritmos FAB to select algorithm via bottom-to-top modal sheet
         FloatingActionButton.extended(

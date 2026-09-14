@@ -8,17 +8,20 @@ class ConfigEstado {
   final String valorConexionPorDefecto;
   final ThemeMode themeMode;
   final Direccion tipoConexionPorDefecto;
+  final bool mostrarBotonesDebug;
 
   const ConfigEstado({
     this.valorConexionPorDefecto = '1',
-    this.themeMode = ThemeMode.system, // Default to System theme
+    this.themeMode = ThemeMode.system,
     this.tipoConexionPorDefecto = Direccion.unidireccional,
+    this.mostrarBotonesDebug = false,
   });
 
   ConfigEstado copyWith({
     String? valorConexionPorDefecto,
     ThemeMode? themeMode,
     Direccion? tipoConexionPorDefecto,
+    bool? mostrarBotonesDebug,
   }) {
     return ConfigEstado(
       valorConexionPorDefecto:
@@ -26,6 +29,7 @@ class ConfigEstado {
       themeMode: themeMode ?? this.themeMode,
       tipoConexionPorDefecto:
           tipoConexionPorDefecto ?? this.tipoConexionPorDefecto,
+      mostrarBotonesDebug: mostrarBotonesDebug ?? this.mostrarBotonesDebug,
     );
   }
 
@@ -35,6 +39,7 @@ class ConfigEstado {
 class ConfigNotifier extends Notifier<ConfigEstado> {
   static const String _prefThemeKey = 'app_theme_mode';
   static const String _prefConnTypeKey = 'app_default_conn_type';
+  static const String _prefDebugFabsKey = 'app_mostrar_debug_fabs';
 
   @override
   ConfigEstado build() {
@@ -64,10 +69,14 @@ class ConfigNotifier extends Notifier<ConfigEstado> {
         }
       }
 
-      state = state.copyWith(themeMode: mode, tipoConexionPorDefecto: connType);
-    } catch (_) {
-      // Fallback cleanly if SharedPreferences is unavailable in preview/test environment
-    }
+      final debugFabs = prefs.getBool(_prefDebugFabsKey) ?? false;
+
+      state = state.copyWith(
+        themeMode: mode,
+        tipoConexionPorDefecto: connType,
+        mostrarBotonesDebug: debugFabs,
+      );
+    } catch (_) {}
   }
 
   Future<void> _saveTheme(ThemeMode mode) async {
@@ -99,6 +108,18 @@ class ConfigNotifier extends Notifier<ConfigEstado> {
   void setThemeMode(ThemeMode mode) {
     state = state.copyWith(themeMode: mode);
     _saveTheme(mode);
+  }
+
+  void setMostrarBotonesDebug(bool value) {
+    state = state.copyWith(mostrarBotonesDebug: value);
+    _saveDebugFabs(value);
+  }
+
+  Future<void> _saveDebugFabs(bool value) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(_prefDebugFabsKey, value);
+    } catch (_) {}
   }
 
   void toggleTheme() {
