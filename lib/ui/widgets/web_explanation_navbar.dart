@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 
 import '../screens/assignment_algo_screen.dart';
+import '../screens/contact_screen.dart';
 import '../screens/graph_editor_screen.dart';
 import '../screens/johnson_algo_screen.dart';
 import '../screens/welcome_explanation_screen.dart';
 import '../screens/what_are_graphs_screen.dart';
 
-enum ExplanationWebPage { algorithms, graphs, assignment, johnson }
+enum ExplanationWebPage { algorithms, graphs, assignment, johnson, contact }
 
 class WebExplanationShell extends StatelessWidget {
   final ExplanationWebPage activePage;
@@ -30,6 +31,9 @@ class WebExplanationShell extends StatelessWidget {
         break;
       case ExplanationWebPage.johnson:
         targetScreen = const JohnsonAlgoScreen();
+        break;
+      case ExplanationWebPage.contact:
+        targetScreen = const ContactScreen();
         break;
     }
 
@@ -346,7 +350,7 @@ class WebExplanationShell extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 4.0),
           child: Text(
-            '3. ALGORITMOS',
+            'Algoritmos',
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.bold,
@@ -377,6 +381,16 @@ class WebExplanationShell extends StatelessWidget {
               ),
             ],
           ),
+        ),
+        const SizedBox(height: 16),
+        const Divider(height: 1, indent: 12, endIndent: 12),
+        const SizedBox(height: 12),
+        _buildVerticalNavLink(
+          context,
+          label: 'Contacto',
+          page: ExplanationWebPage.contact,
+          icon: Icons.people_outline_rounded,
+          isDrawer: isDrawer,
         ),
       ],
     );
