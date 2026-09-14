@@ -14,10 +14,6 @@ class AppDrawer extends ConsumerWidget {
   final VoidCallback onSaveJpg;
   final VoidCallback onOpenTutorial;
   final VoidCallback onOpenConfig;
-  final VoidCallback? onGoToInicio;
-  final VoidCallback? onGoToGrafos;
-  final VoidCallback? onGoToAsignacion;
-  final VoidCallback? onGoToJohnson;
 
   const AppDrawer({
     super.key,
@@ -30,10 +26,6 @@ class AppDrawer extends ConsumerWidget {
     required this.onSaveJpg,
     required this.onOpenTutorial,
     required this.onOpenConfig,
-    this.onGoToInicio,
-    this.onGoToGrafos,
-    this.onGoToAsignacion,
-    this.onGoToJohnson,
   });
 
   @override
@@ -137,7 +129,6 @@ class AppDrawer extends ConsumerWidget {
                     },
                   ),
                   const Divider(),
-
                   ListTile(
                     leading: Icon(
                       Icons.grid_on_rounded,
@@ -171,71 +162,6 @@ class AppDrawer extends ConsumerWidget {
                       onSaveJpg();
                     },
                   ),
-                  const Divider(),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16.0,
-                      vertical: 6.0,
-                    ),
-                    child: Text(
-                      'NAVEGACIÓN PRINCIPAL',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 0.8,
-                        color: colorScheme.primary,
-                      ),
-                    ),
-                  ),
-                  if (onGoToInicio != null)
-                    ListTile(
-                      leading: Icon(
-                        Icons.home_outlined,
-                        color: colorScheme.primary,
-                      ),
-                      title: const Text('1. Inicio'),
-                      onTap: () {
-                        Navigator.of(context).pop();
-                        onGoToInicio!();
-                      },
-                    ),
-
-                  if (onGoToGrafos != null)
-                    ListTile(
-                      leading: Icon(
-                        Icons.explore_outlined,
-                        color: colorScheme.primary,
-                      ),
-                      title: const Text('2. Grafos'),
-                      onTap: () {
-                        Navigator.of(context).pop();
-                        onGoToGrafos!();
-                      },
-                    ),
-                  if (onGoToAsignacion != null)
-                    ListTile(
-                      leading: Icon(
-                        Icons.assignment_turned_in_outlined,
-                        color: colorScheme.primary,
-                      ),
-                      title: const Text('Asignación'),
-                      onTap: () {
-                        Navigator.of(context).pop();
-                        onGoToAsignacion!();
-                      },
-                    ),
-                  if (onGoToJohnson != null)
-                    ListTile(
-                      leading: Icon(
-                        Icons.alt_route_rounded,
-                        color: colorScheme.primary,
-                      ),
-                      title: const Text('Johnson'),
-                      onTap: () {
-                        Navigator.of(context).pop();
-                        onGoToJohnson!();
-                      },
-                    ),
                   const Divider(),
                   ListTile(
                     leading: Icon(
