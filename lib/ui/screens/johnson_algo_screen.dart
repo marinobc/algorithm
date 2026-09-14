@@ -1,17 +1,11 @@
 import 'package:flutter/material.dart';
 
+import '../../algorithms/johnson/ui/johnson_launch_button.dart';
 import '../widgets/video_resource_card.dart';
 import '../widgets/web_explanation_navbar.dart';
-import 'graph_editor_screen.dart';
 
 class JohnsonAlgoScreen extends StatelessWidget {
   const JohnsonAlgoScreen({super.key});
-
-  void _navigateToLibrary(BuildContext context) {
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => const GraphEditorScreen()),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -694,22 +688,7 @@ class JohnsonAlgoScreen extends StatelessWidget {
             style: TextStyle(fontSize: 14, color: Colors.white70),
           ),
           const SizedBox(height: 20),
-          ElevatedButton.icon(
-            onPressed: () => _navigateToLibrary(context),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.white,
-              foregroundColor: const Color(0xFF00BFA5),
-              padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            icon: const Icon(Icons.arrow_forward_rounded, size: 20),
-            label: const Text(
-              'Editar Grafos',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ),
+          const JohnsonLaunchButton(),
         ],
       ),
     );

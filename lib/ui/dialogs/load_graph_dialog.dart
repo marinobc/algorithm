@@ -259,6 +259,10 @@ class _LoadGraphDialogState extends State<LoadGraphDialog> {
                                                     .withValues(alpha: 0.7),
                                               ),
                                             ),
+                                            _buildAlgorithmPill(
+                                              item.tipoAlgoritmo,
+                                              colorScheme,
+                                            ),
                                           ],
                                         ),
                                       ],
@@ -311,6 +315,94 @@ class _LoadGraphDialogState extends State<LoadGraphDialog> {
         ),
       ),
     );
+  }
+
+  Widget _buildAlgorithmPill(String? tipoAlgoritmo, ColorScheme colorScheme) {
+    if (tipoAlgoritmo == 'assignment') {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+        decoration: BoxDecoration(
+          color: const Color(0xFF7C4DFF).withValues(alpha: 0.15),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: const Color(0xFF7C4DFF).withValues(alpha: 0.5),
+          ),
+        ),
+        child: const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.assignment_turned_in_rounded,
+              size: 11,
+              color: Color(0xFF7C4DFF),
+            ),
+            SizedBox(width: 4),
+            Text(
+              'Asignación',
+              style: TextStyle(
+                fontSize: 10.5,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF7C4DFF),
+              ),
+            ),
+          ],
+        ),
+      );
+    } else if (tipoAlgoritmo == 'johnson') {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+        decoration: BoxDecoration(
+          color: const Color(0xFF0288D1).withValues(alpha: 0.15),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: const Color(0xFF0288D1).withValues(alpha: 0.5),
+          ),
+        ),
+        child: const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.alt_route_rounded, size: 11, color: Color(0xFF0288D1)),
+            SizedBox(width: 4),
+            Text(
+              'Johnson',
+              style: TextStyle(
+                fontSize: 10.5,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF0288D1),
+              ),
+            ),
+          ],
+        ),
+      );
+    } else {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+        decoration: BoxDecoration(
+          color: colorScheme.outline.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: colorScheme.outline.withValues(alpha: 0.3)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.brush_outlined,
+              size: 11,
+              color: colorScheme.onSurfaceVariant,
+            ),
+            const SizedBox(width: 4),
+            Text(
+              'Libre',
+              style: TextStyle(
+                fontSize: 10.5,
+                fontWeight: FontWeight.w600,
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
   }
 }
 

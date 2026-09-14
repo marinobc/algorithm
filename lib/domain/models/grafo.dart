@@ -6,6 +6,7 @@ class Grafo {
   final Map<String, Nodo> nodos;
   final Map<String, Conexion> conexiones;
   final List<Atributo> atributosGlobales;
+  final String? tipoAlgoritmo;
 
   const Grafo({
     this.nodos = const {},
@@ -13,17 +14,23 @@ class Grafo {
     this.atributosGlobales = const [
       Atributo(id: 'attr_valor', nombre: 'Valor'),
     ],
+    this.tipoAlgoritmo,
   });
 
   Grafo copyWith({
     Map<String, Nodo>? nodos,
     Map<String, Conexion>? conexiones,
     List<Atributo>? atributosGlobales,
+    String? tipoAlgoritmo,
+    bool clearTipoAlgoritmo = false,
   }) {
     return Grafo(
       nodos: nodos ?? this.nodos,
       conexiones: conexiones ?? this.conexiones,
       atributosGlobales: atributosGlobales ?? this.atributosGlobales,
+      tipoAlgoritmo: clearTipoAlgoritmo
+          ? null
+          : (tipoAlgoritmo ?? this.tipoAlgoritmo),
     );
   }
 
@@ -34,6 +41,7 @@ class Grafo {
         (key, value) => MapEntry(key, value.toJson()),
       ),
       'atributosGlobales': atributosGlobales.map((a) => a.toJson()).toList(),
+      if (tipoAlgoritmo != null) 'tipoAlgoritmo': tipoAlgoritmo,
     };
   }
 
@@ -59,6 +67,7 @@ class Grafo {
       nodos: parsedNodos,
       conexiones: parsedConexiones,
       atributosGlobales: parsedAttrs,
+      tipoAlgoritmo: json['tipoAlgoritmo'] as String?,
     );
   }
 

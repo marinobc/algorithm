@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../algorithms/assignment/providers/assignment_provider.dart';
 import '../../algorithms/assignment/ui/assignment_algorithm_card.dart';
+import '../../algorithms/core/algorithm_registry.dart';
 import '../../algorithms/johnson/providers/johnson_provider.dart';
 import '../../algorithms/johnson/ui/johnson_algorithm_card.dart';
 
@@ -13,6 +14,12 @@ class FloatingAlgorithmCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final activeAlgo = ref.watch(activeAlgorithmProvider);
+    if (activeAlgo != null) {
+      final card = activeAlgo.buildAlgorithmCard(context, ref);
+      if (card != null) return card;
+    }
+
     final assignmentState = ref.watch(transportationNotifierProvider);
     final assignmentValidation = ref.watch(transportationValidationProvider);
 

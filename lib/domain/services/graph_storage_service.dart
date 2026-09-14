@@ -50,6 +50,7 @@ class SavedGraphItem {
   final int currentVersion;
   final List<GraphVersion> history;
   final String? thumbnailBase64;
+  final String? tipoAlgoritmo;
 
   const SavedGraphItem({
     required this.id,
@@ -61,6 +62,7 @@ class SavedGraphItem {
     this.currentVersion = 1,
     this.history = const [],
     this.thumbnailBase64,
+    this.tipoAlgoritmo,
   });
 
   Map<String, dynamic> toJson() {
@@ -74,6 +76,7 @@ class SavedGraphItem {
       'currentVersion': currentVersion,
       'history': history.map((h) => h.toJson()).toList(),
       'thumbnailBase64': thumbnailBase64,
+      if (tipoAlgoritmo != null) 'tipoAlgoritmo': tipoAlgoritmo,
     };
   }
 
@@ -95,6 +98,7 @@ class SavedGraphItem {
           (historyList.isNotEmpty ? historyList.last.versionNumber : 1),
       history: historyList,
       thumbnailBase64: json['thumbnailBase64'] as String?,
+      tipoAlgoritmo: json['tipoAlgoritmo'] as String?,
     );
   }
 }
@@ -187,6 +191,7 @@ class GraphStorageService {
       currentVersion: 1,
       history: [initialVersion],
       thumbnailBase64: null,
+      tipoAlgoritmo: graph.tipoAlgoritmo,
     );
 
     items.insert(0, newItem);
@@ -249,6 +254,7 @@ class GraphStorageService {
       currentVersion: nextVersionNumber,
       history: updatedHistory,
       thumbnailBase64: null,
+      tipoAlgoritmo: graph.tipoAlgoritmo,
     );
 
     if (index != -1) {
@@ -295,6 +301,7 @@ class GraphStorageService {
       currentVersion: existing.currentVersion,
       history: existing.history,
       thumbnailBase64: existing.thumbnailBase64,
+      tipoAlgoritmo: existing.tipoAlgoritmo,
     );
 
     items[index] = updated;
@@ -323,6 +330,7 @@ class GraphStorageService {
       currentVersion: existing.currentVersion,
       history: existing.history,
       thumbnailBase64: thumbnailBase64,
+      tipoAlgoritmo: existing.tipoAlgoritmo,
     );
 
     items[index] = updated;

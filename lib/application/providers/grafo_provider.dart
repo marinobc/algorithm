@@ -90,7 +90,13 @@ class GrafoNotifier extends Notifier<Grafo> {
   }
 
   /// Adds a new node to the graph and returns the created node.
-  Nodo agregarNodo(double x, double y, {String? nombre, int? colorValue}) {
+  Nodo agregarNodo(
+    double x,
+    double y, {
+    String? nombre,
+    int? colorValue,
+    String? rol,
+  }) {
     _recordUndoState();
     final clamped = GraphGeometry.clampNodePosition(x, y);
     final nextNumber = state.nodos.length + 1;
@@ -105,12 +111,24 @@ class GrafoNotifier extends Notifier<Grafo> {
       colorValue: nodeColor,
       x: clamped.x,
       y: clamped.y,
+      rol: rol,
     );
 
     final updatedNodos = Map<String, Nodo>.from(state.nodos)
       ..[nodeId] = nuevoNodo;
     state = state.copyWith(nodos: updatedNodos);
     return nuevoNodo;
+  }
+
+  /// Adds a fully-prepared Nodo instance to the graph.
+  Nodo agregarNodoInstancia(Nodo nodo) {
+    _recordUndoState();
+    final clamped = GraphGeometry.clampNodePosition(nodo.x, nodo.y);
+    final clampedNode = nodo.copyWith(x: clamped.x, y: clamped.y);
+    final updatedNodos = Map<String, Nodo>.from(state.nodos)
+      ..[clampedNode.id] = clampedNode;
+    state = state.copyWith(nodos: updatedNodos);
+    return clampedNode;
   }
 
   /// Updates node position.
@@ -127,14 +145,22 @@ class GrafoNotifier extends Notifier<Grafo> {
     state = state.copyWith(nodos: updatedNodos);
   }
 
-  /// Updates node properties (name, color).
-  void actualizarNodo(String id, {String? nombre, int? colorValue}) {
+  /// Updates node properties (name, color, rol).
+  void actualizarNodo(
+    String id, {
+    String? nombre,
+    int? colorValue,
+    String? rol,
+    bool clearRol = false,
+  }) {
     final nodo = state.nodos[id];
     if (nodo == null) return;
     _recordUndoState();
     final updatedNodo = nodo.copyWith(
       nombre: nombre ?? nodo.nombre,
       colorValue: colorValue ?? nodo.colorValue,
+      rol: clearRol ? null : (rol ?? nodo.rol),
+      clearRol: clearRol,
     );
     final updatedNodos = Map<String, Nodo>.from(state.nodos)
       ..[id] = updatedNodo;

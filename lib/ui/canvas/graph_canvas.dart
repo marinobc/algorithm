@@ -11,7 +11,9 @@ import '../../application/providers/grafo_invalido_provider.dart';
 import '../../application/providers/grafo_provider.dart';
 import '../../application/providers/modo_provider.dart';
 import '../../algorithms/assignment/providers/assignment_provider.dart';
+import '../../algorithms/core/algorithm_registry.dart';
 import '../../domain/models/conexion.dart';
+import '../../domain/models/direccion.dart';
 import '../../domain/models/grafo.dart';
 import '../../domain/models/nodo.dart';
 import '../../domain/services/graph_geometry.dart';
@@ -472,6 +474,20 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
             targetNode != null &&
             targetNode.id != startId) {
           // Instant drag to connect DIFFERENT target node!
+          final policy = ref.read(activePolicyProvider);
+          if (policy != null) {
+            final check = policy.canCreateConnection(
+              grafo,
+              startId,
+              targetNode.id,
+              Direccion.unidireccional,
+            );
+            if (!check.allowed) {
+              _showPolicyDeniedSnackBar(check.message);
+              return;
+            }
+          }
+
           ref
               .read(grafoProvider.notifier)
               .agregarConexion(startId, targetNode.id);
@@ -596,6 +612,15 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
         _singleTapEditTimer?.cancel();
         _lastTapNodeId = null;
         _lastTapTime = null;
+
+        final policy = ref.read(activePolicyProvider);
+        if (policy != null && !policy.allowSelfLoops) {
+          _showPolicyDeniedSnackBar(
+            'El algoritmo activo no permite auto-conexiones (bucles).',
+          );
+          return;
+        }
+
         ref
             .read(grafoProvider.notifier)
             .agregarConexion(firstNode.id, firstNode.id);
@@ -681,12 +706,52 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
         worldPos.dy,
       );
 
-      ref.read(grafoProvider.notifier).agregarNodo(validPos.x, validPos.y);
+      final policy = ref.read(activePolicyProvider);
+      if (policy != null) {
+        final nodeCheck = policy.canCreateNode(grafo, validPos.x, validPos.y);
+        if (!nodeCheck.allowed) {
+          _showPolicyDeniedSnackBar(nodeCheck.message);
+          return;
+        }
+        final newNode = policy.prepareNewNode(grafo, validPos.x, validPos.y);
+        ref.read(grafoProvider.notifier).agregarNodoInstancia(newNode);
+      } else {
+        ref.read(grafoProvider.notifier).agregarNodo(validPos.x, validPos.y);
+      }
+
       ref.read(estadoEdicionProvider.notifier).deseleccionar();
       _singleTapEditTimer?.cancel();
       _lastTapNodeId = null;
       _lastTapTime = null;
     }
+  }
+
+  void _showPolicyDeniedSnackBar(String? message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.block_rounded, color: Colors.white, size: 20),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                message ?? 'Acción no permitida en este modo de algoritmo.',
+                style: const TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                ),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: Colors.red.shade800,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 3),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
   }
 
   void _triggerContextMenu(Offset screenPos, String targetId, bool isNode) {

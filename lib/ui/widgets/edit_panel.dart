@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../algorithms/core/algorithm_registry.dart';
 import '../../application/providers/atributos_provider.dart';
 import '../../application/providers/edicion_provider.dart';
 import '../../application/providers/grafo_provider.dart';
@@ -278,57 +279,76 @@ class _EditPanelState extends ConsumerState<EditPanel> {
     final nameA = origNode?.nombre ?? 'Nodo A';
     final nameB = destNode?.nombre ?? 'Nodo B';
     final isSelfLoop = origNodeId != null && origNodeId == destNodeId;
+    final activeAlgo = ref.watch(activeAlgorithmProvider);
+    final activePolicy = ref.watch(activePolicyProvider);
+
+    final allowedDirs =
+        activePolicy != null && origNodeId != null && destNodeId != null
+        ? activePolicy.allowedDirections(
+            ref.read(grafoProvider),
+            origNodeId,
+            destNodeId,
+          )
+        : const [Direccion.ninguna, Direccion.unidireccional];
 
     final List<_ChoiceOption<String>> directionOptions = [];
 
     if (isSelfLoop) {
-      directionOptions.add(
-        _ChoiceOption<String>(
-          id: 'undirected',
-          label: 'No dirigida',
-          onSelect: () {
-            setState(() {
-              _selectedDireccion = Direccion.ninguna;
-            });
-          },
-        ),
-      );
-      directionOptions.add(
-        _ChoiceOption<String>(
-          id: 'directional',
-          label: 'Dirigida (Bucle en $nameA)',
-          onSelect: () {
-            setState(() {
-              _selectedDireccion = Direccion.unidireccional;
-            });
-          },
-        ),
-      );
+      if (allowedDirs.contains(Direccion.ninguna)) {
+        directionOptions.add(
+          _ChoiceOption<String>(
+            id: 'undirected',
+            label: 'No dirigida',
+            onSelect: () {
+              setState(() {
+                _selectedDireccion = Direccion.ninguna;
+              });
+            },
+          ),
+        );
+      }
+      if (allowedDirs.contains(Direccion.unidireccional)) {
+        directionOptions.add(
+          _ChoiceOption<String>(
+            id: 'directional',
+            label: 'Dirigida (Bucle en $nameA)',
+            onSelect: () {
+              setState(() {
+                _selectedDireccion = Direccion.unidireccional;
+              });
+            },
+          ),
+        );
+      }
     } else {
-      directionOptions.add(
-        _ChoiceOption<String>(
-          id: 'undirected',
-          label: 'No dirigida',
-          onSelect: () {
-            setState(() {
-              _selectedDireccion = Direccion.ninguna;
-            });
-          },
-        ),
-      );
-      directionOptions.add(
-        _ChoiceOption<String>(
-          id: 'directional',
-          label: 'Dirigida ($nameA → $nameB)',
-          onSelect: () {
-            setState(() {
-              _selectedDireccion = Direccion.unidireccional;
-              _selectedOrigenId = origNodeId;
-              _selectedDestinoId = destNodeId;
-            });
-          },
-        ),
-      );
+      if (allowedDirs.contains(Direccion.ninguna)) {
+        directionOptions.add(
+          _ChoiceOption<String>(
+            id: 'undirected',
+            label: 'No dirigida',
+            onSelect: () {
+              setState(() {
+                _selectedDireccion = Direccion.ninguna;
+              });
+            },
+          ),
+        );
+      }
+      if (allowedDirs.contains(Direccion.unidireccional)) {
+        directionOptions.add(
+          _ChoiceOption<String>(
+            id: 'directional',
+            label: 'Dirigida ($nameA → $nameB)',
+            onSelect: () {
+              setState(() {
+                _selectedDireccion = Direccion.unidireccional;
+                _selectedOrigenId = origNodeId;
+                _selectedDestinoId = destNodeId;
+              });
+            },
+          ),
+        );
+      }
     }
 
     String currentDirectionOptionId =
@@ -342,6 +362,13 @@ class _EditPanelState extends ConsumerState<EditPanel> {
     final itemTitle = isNode
         ? DialogText.nodeProperties
         : ConnectionText.attributesHeader;
+
+    final currentNode = isNode && edicion.itemSeleccionadoId != null
+        ? ref.watch(grafoProvider).nodos[edicion.itemSeleccionadoId]
+        : null;
+    final customNodeControls = currentNode != null
+        ? activeAlgo?.buildNodeEditControls(context, ref, currentNode)
+        : null;
 
     return Material(
       elevation: 8,
@@ -398,6 +425,10 @@ class _EditPanelState extends ConsumerState<EditPanel> {
                           .marcarCambioSinGuardar();
                     },
                   ),
+                  if (customNodeControls != null) ...[
+                    const SizedBox(height: 10),
+                    customNodeControls,
+                  ],
                 ],
                 if (!isNode) ...[
                   ConnectionEditSection(

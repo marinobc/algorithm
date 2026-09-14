@@ -67,7 +67,9 @@ class AppDrawer extends ConsumerWidget {
                     ],
                   ),
                   const SizedBox(height: 12),
-                  Row(
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 4,
                     children: [
                       Chip(
                         label: Text('${graph.nodos.length} Nodos'),
@@ -77,7 +79,6 @@ class AppDrawer extends ConsumerWidget {
                           color: colorScheme.primary,
                         ),
                       ),
-                      const SizedBox(width: 8),
                       Chip(
                         label: Text('${graph.conexiones.length} Aristas'),
                         avatar: Icon(

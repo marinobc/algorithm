@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../application/providers/grafo_provider.dart';
+import '../../../../domain/models/grafo.dart';
 import '../../../../domain/highlights/algorithm_highlight.dart';
 import '../domain/models/johnson_models.dart';
 import '../domain/services/johnson_validator.dart';
@@ -32,6 +33,26 @@ class JohnsonNotifier extends Notifier<JohnsonState> {
         state = state.copyWith(isActive: false);
       }
     });
+
+    // Reset optimization state if canvas structure changes (nodes inserted/deleted, connections changed),
+    // but preserve optimization state if nodes are merely moved around.
+    ref.listen<Grafo>(grafoProvider, (previous, next) {
+      if (state.isActive && previous != null) {
+        final sameNodesStructure =
+            previous.nodos.length == next.nodos.length &&
+            previous.nodos.keys.every((id) {
+              final p = previous.nodos[id];
+              final n = next.nodos[id];
+              return n != null && p?.nombre == n.nombre && p?.rol == n.rol;
+            });
+        final sameConexiones = previous.conexiones == next.conexiones;
+
+        if (!sameNodesStructure || !sameConexiones) {
+          state = state.copyWith(isActive: false);
+        }
+      }
+    });
+
     return const JohnsonState();
   }
 

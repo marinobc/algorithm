@@ -5,6 +5,7 @@ class Nodo {
   final double x;
   final double y;
   final double radius;
+  final String? rol; // Optional semantic role (e.g. 'origen', 'destino')
 
   static const double defaultRadius = 32.0; // Default diameter = 64.0
 
@@ -15,6 +16,7 @@ class Nodo {
     required this.x,
     required this.y,
     this.radius = defaultRadius,
+    this.rol,
   });
 
   double get diameter => radius * 2;
@@ -26,6 +28,8 @@ class Nodo {
     double? x,
     double? y,
     double? radius,
+    String? rol,
+    bool clearRol = false,
   }) {
     return Nodo(
       id: id ?? this.id,
@@ -34,6 +38,7 @@ class Nodo {
       x: x ?? this.x,
       y: y ?? this.y,
       radius: radius ?? this.radius,
+      rol: clearRol ? null : (rol ?? this.rol),
     );
   }
 
@@ -45,6 +50,7 @@ class Nodo {
       'x': x,
       'y': y,
       'radius': radius,
+      if (rol != null) 'rol': rol,
     };
   }
 
@@ -56,6 +62,7 @@ class Nodo {
       x: (json['x'] as num).toDouble(),
       y: (json['y'] as num).toDouble(),
       radius: (json['radius'] as num?)?.toDouble() ?? defaultRadius,
+      rol: json['rol'] as String?,
     );
   }
 
@@ -69,7 +76,8 @@ class Nodo {
           colorValue == other.colorValue &&
           x == other.x &&
           y == other.y &&
-          radius == other.radius;
+          radius == other.radius &&
+          rol == other.rol;
 
   @override
   int get hashCode =>
@@ -78,5 +86,6 @@ class Nodo {
       colorValue.hashCode ^
       x.hashCode ^
       y.hashCode ^
-      radius.hashCode;
+      radius.hashCode ^
+      rol.hashCode;
 }

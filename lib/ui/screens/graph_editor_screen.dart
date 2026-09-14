@@ -3,6 +3,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../algorithms/assignment/providers/assignment_provider.dart';
+import '../../algorithms/core/algorithm_registry.dart';
+import '../../algorithms/core/graph_algorithm.dart';
+import '../../algorithms/johnson/providers/johnson_provider.dart';
 import '../../application/providers/edicion_provider.dart';
 import '../../application/providers/grafo_invalido_provider.dart';
 import '../../application/providers/grafo_provider.dart';
@@ -11,6 +15,7 @@ import '../../domain/services/graph_storage_service.dart';
 import '../canvas/graph_canvas.dart';
 import '../dialogs/adjacency_matrix_dialog.dart';
 import '../dialogs/ai_chat_dialog.dart';
+import '../dialogs/algorithm_selection_dialog.dart';
 import '../dialogs/config_dialog.dart';
 import '../dialogs/load_graph_dialog.dart';
 import '../dialogs/rename_graph_dialog.dart';
@@ -31,6 +36,35 @@ class GraphEditorScreen extends ConsumerStatefulWidget {
 
 class _GraphEditorScreenState extends ConsumerState<GraphEditorScreen> {
   final GlobalKey<GraphCanvasState> _canvasKey = GlobalKey<GraphCanvasState>();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final activeAlgo = ref.read(activeAlgorithmProvider);
+      final grafo = ref.read(grafoProvider);
+      final loadedItem = ref.read(loadedGraphItemProvider);
+      if (activeAlgo == null && grafo.nodos.isEmpty && loadedItem == null) {
+        AlgorithmSelectionDialog.show(context, ref);
+      }
+    });
+  }
+
+  void _cleanAndUnloadAll() {
+    ref.read(grafoProvider.notifier).limpiarGrafo();
+    ref.read(loadedGraphItemProvider.notifier).setLoadedItem(null);
+    ref.read(activeAlgorithmProvider.notifier).clear();
+    ref.read(transportationNotifierProvider.notifier).setActive(false);
+    ref.read(johnsonNotifierProvider.notifier).setActive(false);
+    ref.read(estadoEdicionProvider.notifier).desmarcarCambiosSinGuardar();
+    ref.read(estadoEdicionProvider.notifier).deseleccionar();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
 
   void _openConfigModal() {
     Navigator.of(context)
@@ -117,7 +151,9 @@ class _GraphEditorScreenState extends ConsumerState<GraphEditorScreen> {
   }
 
   Future<void> _saveCurrentGraph() async {
-    final graph = ref.read(grafoProvider);
+    final rawGraph = ref.read(grafoProvider);
+    final activeAlgo = ref.read(activeAlgorithmProvider);
+    final graph = rawGraph.copyWith(tipoAlgoritmo: activeAlgo?.id);
     final loadedItem = ref.read(loadedGraphItemProvider);
 
     final graphNotifier = ref.read(grafoProvider.notifier);
@@ -222,13 +258,99 @@ class _GraphEditorScreenState extends ConsumerState<GraphEditorScreen> {
       );
       ref.read(grafoProvider.notifier).cargarGrafo(loadedGraph);
       ref.read(loadedGraphItemProvider.notifier).setLoadedItem(selectedItem);
+
+      // Restore the algorithm that this graph was saved with, but keep optimization results temporal (inactive until user taps Optimizar)
+      final savedAlgoId =
+          loadedGraph.tipoAlgoritmo ?? selectedItem.tipoAlgoritmo;
+      if (savedAlgoId != null) {
+        ref.read(activeAlgorithmProvider.notifier).selectById(savedAlgoId);
+      } else {
+        ref.read(activeAlgorithmProvider.notifier).clear();
+      }
+
+      ref.read(transportationNotifierProvider.notifier).setActive(false);
+      ref.read(johnsonNotifierProvider.notifier).setActive(false);
+
       ref.read(estadoEdicionProvider.notifier).desmarcarCambiosSinGuardar();
       ref.read(estadoEdicionProvider.notifier).deseleccionar();
 
+      final currentAlgo = ref.read(activeAlgorithmProvider);
+      final algoName = currentAlgo?.name ?? 'Modo Libre';
+      final algoColor =
+          currentAlgo?.themeColor ?? Theme.of(context).colorScheme.primary;
+      final algoIcon = currentAlgo?.icon ?? Icons.brush_outlined;
+
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Grafo "${selectedItem.nombre}" cargado.'),
-          duration: const Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(28),
+            side: BorderSide(
+              color: algoColor.withValues(alpha: 0.5),
+              width: 1.2,
+            ),
+          ),
+          backgroundColor: Theme.of(context).colorScheme.surfaceContainerHigh
+              .withValues(alpha: 0.95),
+          elevation: 6,
+          margin: const EdgeInsets.only(bottom: 24, left: 32, right: 32),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          duration: const Duration(seconds: 3),
+          content: Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(
+                Icons.check_circle_rounded,
+                color: Color(0xFF00BFA5),
+                size: 20,
+              ),
+              const SizedBox(width: 10),
+              Flexible(
+                child: Text(
+                  'Grafo "${selectedItem.nombre}" cargado',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: 12),
+              // Algorithm pill
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 5,
+                ),
+                decoration: BoxDecoration(
+                  color: algoColor.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: algoColor.withValues(alpha: 0.7),
+                    width: 1.2,
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(algoIcon, size: 14, color: algoColor),
+                    const SizedBox(width: 6),
+                    Text(
+                      algoName,
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.bold,
+                        color: algoColor,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       );
     }
@@ -237,17 +359,106 @@ class _GraphEditorScreenState extends ConsumerState<GraphEditorScreen> {
   void _onVaciarGrafoSelected() async {
     final canProceed = await _promptUnsavedChanges(isNewGraph: true);
     if (canProceed && mounted) {
-      ref.read(grafoProvider.notifier).limpiarGrafo();
-      ref.read(loadedGraphItemProvider.notifier).setLoadedItem(null);
-      ref.read(estadoEdicionProvider.notifier).desmarcarCambiosSinGuardar();
-      ref.read(estadoEdicionProvider.notifier).deseleccionar();
+      _cleanAndUnloadAll();
+
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Grafo vaciado.'),
+          content: Text('Lienzo vaciado. Modo Libre activado.'),
           duration: Duration(seconds: 2),
         ),
       );
     }
+  }
+
+  void _showAlgorithmModeDialog(BuildContext context) {
+    final grafo = ref.read(grafoProvider);
+
+    // If canvas is not empty, do not let user change algorithm
+    if (grafo.nodos.isNotEmpty) {
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: const Row(
+            children: [
+              Icon(Icons.lock_outline_rounded, color: Colors.amber, size: 24),
+              SizedBox(width: 10),
+              Text(
+                'Lienzo no vacío',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          content: const Text(
+            'Para cambiar el tipo de algoritmo, el lienzo debe estar completamente vacío.\n\nPor favor vacíe el grafo antes de seleccionar otro algoritmo.',
+          ),
+          actions: [
+            FilledButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('Entendido'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
+    AlgorithmSelectionDialog.show(context, ref);
+  }
+
+  Widget _buildAlgorithmModeBadge(
+    BuildContext context,
+    GraphAlgorithm? activeAlgo,
+  ) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    final isAlgoActive = activeAlgo != null;
+    final badgeColor = isAlgoActive
+        ? activeAlgo.themeColor
+        : colorScheme.outline;
+    final badgeLabel = isAlgoActive ? activeAlgo.shortName : 'Modo Libre';
+    final badgeIcon = isAlgoActive ? activeAlgo.icon : Icons.brush_outlined;
+
+    return InkWell(
+      onTap: () => _showAlgorithmModeDialog(context),
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: badgeColor.withValues(alpha: isAlgoActive ? 0.16 : 0.08),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: badgeColor.withValues(alpha: isAlgoActive ? 0.6 : 0.25),
+            width: 1.2,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(badgeIcon, size: 16, color: badgeColor),
+            const SizedBox(width: 6),
+            Text(
+              badgeLabel,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: isAlgoActive ? badgeColor : colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(width: 2),
+            Icon(
+              Icons.arrow_drop_down_rounded,
+              size: 16,
+              color: isAlgoActive ? badgeColor : colorScheme.onSurfaceVariant,
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -259,10 +470,13 @@ class _GraphEditorScreenState extends ConsumerState<GraphEditorScreen> {
 
     final loadedItem = ref.watch(loadedGraphItemProvider);
     final edicion = ref.watch(estadoEdicionProvider);
+    final activeAlgo = ref.watch(activeAlgorithmProvider);
 
     final titleText = loadedItem != null
         ? '${loadedItem.nombre}${edicion.tieneCambiosSinGuardar ? " *" : ""}'
         : 'Nuevo Grafo${edicion.tieneCambiosSinGuardar ? " *" : ""}';
+
+    final canvasControls = activeAlgo?.buildCanvasControls(context, ref);
 
     return PopScope(
       canPop: false,
@@ -270,6 +484,7 @@ class _GraphEditorScreenState extends ConsumerState<GraphEditorScreen> {
         if (didPop) return;
         final canPop = await _promptUnsavedChanges();
         if (canPop && context.mounted) {
+          _cleanAndUnloadAll();
           Navigator.of(context).pop();
         }
       },
@@ -284,6 +499,7 @@ class _GraphEditorScreenState extends ConsumerState<GraphEditorScreen> {
             onPressed: () async {
               final canPop = await _promptUnsavedChanges();
               if (canPop && context.mounted) {
+                _cleanAndUnloadAll();
                 if (Navigator.of(context).canPop()) {
                   Navigator.of(context).pop();
                 } else {
@@ -317,6 +533,8 @@ class _GraphEditorScreenState extends ConsumerState<GraphEditorScreen> {
             ],
           ),
           actions: [
+            _buildAlgorithmModeBadge(context, activeAlgo),
+            const SizedBox(width: 8),
             Builder(
               builder: (menuCtx) => IconButton(
                 icon: const Icon(Icons.menu_rounded),
@@ -343,6 +561,8 @@ class _GraphEditorScreenState extends ConsumerState<GraphEditorScreen> {
         body: Stack(
           children: [
             Positioned.fill(child: GraphCanvas(key: _canvasKey)),
+            if (canvasControls != null)
+              Positioned(top: 14, left: 14, child: canvasControls),
             Positioned(
               top: 12,
               left: 12,

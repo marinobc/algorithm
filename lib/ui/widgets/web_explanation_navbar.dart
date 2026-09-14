@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../algorithms/core/algorithm_registry.dart';
 import '../screens/assignment_algo_screen.dart';
 import '../screens/contact_screen.dart';
 import '../screens/graph_editor_screen.dart';
@@ -9,7 +11,7 @@ import '../screens/what_are_graphs_screen.dart';
 
 enum ExplanationWebPage { algorithms, graphs, assignment, johnson, contact }
 
-class WebExplanationShell extends StatelessWidget {
+class WebExplanationShell extends ConsumerWidget {
   final ExplanationWebPage activePage;
   final Widget? child;
 
@@ -47,14 +49,26 @@ class WebExplanationShell extends StatelessWidget {
     );
   }
 
-  void _goToApp(BuildContext context) {
+  void _goToApp(BuildContext context, WidgetRef ref) {
+    if (activePage == ExplanationWebPage.assignment) {
+      ref
+          .read(activeAlgorithmProvider.notifier)
+          .selectById(AlgorithmRegistry.assignmentId);
+    } else if (activePage == ExplanationWebPage.johnson) {
+      ref
+          .read(activeAlgorithmProvider.notifier)
+          .selectById(AlgorithmRegistry.johnsonId);
+    } else {
+      ref.read(activeAlgorithmProvider.notifier).clear();
+    }
+
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(builder: (_) => const GraphEditorScreen()),
     );
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
     final width = MediaQuery.of(context).size.width;
 
@@ -96,7 +110,7 @@ class WebExplanationShell extends StatelessWidget {
                             horizontal: 16,
                             vertical: 20,
                           ),
-                          child: _buildSidebarMenuContent(context),
+                          child: _buildSidebarMenuContent(context, ref),
                         ),
                       ),
                     );
@@ -135,7 +149,11 @@ class WebExplanationShell extends StatelessWidget {
                       horizontal: 16,
                       vertical: 20,
                     ),
-                    child: _buildSidebarMenuContent(context, isDrawer: true),
+                    child: _buildSidebarMenuContent(
+                      context,
+                      ref,
+                      isDrawer: true,
+                    ),
                   ),
                 ),
               );
@@ -226,7 +244,8 @@ class WebExplanationShell extends StatelessWidget {
   }
 
   Widget _buildSidebarMenuContent(
-    BuildContext context, {
+    BuildContext context,
+    WidgetRef ref, {
     bool isDrawer = false,
   }) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -293,7 +312,7 @@ class WebExplanationShell extends StatelessWidget {
           child: FilledButton.icon(
             onPressed: () {
               if (isDrawer) Navigator.of(context).pop();
-              _goToApp(context);
+              _goToApp(context, ref);
             },
             style: FilledButton.styleFrom(
               backgroundColor: colorScheme.primary,
