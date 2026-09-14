@@ -60,7 +60,7 @@ class JohnsonAlgorithmCard extends ConsumerWidget {
                   if (result.criticalPathSequence.isNotEmpty) ...[
                     const SizedBox(height: 4),
                     Text(
-                      'Ruta Crítica: ${result.criticalPathSequence.join(" ➔ ")}',
+                      'Ruta Crítica: ${result.criticalPathSequence.join(" -> ")}',
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.bold,

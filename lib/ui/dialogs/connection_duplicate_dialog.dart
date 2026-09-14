@@ -59,7 +59,7 @@ class ConnectionDuplicateDialog extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Text(
-              'Ya existe una conexión en esa dirección ($origName ➔ $destName). ¿Deseas reemplazarla o cancelar?',
+              'Ya existe una conexión en esa dirección ($origName -> $destName). ¿Deseas reemplazarla o cancelar?',
               style: TextStyle(color: palette.textPrimary, fontSize: 14),
             ),
             const SizedBox(height: 20),

@@ -281,8 +281,8 @@ class AssignmentDetailsScreen extends ConsumerWidget {
               : 0.0;
 
           final labelText = isFicticio
-              ? '$origLabel ➔ $destLabel'
-              : '$origLabel ➔ $destLabel (Costo: ${costVal.toStringAsFixed(0)})';
+              ? '$origLabel -> $destLabel'
+              : '$origLabel -> $destLabel (Costo: ${costVal.toStringAsFixed(0)})';
 
           widgets.add(
             RawChip(

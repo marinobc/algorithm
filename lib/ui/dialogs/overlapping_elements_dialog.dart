@@ -60,7 +60,7 @@ class OverlappingElementsDialog extends StatelessWidget {
       final dest = nodeMap[conn.nodoDestinoId]?.nombre ?? conn.nodoDestinoId;
       final isSelfLoop = conn.nodoOrigenId == conn.nodoDestinoId;
 
-      final label = isSelfLoop ? 'Bucle en $orig' : '$orig ➔ $dest';
+      final label = isSelfLoop ? 'Bucle en $orig' : '$orig -> $dest';
 
       items.add(
         OverlappingElementItem(

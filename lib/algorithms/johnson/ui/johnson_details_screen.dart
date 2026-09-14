@@ -340,7 +340,7 @@ class JohnsonDetailsScreen extends ConsumerWidget {
           color: colorScheme.primary,
         ),
         columns: const [
-          DataColumn(label: Text('Conexión (Origen ➔ Destino)')),
+          DataColumn(label: Text('Conexión (Origen -> Destino)')),
           DataColumn(label: Text('Duración / Peso')),
           DataColumn(label: Text('Estado en Ruta')),
         ],
@@ -379,7 +379,7 @@ class JohnsonDetailsScreen extends ConsumerWidget {
             cells: [
               DataCell(
                 Text(
-                  '${sourceNode.nodeName} ➔ ${targetNode.nodeName}',
+                  '${sourceNode.nodeName} -> ${targetNode.nodeName}',
                   style: TextStyle(
                     fontWeight: isCritical
                         ? FontWeight.bold

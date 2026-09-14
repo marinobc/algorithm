@@ -159,7 +159,7 @@ class GraphDebugFab extends ConsumerWidget {
                   .map((a) => '${a.atributoId}: ${a.valor}')
                   .join(', ');
               summary.writeln(
-                '//   $orig ➔ $dest | Dir: ${c.direccion.name} | Attrs: [$attrStr]',
+                '//   $orig -> $dest | Dir: ${c.direccion.name} | Attrs: [$attrStr]',
               );
             }
             summary.writeln('\n// JSON Payload for Grafo.fromJson:');
