@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../theme/app_theme.dart';
 import '../widgets/video_resource_card.dart';
 import '../widgets/web_explanation_navbar.dart';
 import 'home_library_screen.dart';
@@ -18,159 +17,202 @@ class AssignmentAlgoScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final palette = M3Palette.of(context);
     final width = MediaQuery.of(context).size.width;
 
-    return Scaffold(
-      backgroundColor: palette.canvasBg,
-      body: Column(
-        children: [
-          const WebExplanationNavbar(activePage: ExplanationWebPage.assignment),
-          Expanded(
-            child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              child: Column(
-                children: [
-                  // Hero Section
-                  _buildHeroSection(context, colorScheme, width),
+    return WebExplanationShell(
+      activePage: ExplanationWebPage.assignment,
+      child: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
+        child: Column(
+          children: [
+            // DIVISION 0: Hero Section
+            _buildHeroSection(context, colorScheme, width),
 
-                  // Content Area
-                  Center(
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 1100),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 24.0,
-                          vertical: 40.0,
+            // DIVISION 1: Concept & Initial Video (Surface Canvas)
+            Container(
+              width: double.infinity,
+              color: colorScheme.surface,
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 1100),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24.0,
+                      vertical: 48.0,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildConceptCard(context, colorScheme),
+                        const SizedBox(height: 36),
+                        _buildLearningSection(
+                          context,
+                          colorScheme,
+                          'Ejemplos cotidianos',
+                          'Asignar repartidores a pedidos, profesores a cursos o máquinas a trabajos son problemas de asignación: cada recurso recibe una tarea y buscamos el menor costo total.',
+                          Icons.lightbulb_outline_rounded,
                         ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Concept Overview Card
-                            _buildConceptCard(context, colorScheme),
-                            const SizedBox(height: 36),
-
-                            _buildLearningSection(
-                              context,
-                              colorScheme,
-                              'Ejemplos cotidianos',
-                              'Asignar repartidores a pedidos, profesores a cursos o máquinas a trabajos son problemas de asignación: cada recurso recibe una tarea y buscamos el menor costo total.',
-                              Icons.lightbulb_outline_rounded,
-                            ),
-                            const SizedBox(height: 36),
-
-                            const VideoResourceCard(
-                              title: '🎥 Video Recomendado: Asignación por Matriz de Ceros Explicada',
-                              description: 'Mira cómo restar mínimos por filas y columnas para resolver problemas de asignación 1 a 1.',
-                              videoUrl: 'https://www.youtube.com/watch?v=T4TrFA39AJU&t=673s',
-                              durationOrAuthor: 'Explicación en Video',
-                            ),
-                            const SizedBox(height: 48),
-
-                            _buildLearningSection(
-                              context,
-                              colorScheme,
-                              'Representación mediante matriz de costos',
-                              'Las filas representan recursos y las columnas tareas. Cada celda contiene el costo de asignar ese recurso a esa tarea. Una solución válida selecciona una celda por fila y por columna.',
-                              Icons.table_chart_outlined,
-                            ),
-                            const SizedBox(height: 36),
-
-                            _buildModelSection(context, colorScheme),
-                            const SizedBox(height: 36),
-
-                            _buildMethodsSection(context, colorScheme),
-                            const SizedBox(height: 48),
-
-                            const VideoResourceCard(
-                              title: 'Video 2: métodos de asignación',
-                              description: 'Refuerza las estrategias para encontrar una combinación óptima y comparar sus resultados.',
-                              videoUrl:
-                                  'https://www.youtube.com/watch?v=_XvIC2KvWvo',
-                              durationOrAuthor: 'Métodos de solución',
-                            ),
-                            const SizedBox(height: 48),
-
-                            _buildLearningSection(
-                              context,
-                              colorScheme,
-                              'Algoritmo Húngaro',
-                              'Es un procedimiento exacto para resolver matrices cuadradas de costos. Convierte el problema en una estructura de ceros y encuentra una selección independiente que cubre todas las filas y columnas.',
-                              Icons.auto_graph_rounded,
-                            ),
-                            const SizedBox(height: 48),
-
-                            _buildStepsSection(context, colorScheme, width),
-                            const SizedBox(height: 48),
-
-                            const VideoResourceCard(
-                              title:
-                                  'Video 3: explicación del algoritmo húngaro',
-                              description: 'Observa la transformación de la matriz y la elección de ceros paso a paso.',
-                              videoUrl: 'https://youtu.be/Rjts-iAq1XE?utm_source=chatgpt.com',
-                              durationOrAuthor: 'Explicación principal',
-                            ),
-                            const SizedBox(height: 48),
-
-                            _buildExampleSection(context, colorScheme),
-                            const SizedBox(height: 48),
-
-                            const VideoResourceCard(
-                              title: 'Video 4: ejemplo resuelto',
-                              description: 'Compara este procedimiento con otra resolución completa de un problema de asignación.',
-                              videoUrl: 'https://youtu.be/0Zgdui3GqZo?utm_source=chatgpt.com',
-                              durationOrAuthor: 'Ejercicio guiado',
-                            ),
-                            const SizedBox(height: 48),
-
-                            _buildImplementationSection(context, colorScheme),
-                            const SizedBox(height: 48),
-
-                            _buildConceptualFeaturesSection(
-                              context,
-                              colorScheme,
-                            ),
-                            const SizedBox(height: 48),
-
-                            _buildApplicationsSection(context, colorScheme),
-                            const SizedBox(height: 48),
-
-                            const VideoResourceCard(
-                              title: 'Video 5: aplicaciones de la asignación',
-                              description: 'Cierra la lección con ejemplos de cómo este modelo ayuda a tomar decisiones eficientes.',
-                              videoUrl:
-                                  'https://www.youtube.com/watch?v=qPkMRXhEQHI',
-                              durationOrAuthor: 'Aplicaciones reales',
-                            ),
-                            const SizedBox(height: 56),
-
-                            /* Video anterior conservado como Video 1. */
-                            /*
-                            const VideoResourceCard(
-                              title: 'Video recomendado: método húngaro',
-                              description: 'Sigue paso a paso la reducción de la matriz y la selección de asignaciones óptimas.',
-                              videoUrl:
-                                  'https://www.youtube.com/watch?v=_XvIC2KvWvo',
-                              durationOrAuthor: 'Método Húngaro',
-                            ),
-                            */
-                            _buildHumanAnalogyCard(context, colorScheme),
-
-                            // CTA Card
-                            _buildCtaCard(context, colorScheme),
-                          ],
+                        const SizedBox(height: 36),
+                        const VideoResourceCard(
+                          title: 'Video Recomendado: Asignación por Matriz de Ceros Explicada',
+                          description: 'Mira cómo restar mínimos por filas y columnas para resolver problemas de asignación 1 a 1.',
+                          videoUrl: 'https://www.youtube.com/watch?v=T4TrFA39AJU&t=673s',
+                          durationOrAuthor: 'Explicación en Video',
                         ),
-                      ),
+                      ],
                     ),
                   ),
-
-                  // Footer
-                  _buildWebFooter(context, colorScheme),
-                ],
+                ),
               ),
             ),
-          ),
-        ],
+
+            // DIVISION 2: Matrix Representation & Methods (Alternating Background)
+            Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: colorScheme.surfaceContainerLow,
+                border: Border.symmetric(
+                  horizontal: BorderSide(
+                    color: colorScheme.outline.withValues(alpha: 0.2),
+                    width: 1.5,
+                  ),
+                ),
+              ),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 1100),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24.0,
+                      vertical: 48.0,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildLearningSection(
+                          context,
+                          colorScheme,
+                          'Representación mediante matriz de costos',
+                          'Las filas representan recursos y las columnas tareas. Cada celda contiene el costo de asignar ese recurso a esa tarea. Una solución válida selecciona una celda por fila y por columna.',
+                          Icons.table_chart_outlined,
+                        ),
+                        const SizedBox(height: 36),
+                        _buildModelSection(context, colorScheme),
+                        const SizedBox(height: 36),
+                        _buildMethodsSection(context, colorScheme),
+                        const SizedBox(height: 48),
+                        const VideoResourceCard(
+                          title: 'Video 2: métodos de asignación',
+                          description: 'Refuerza las estrategias para encontrar una combinación óptima y comparar sus resultados.',
+                          videoUrl:
+                              'https://www.youtube.com/watch?v=_XvIC2KvWvo',
+                          durationOrAuthor: 'Métodos de solución',
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+            // DIVISION 3: Hungarian Algorithm & Steps (Surface Canvas)
+            Container(
+              width: double.infinity,
+              color: colorScheme.surface,
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 1100),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24.0,
+                      vertical: 48.0,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildLearningSection(
+                          context,
+                          colorScheme,
+                          'Algoritmo Húngaro',
+                          'Es un procedimiento exacto para resolver matrices cuadradas de costos. Convierte el problema en una estructura de ceros y encuentra una selección independiente que cubre todas las filas y columnas.',
+                          Icons.auto_graph_rounded,
+                        ),
+                        const SizedBox(height: 48),
+                        _buildStepsSection(context, colorScheme, width),
+                        const SizedBox(height: 48),
+                        const VideoResourceCard(
+                          title: 'Video 3: explicación del algoritmo húngaro',
+                          description: 'Observa la transformación de la matriz y la elección de ceros paso a paso.',
+                          videoUrl: 'https://youtu.be/Rjts-iAq1XE?utm_source=chatgpt.com',
+                          durationOrAuthor: 'Explicación principal',
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+            // DIVISION 4: Examples, Implementation & Applications (Alternating Background)
+            Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: colorScheme.surfaceContainerHigh.withValues(alpha: 0.5),
+                border: Border.symmetric(
+                  horizontal: BorderSide(
+                    color: colorScheme.outline.withValues(alpha: 0.2),
+                    width: 1.5,
+                  ),
+                ),
+              ),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 1100),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24.0,
+                      vertical: 48.0,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildExampleSection(context, colorScheme),
+                        const SizedBox(height: 48),
+                        const VideoResourceCard(
+                          title: 'Video 4: ejemplo resuelto',
+                          description: 'Compara este procedimiento con otra resolución completa de un problema de asignación.',
+                          videoUrl: 'https://youtu.be/0Zgdui3GqZo?utm_source=chatgpt.com',
+                          durationOrAuthor: 'Ejercicio guiado',
+                        ),
+                        const SizedBox(height: 48),
+                        _buildImplementationSection(context, colorScheme),
+                        const SizedBox(height: 48),
+                        _buildConceptualFeaturesSection(context, colorScheme),
+                        const SizedBox(height: 48),
+                        _buildApplicationsSection(context, colorScheme),
+                        const SizedBox(height: 48),
+                        const VideoResourceCard(
+                          title: 'Video 5: aplicaciones de la asignación',
+                          description: 'Cierra la lección con ejemplos de cómo este modelo ayuda a tomar decisiones eficientes.',
+                          videoUrl:
+                              'https://www.youtube.com/watch?v=qPkMRXhEQHI',
+                          durationOrAuthor: 'Aplicaciones reales',
+                        ),
+                        const SizedBox(height: 48),
+                        _buildHumanAnalogyCard(context, colorScheme),
+                        const SizedBox(height: 48),
+                        _buildCtaCard(context, colorScheme),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+            // DIVISION 5: Footer
+            _buildWebFooter(context, colorScheme),
+          ],
+        ),
       ),
     );
   }
@@ -229,7 +271,7 @@ class AssignmentAlgoScreen extends StatelessWidget {
                       ),
                       SizedBox(width: 8),
                       Text(
-                        '🎯 Asignación Óptima 1 a 1',
+                        'Asignación Óptima 1 a 1',
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
@@ -374,7 +416,7 @@ class AssignmentAlgoScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '💡 Ejemplo Cotidiano: Repartidores y Entregas Uber/Rappi',
+                  'Ejemplo Cotidiano: Repartidores y Entregas Uber/Rappi',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -899,7 +941,7 @@ class AssignmentAlgoScreen extends StatelessWidget {
             ),
             icon: const Icon(Icons.arrow_forward_rounded, size: 20),
             label: const Text(
-              'Ir a la Aplicación Principal',
+              'Editar Grafos',
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
           ),

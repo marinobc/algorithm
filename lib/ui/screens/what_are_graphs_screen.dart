@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../theme/app_theme.dart';
 import '../widgets/video_resource_card.dart';
 import '../widgets/web_explanation_navbar.dart';
 import 'home_library_screen.dart';
@@ -18,116 +17,89 @@ class WhatAreGraphsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final palette = M3Palette.of(context);
     final width = MediaQuery.of(context).size.width;
 
-    return Scaffold(
-      backgroundColor: palette.canvasBg,
-      body: Column(
-        children: [
-          const WebExplanationNavbar(activePage: ExplanationWebPage.graphs),
-          Expanded(
-            child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              child: Column(
-                children: [
-                  // Hero Section
-                  _buildHeroSection(context, colorScheme, width),
+    return WebExplanationShell(
+      activePage: ExplanationWebPage.graphs,
+      child: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
+        child: Column(
+          children: [
+            // Hero Section
+            _buildHeroSection(context, colorScheme, width),
 
-                  // Main Content Box
-                  Center(
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 1100),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 24.0,
-                          vertical: 40.0,
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // 1. Definition Card
-                            _buildDefinitionCard(context, colorScheme),
-                            const SizedBox(height: 36),
-
-                            // Video Tutorial Card
-                            const VideoResourceCard(
-                              title: 'Video recomendado: Introducción a los grafos',
-                              description: 'Aprende de forma visual con ejemplos interactivos qué son los nodos y las conexiones.',
-                              videoUrl:
-                                  'https://www.youtube.com/watch?v=vnNFiNVy9KM',
-                              durationOrAuthor: 'Explicación en Video',
-                            ),
-                            const SizedBox(height: 20),
-                            const VideoResourceCard(
-                              title:
-                                  'Video recomendado: conceptos fundamentales',
-                              description: 'Refuerza la diferencia entre vértices, aristas y las relaciones que modelan.',
-                              videoUrl:
-                                  'https://www.youtube.com/watch?v=F5Xjpg0-NhM',
-                              durationOrAuthor: 'Teoría de Grafos',
-                            ),
-                            const SizedBox(height: 48),
-
-                            // 2. Fundamental Anatomy of Graphs
-                            _buildAnatomySection(context, colorScheme, width),
-                            const SizedBox(height: 48),
-
-                            _buildApplicationsSection(context, colorScheme),
-                            const SizedBox(height: 48),
-
-                            _buildGraphVocabularySection(context, colorScheme),
-                            const SizedBox(height: 48),
-
-                            const VideoResourceCard(
-                              title: 'Video recomendado: tipos de grafos',
-                              description: 'Descubre cómo cambian los grafos cuando sus conexiones tienen dirección o peso.',
-                              videoUrl:
-                                  'https://www.youtube.com/watch?v=_A9EpjnmZz4',
-                              durationOrAuthor: 'Clasificación y ejemplos',
-                            ),
-                            const SizedBox(height: 48),
-
-                            // 3. Human Real-World Analogy Card
-                            _buildHumanAnalogyCard(context, colorScheme),
-                            const SizedBox(height: 48),
-
-                            // 4. Types of Graphs
-                            _buildGraphTypesSection(
-                              context,
-                              colorScheme,
-                              width,
-                            ),
-                            const SizedBox(height: 48),
-
-                            const VideoResourceCard(
-                              title: 'Video recomendado: grafos en acción',
-                              description: 'Conecta la teoría con problemas reales de rutas, redes y toma de decisiones.',
-                              videoUrl:
-                                  'https://www.youtube.com/watch?v=dIBxZU__3QA',
-                              durationOrAuthor: 'Aplicaciones prácticas',
-                            ),
-                            const SizedBox(height: 48),
-
-                            // 5. Matrix Representation
-                            _buildMatrixExplanationCard(context, colorScheme),
-                            const SizedBox(height: 56),
-
-                            // Call to Action Web Banner
-                            _buildCtaCard(context, colorScheme),
-                          ],
-                        ),
-                      ),
-                    ),
+            // Main Content Box
+            Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 1100),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24.0,
+                    vertical: 40.0,
                   ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // 1. Definition Card
+                      _buildDefinitionCard(context, colorScheme),
+                      const SizedBox(height: 36),
 
-                  // Web Footer
-                  _buildWebFooter(context, colorScheme),
-                ],
+                      // 2. Video Support Card
+                      const VideoResourceCard(
+                        title: 'Video recomendado: Introducción a los grafos',
+                        description: 'Aprende de forma visual con ejemplos interactivos qué son los nodos y las conexiones.',
+                        videoUrl: 'https://www.youtube.com/watch?v=vnNFiNVy9KM',
+                        durationOrAuthor: 'Explicación en Video',
+                      ),
+                      const SizedBox(height: 20),
+                      const VideoResourceCard(
+                        title: 'Video recomendado: conceptos fundamentales',
+                        description: 'Refuerza la diferencia entre vértices, aristas y las relaciones que modelan.',
+                        videoUrl: 'https://www.youtube.com/watch?v=F5Xjpg0-NhM',
+                        durationOrAuthor: 'Teoría de Grafos',
+                      ),
+
+                      const SizedBox(height: 56),
+
+                      // 3. Anatomy Section
+                      _buildAnatomySection(context, colorScheme, width),
+                      const SizedBox(height: 48),
+
+                      // 3.1 Graph Types (Directed vs Undirected)
+                      _buildGraphTypesSection(context, colorScheme, width),
+
+                      const SizedBox(height: 56),
+
+                      // 4. Practical Applications & Vocabulary
+                      _buildApplicationsSection(context, colorScheme),
+                      const SizedBox(height: 48),
+                      _buildGraphVocabularySection(context, colorScheme),
+
+                      const SizedBox(height: 48),
+                      const VideoResourceCard(
+                        title: 'Video recomendado: grafos en acción',
+                        description: 'Conecta la teoría con problemas reales de rutas, redes y toma de decisiones.',
+                        videoUrl: 'https://www.youtube.com/watch?v=dIBxZU__3QA',
+                        durationOrAuthor: 'Aplicaciones prácticas',
+                      ),
+                      const SizedBox(height: 48),
+
+                      // 5. Matrix Representation
+                      _buildMatrixExplanationCard(context, colorScheme),
+                      const SizedBox(height: 56),
+
+                      // Call to Action Web Banner
+                      _buildCtaCard(context, colorScheme),
+                    ],
+                  ),
+                ),
               ),
             ),
-          ),
-        ],
+
+            // Web Footer
+            _buildWebFooter(context, colorScheme),
+          ],
+        ),
       ),
     );
   }
@@ -186,7 +158,7 @@ class WhatAreGraphsScreen extends StatelessWidget {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        '🌐 Visualiza Conexiones y Redes',
+                        'Visualiza Conexiones y Redes',
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
@@ -297,58 +269,12 @@ class WhatAreGraphsScreen extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            '🔴 Nodos (Vértices): Son los puntos o círculos del mapa (pueden ser personas, ciudades, computadoras o tareas).\n\n'
-            '➡️ Conexiones (Aristas): Son las líneas que conectan a dos nodos, indicando que hay una relación entre ellos (como una amistad, un cable o una calle).',
+            'Nodos (Vértices): Son los puntos o círculos del mapa (pueden ser personas, ciudades, computadoras o tareas).\n\n'
+            'Conexiones (Aristas): Son las líneas que conectan a dos nodos, indicando que hay una relación entre ellos (como una amistad, un cable o una calle).',
             style: TextStyle(
               fontSize: 15,
               height: 1.6,
               color: colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHumanAnalogyCard(BuildContext context, ColorScheme colorScheme) {
-    return Container(
-      padding: const EdgeInsets.all(28.0),
-      decoration: BoxDecoration(
-        color: colorScheme.tertiaryContainer.withValues(alpha: 0.25),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: colorScheme.tertiary.withValues(alpha: 0.3)),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(
-            Icons.emoji_objects_rounded,
-            color: colorScheme.tertiary,
-            size: 36,
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '💡 Ejemplo Cotidiano: Red Social de Amigos',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: colorScheme.onSurface,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Imagina Facebook o Instagram: cada persona es un NODO y cada "seguimiento" o "solicitud aceptada" es una CONEXIÓN. Cuando la app te dice "Sugerencias de amigos en común", un algoritmo analiza el grafo buscando nodos conectados entre tus amigos.',
-                  style: TextStyle(
-                    fontSize: 14,
-                    height: 1.5,
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
             ),
           ),
         ],
@@ -387,7 +313,7 @@ class WhatAreGraphsScreen extends StatelessWidget {
             fontSize: 12,
             fontWeight: FontWeight.w800,
             letterSpacing: 1.4,
-            color: colorScheme.primary,
+            color: colorScheme.secondary,
           ),
         ),
         const SizedBox(height: 6),
@@ -605,7 +531,7 @@ class WhatAreGraphsScreen extends StatelessWidget {
             fontSize: 12,
             fontWeight: FontWeight.w800,
             letterSpacing: 1.5,
-            color: colorScheme.primary,
+            color: colorScheme.secondary,
           ),
         ),
         const SizedBox(height: 6),
@@ -740,7 +666,7 @@ class WhatAreGraphsScreen extends StatelessWidget {
               fontSize: 12,
               fontWeight: FontWeight.w800,
               letterSpacing: 1.2,
-              color: colorScheme.primary,
+              color: colorScheme.secondary,
             ),
           ),
           const SizedBox(height: 4),
@@ -753,62 +679,77 @@ class WhatAreGraphsScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 20),
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '➡️ Grafos Dirigidos (Digrafos)',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: colorScheme.onSurface,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Las conexiones tienen un sentido único (como una calle de una sola vía o un mensaje de Twitter donde tú sigues a alguien pero no necesariamente te sigue a ti).',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: colorScheme.onSurfaceVariant,
-                        height: 1.45,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+          // Directed
+          _buildGraphTypeRow(
+            colorScheme,
+            icon: Icons.arrow_forward_rounded,
+            color: const Color(0xFF7C4DFF),
+            title: 'Grafos Dirigidos (Digrafos)',
+            description: 'Las conexiones tienen un sentido único (como una calle de una sola vía o un mensaje de Twitter donde tú sigues a alguien pero no necesariamente te sigue a ti).',
           ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '🔄 Grafos No Dirigidos',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: colorScheme.onSurface,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Las conexiones funcionan en ambos sentidos por igual (como una llamada telefónica o dos amigos en Facebook).',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: colorScheme.onSurfaceVariant,
-                        height: 1.45,
-                      ),
-                    ),
-                  ],
+          const SizedBox(height: 12),
+          // Undirected
+          _buildGraphTypeRow(
+            colorScheme,
+            icon: Icons.swap_horiz_rounded,
+            color: const Color(0xFF00BFA5),
+            title: 'Grafos No Dirigidos',
+            description: 'Las conexiones funcionan en ambos sentidos por igual (como una llamada telefónica o dos amigos en Facebook).',
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGraphTypeRow(
+    ColorScheme colorScheme, {
+    required IconData icon,
+    required Color color,
+    required String title,
+    required String description,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: colorScheme.surface.withValues(alpha: 0.7),
+        borderRadius: BorderRadius.circular(14),
+        border: Border(left: BorderSide(color: color, width: 3)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: color, size: 18),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.onSurface,
+                  ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 4),
+                Text(
+                  description,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: colorScheme.onSurfaceVariant,
+                    height: 1.45,
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -832,15 +773,22 @@ class WhatAreGraphsScreen extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Icon(Icons.grid_on_rounded, color: colorScheme.primary, size: 28),
+              Icon(
+                Icons.grid_on_rounded,
+                color: colorScheme.secondary,
+                size: 28,
+              ),
               const SizedBox(width: 12),
-              Text(
-                'Representación en Matriz de Adyacencia',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: colorScheme.onSurface,
+              Expanded(
+                child: Text(
+                  'Representación en Matriz de Adyacencia',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.onSurface,
+                  ),
                 ),
               ),
             ],

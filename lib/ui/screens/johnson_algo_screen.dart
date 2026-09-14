@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../theme/app_theme.dart';
 import '../widgets/video_resource_card.dart';
 import '../widgets/web_explanation_navbar.dart';
 import 'home_library_screen.dart';
@@ -18,121 +17,175 @@ class JohnsonAlgoScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final palette = M3Palette.of(context);
     final width = MediaQuery.of(context).size.width;
 
-    return Scaffold(
-      backgroundColor: palette.canvasBg,
-      body: Column(
-        children: [
-          const WebExplanationNavbar(activePage: ExplanationWebPage.johnson),
-          Expanded(
-            child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              child: Column(
-                children: [
-                  // Hero Section
-                  _buildHeroSection(context, colorScheme, width),
+    return WebExplanationShell(
+      activePage: ExplanationWebPage.johnson,
+      child: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
+        child: Column(
+          children: [
+            // DIVISION 0: Hero Section
+            _buildHeroSection(context, colorScheme, width),
 
-                  // Main Content
-                  Center(
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 1100),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 24.0,
-                          vertical: 40.0,
+            // DIVISION 1: Concept & Initial Video (Surface Canvas)
+            Container(
+              width: double.infinity,
+              color: colorScheme.surface,
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 1100),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24.0,
+                      vertical: 48.0,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildConceptCard(context, colorScheme),
+                        const SizedBox(height: 36),
+                        _buildLearningSection(
+                          context,
+                          colorScheme,
+                          '¿Qué problema resuelve?',
+                          'Johnson ayuda a encontrar la duración mínima de un proyecto cuando sus actividades dependen unas de otras. Permite saber qué tareas no pueden retrasarse sin mover la fecha final.',
+                          Icons.flag_outlined,
                         ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Concept Overview
-                            _buildConceptCard(context, colorScheme),
-                            const SizedBox(height: 36),
-
-                            _buildLearningSection(
-                              context,
-                              colorScheme,
-                              '¿Qué problema resuelve?',
-                              'Johnson ayuda a encontrar la duración mínima de un proyecto cuando sus actividades dependen unas de otras. Permite saber qué tareas no pueden retrasarse sin mover la fecha final.',
-                              Icons.flag_outlined,
-                            ),
-                            const SizedBox(height: 36),
-
-                            _buildProjectElementsSection(context, colorScheme),
-                            const SizedBox(height: 36),
-
-                            // Video Tutorial Card
-                            const VideoResourceCard(
-                              title: '🎥 Video Recomendado: Cálculo de Ruta Crítica y Redes',
-                              description: 'Aprende a realizar la pasada de ida (máximos) y de regreso (mínimos) con un ejercicio resuelto paso a paso.',
-                              videoUrl:
-                                  'https://www.youtube.com/watch?v=YfFRfyLxY1Y',
-                              durationOrAuthor: 'Explicación en Video',
-                            ),
-                            const SizedBox(height: 48),
-
-                            const VideoResourceCard(
-                              title:
-                                  'Video 2: introducción al método de Johnson',
-                              description: 'Relaciona las actividades, sus dependencias y los tiempos necesarios para completar un proyecto.',
-                              videoUrl:
-                                  'https://www.youtube.com/watch?v=0YBxkeS0qFM',
-                              durationOrAuthor: 'Introducción guiada',
-                            ),
-                            const SizedBox(height: 48),
-
-                            // Step-by-Step Algorithm Workflow (Forward & Backward)
-                            _buildWorkflowSection(context, colorScheme, width),
-                            const SizedBox(height: 48),
-
-                            const VideoResourceCard(
-                              title: 'Video 3: cálculo de tiempos y holguras',
-                              description: 'Refuerza la pasada hacia adelante y hacia atrás con una explicación visual.',
-                              videoUrl:
-                                  'https://www.youtube.com/watch?v=fjrZecb6e8A',
-                              durationOrAuthor: 'Procedimiento paso a paso',
-                            ),
-                            const SizedBox(height: 48),
-
-                            // Human Everyday Example Card
-                            _buildHumanAnalogyCard(context, colorScheme),
-                            const SizedBox(height: 48),
-
-                            // Critical Path Explanation
-                            _buildCriticalPathSection(context, colorScheme),
-                            const SizedBox(height: 56),
-
-                            _buildExampleAndComplexitySection(
-                              context,
-                              colorScheme,
-                            ),
-                            const SizedBox(height: 48),
-
-                            const VideoResourceCard(
-                              title: 'Video 4: ejemplo completo del algoritmo',
-                              description: 'Cierra la explicación con un ejercicio aplicado para interpretar la ruta crítica.',
-                              videoUrl:
-                                  'https://www.youtube.com/watch?v=ZJJhLHeQXoM',
-                              durationOrAuthor: 'Ejemplo aplicado',
-                            ),
-                            const SizedBox(height: 56),
-
-                            // CTA Card
-                            _buildCtaCard(context, colorScheme),
-                          ],
+                        const SizedBox(height: 36),
+                        _buildProjectElementsSection(context, colorScheme),
+                        const SizedBox(height: 36),
+                        const VideoResourceCard(
+                          title: 'Video Recomendado: Cálculo de Ruta Crítica y Redes',
+                          description: 'Aprende a realizar la pasada de ida (máximos) y de regreso (mínimos) con un ejercicio resuelto paso a paso.',
+                          videoUrl:
+                              'https://www.youtube.com/watch?v=YfFRfyLxY1Y',
+                          durationOrAuthor: 'Explicación en Video',
                         ),
-                      ),
+                      ],
                     ),
                   ),
-
-                  // Footer
-                  _buildWebFooter(context, colorScheme),
-                ],
+                ),
               ),
             ),
-          ),
-        ],
+
+            // DIVISION 2: Workflow & Step-by-Step (Alternating Background)
+            Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: colorScheme.surfaceContainerLow,
+                border: Border.symmetric(
+                  horizontal: BorderSide(
+                    color: colorScheme.outline.withValues(alpha: 0.2),
+                    width: 1.5,
+                  ),
+                ),
+              ),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 1100),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24.0,
+                      vertical: 48.0,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const VideoResourceCard(
+                          title: 'Video 2: introducción al método de Johnson',
+                          description: 'Relaciona las actividades, sus dependencias y los tiempos necesarios para completar un proyecto.',
+                          videoUrl:
+                              'https://www.youtube.com/watch?v=0YBxkeS0qFM',
+                          durationOrAuthor: 'Introducción guiada',
+                        ),
+                        const SizedBox(height: 48),
+                        _buildWorkflowSection(context, colorScheme, width),
+                        const SizedBox(height: 48),
+                        const VideoResourceCard(
+                          title: 'Video 3: cálculo de tiempos y holguras',
+                          description: 'Refuerza la pasada hacia adelante y hacia atrás con una explicación visual.',
+                          videoUrl:
+                              'https://www.youtube.com/watch?v=fjrZecb6e8A',
+                          durationOrAuthor: 'Procedimiento paso a paso',
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+            // DIVISION 3: Analogy & Critical Path (Surface Canvas)
+            Container(
+              width: double.infinity,
+              color: colorScheme.surface,
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 1100),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24.0,
+                      vertical: 48.0,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildHumanAnalogyCard(context, colorScheme),
+                        const SizedBox(height: 48),
+                        _buildCriticalPathSection(context, colorScheme),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+            // DIVISION 4: Complexity, Applied Video & Call-to-Action (Alternating Background)
+            Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: colorScheme.surfaceContainerHigh.withValues(alpha: 0.5),
+                border: Border.symmetric(
+                  horizontal: BorderSide(
+                    color: colorScheme.outline.withValues(alpha: 0.2),
+                    width: 1.5,
+                  ),
+                ),
+              ),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 1100),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24.0,
+                      vertical: 48.0,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildExampleAndComplexitySection(context, colorScheme),
+                        const SizedBox(height: 48),
+                        const VideoResourceCard(
+                          title: 'Video 4: ejemplo completo del algoritmo',
+                          description: 'Cierra la explicación con un ejercicio aplicado para interpretar la ruta crítica.',
+                          videoUrl:
+                              'https://www.youtube.com/watch?v=ZJJhLHeQXoM',
+                          durationOrAuthor: 'Ejemplo aplicado',
+                        ),
+                        const SizedBox(height: 48),
+                        _buildCtaCard(context, colorScheme),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+            // DIVISION 5: Web Footer
+            _buildWebFooter(context, colorScheme),
+          ],
+        ),
       ),
     );
   }
@@ -191,7 +244,7 @@ class JohnsonAlgoScreen extends StatelessWidget {
                       ),
                       SizedBox(width: 8),
                       Text(
-                        '⏱️ Tiempos de Ida y Regreso',
+                        'Tiempos de Ida y Regreso',
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
@@ -302,8 +355,8 @@ class JohnsonAlgoScreen extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            '⏩ 1. Pasada de Ida (Hacia Adelante): Avanzas desde el inicio hasta el final sumando las duraciones. Si a una actividad llegan varias tareas antecedoras, ¡eliges el valor MÁXIMO!\n\n'
-            '⏪ 2. Pasada de Regreso (Hacia Atrás): Vuelves desde el final hacia el inicio restando las duraciones. Si de una actividad salen varias tareas, ¡eliges el valor MÍNIMO!',
+            '1. Pasada de Ida (Hacia Adelante): Avanzas desde el inicio hasta el final sumando las duraciones. Si a una actividad llegan varias tareas antecedoras, ¡eliges el valor MÁXIMO!\n\n'
+            '2. Pasada de Regreso (Hacia Atrás): Vuelves desde el final hacia el inicio restando las duraciones. Si de una actividad salen varias tareas, ¡eliges el valor MÍNIMO!',
             style: TextStyle(
               fontSize: 15,
               height: 1.6,
@@ -326,18 +379,14 @@ class JohnsonAlgoScreen extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(
-            Icons.foundation_rounded,
-            color: Color(0xFF00BFA5),
-            size: 36,
-          ),
+          Icon(Icons.foundation_rounded, color: colorScheme.primary, size: 36),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '💡 Ejemplo Práctico: Construcción de una Casa',
+                  'Ejemplo Práctico: Construcción de una Casa',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -657,7 +706,7 @@ class JohnsonAlgoScreen extends StatelessWidget {
             ),
             icon: const Icon(Icons.arrow_forward_rounded, size: 20),
             label: const Text(
-              'Ir a la Aplicación Principal',
+              'Editar Grafos',
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
           ),
