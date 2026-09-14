@@ -123,88 +123,82 @@ class GraphCardWidget extends StatelessWidget {
               const SizedBox(height: 8),
               Row(
                 children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: colorScheme.primaryContainer,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.circle,
-                          size: 10,
-                          color: colorScheme.onPrimaryContainer,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          '${item.nodoCount} Nodos',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: colorScheme.onPrimaryContainer,
-                          ),
-                        ),
-                      ],
-                    ),
+                  _StatBadge(
+                    icon: Icons.circle,
+                    label: 'N:${item.nodoCount}',
+                    bg: colorScheme.primaryContainer,
+                    fg: colorScheme.onPrimaryContainer,
                   ),
-                  const SizedBox(width: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: colorScheme.secondaryContainer,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.alt_route_rounded,
-                          size: 12,
-                          color: colorScheme.onSecondaryContainer,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          '${item.conexionCount} Aristas',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: colorScheme.onSecondaryContainer,
-                          ),
-                        ),
-                      ],
-                    ),
+                  const SizedBox(width: 6),
+                  _StatBadge(
+                    icon: Icons.alt_route_rounded,
+                    label: 'A:${item.conexionCount}',
+                    bg: colorScheme.secondaryContainer,
+                    fg: colorScheme.onSecondaryContainer,
                   ),
                   const Spacer(),
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.schedule_rounded,
-                        size: 12,
+                  Icon(
+                    Icons.schedule_rounded,
+                    size: 12,
+                    color: colorScheme.outline,
+                  ),
+                  const SizedBox(width: 3),
+                  Flexible(
+                    child: Text(
+                      item.fecha,
+                      style: TextStyle(
+                        fontSize: 10,
                         color: colorScheme.outline,
                       ),
-                      const SizedBox(width: 4),
-                      Text(
-                        item.fecha,
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: colorScheme.outline,
-                        ),
-                      ),
-                    ],
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    ),
                   ),
                 ],
               ),
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _StatBadge extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color bg;
+  final Color fg;
+
+  const _StatBadge({
+    required this.icon,
+    required this.label,
+    required this.bg,
+    required this.fg,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 9, color: fg),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+              color: fg,
+            ),
+          ),
+        ],
       ),
     );
   }

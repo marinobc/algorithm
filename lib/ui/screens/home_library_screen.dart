@@ -219,13 +219,36 @@ class _HomeLibraryScreenState extends ConsumerState<HomeLibraryScreen> {
     return Scaffold(
       backgroundColor: palette.canvasBg,
       appBar: AppBar(
-        title: const Row(
+        toolbarHeight: 52,
+        title: Row(
           children: [
-            Icon(Icons.hub_rounded, size: 28),
-            SizedBox(width: 12),
-            Text(
+            Container(
+              width: 26,
+              height: 26,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(
+                  color: colorScheme.outline.withValues(alpha: 0.25),
+                  width: 1,
+                ),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(5),
+                child: Image.asset(
+                  'Logo aplicación grafos.png',
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) => Icon(
+                    Icons.hub_rounded,
+                    size: 20,
+                    color: colorScheme.primary,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 10),
+            const Text(
               'Biblioteca de Grafos',
-              style: TextStyle(fontWeight: FontWeight.bold),
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
             ),
           ],
         ),
@@ -236,7 +259,7 @@ class _HomeLibraryScreenState extends ConsumerState<HomeLibraryScreen> {
             icon: const Icon(Icons.home_rounded),
             tooltip: 'Página Principal - Algoritmos',
             onPressed: () {
-              Navigator.of(context).push(
+              Navigator.of(context).pushReplacement(
                 MaterialPageRoute(
                   builder: (_) => const WelcomeExplanationScreen(),
                 ),
@@ -252,7 +275,7 @@ class _HomeLibraryScreenState extends ConsumerState<HomeLibraryScreen> {
               ).push(MaterialPageRoute(builder: (_) => const ConfigScreen()));
             },
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 4),
         ],
       ),
       body: SafeArea(
