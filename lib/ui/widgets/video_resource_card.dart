@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:youtube_player_iframe/youtube_player_iframe.dart';
@@ -21,13 +22,7 @@ class VideoResourceCard extends StatelessWidget {
   String? _extractYouTubeThumbnail(String url) {
     if (thumbnailUrl != null && thumbnailUrl!.isNotEmpty) return thumbnailUrl;
     try {
-      final uri = Uri.parse(url);
-      String? videoId;
-      if (uri.queryParameters.containsKey('v')) {
-        videoId = uri.queryParameters['v'];
-      } else if (uri.pathSegments.isNotEmpty) {
-        videoId = uri.pathSegments.last;
-      }
+      final videoId = YoutubePlayerController.convertUrlToId(url);
       if (videoId != null && videoId.isNotEmpty) {
         return 'https://img.youtube.com/vi/$videoId/hqdefault.jpg';
       }
@@ -38,9 +33,10 @@ class VideoResourceCard extends StatelessWidget {
   void _openVideo(BuildContext context) {
     showDialog(
       context: context,
-      barrierDismissible: true,
-      builder: (dialogContext) =>
-          _InlineVideoModal(title: title, videoUrl: videoUrl),
+      builder: (_) => _InlineVideoModal(
+        title: title,
+        videoUrl: videoUrl,
+      ),
     );
   }
 
@@ -306,11 +302,17 @@ class VideoResourceCard extends StatelessWidget {
   }
 }
 
+// ---------------------------------------------------------------------------
+// Video Player Inline Dialog Modal
+// ---------------------------------------------------------------------------
 class _InlineVideoModal extends StatefulWidget {
   final String title;
   final String videoUrl;
 
-  const _InlineVideoModal({required this.title, required this.videoUrl});
+  const _InlineVideoModal({
+    required this.title,
+    required this.videoUrl,
+  });
 
   @override
   State<_InlineVideoModal> createState() => _InlineVideoModalState();
@@ -331,8 +333,15 @@ class _InlineVideoModalState extends State<_InlineVideoModal> {
         showControls: true,
         showFullscreenButton: true,
         strictRelatedVideos: true,
+        playsInline: true,
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _controller.close();
+    super.dispose();
   }
 
   Future<void> _launchVideoUrl(String url) async {
@@ -345,99 +354,93 @@ class _InlineVideoModalState extends State<_InlineVideoModal> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final mediaQuery = MediaQuery.of(context);
 
-    return Dialog(
-      backgroundColor: Colors.transparent,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 860),
-        child: Container(
-          decoration: BoxDecoration(
-            color: colorScheme.surfaceContainerHigh,
-            border: Border.all(
-              color: colorScheme.outline.withValues(alpha: 0.3),
-              width: 1.5,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.25),
-                blurRadius: 32,
-                offset: const Offset(0, 12),
-              ),
-            ],
-          ),
-          clipBehavior: Clip.antiAlias,
+    // Header height (padding + action buttons)
+    const headerHeight = 52.0;
+
+    // Standard card width (compact, non-blown-up modal width)
+    const standardCardWidth = 720.0;
+
+    // Available screen space considering modal margins
+    final maxAvailableWidth = math.min(standardCardWidth, mediaQuery.size.width * 0.90);
+    final maxAvailableHeight = mediaQuery.size.height * 0.85;
+
+    // Max height allowed for the video player to fit within screen canvas
+    final maxVideoHeight = math.max(100.0, maxAvailableHeight - headerHeight);
+
+    // Compute exact video width: stays at standard card width, but shrinks horizontally if screen height is constrained
+    final videoWidth = math.min(
+      maxAvailableWidth,
+      maxVideoHeight * (16 / 9),
+    );
+
+    return YoutubePlayerControllerProvider(
+      controller: _controller,
+      child: Dialog(
+        backgroundColor: colorScheme.surface,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
+        ),
+        clipBehavior: Clip.antiAlias,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+        child: SizedBox(
+          width: videoWidth,
           child: Column(
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Top Header Bar: Title, Abrir en YouTube button, Close [X] button
+              // Modal Header
               Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 10,
-                ),
-                decoration: BoxDecoration(
-                  color: colorScheme.surfaceContainerHighest,
-                  border: Border(
-                    bottom: BorderSide(
-                      color: colorScheme.outline.withValues(alpha: 0.2),
-                      width: 1,
-                    ),
-                  ),
-                ),
+                height: headerHeight,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                color: colorScheme.surfaceContainerHighest,
                 child: Row(
                   children: [
-                    const Icon(
-                      Icons.play_circle_fill,
-                      color: Colors.red,
-                      size: 20,
-                    ),
-                    const SizedBox(width: 10),
                     Expanded(
                       child: Text(
                         widget.title,
-                        style: TextStyle(
-                          fontSize: 14.5,
+                        style: const TextStyle(
+                          fontSize: 15,
                           fontWeight: FontWeight.bold,
-                          color: colorScheme.onSurface,
                         ),
+                        maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    const SizedBox(width: 8),
                     TextButton.icon(
                       onPressed: () => _launchVideoUrl(widget.videoUrl),
                       style: TextButton.styleFrom(
                         foregroundColor: Colors.red,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
                       ),
                       icon: const Icon(Icons.open_in_new_rounded, size: 16),
                       label: const Text(
-                        'Abrir en YouTube',
+                        'YouTube',
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                     ),
-                    const SizedBox(width: 4),
                     IconButton(
-                      onPressed: () => Navigator.of(context).pop(),
                       icon: const Icon(Icons.close_rounded),
-                      tooltip: 'Cerrar modal',
+                      tooltip: 'Cerrar',
+                      onPressed: () => Navigator.of(context).pop(),
                     ),
                   ],
                 ),
               ),
 
-              // Inline YouTube Iframe Video Player ONLY
-              Flexible(
+              // Video Container — tight 16:9 aspect ratio, zero black bars!
+              AspectRatio(
+                aspectRatio: 16 / 9,
                 child: YoutubePlayer(
                   controller: _controller,
                   aspectRatio: 16 / 9,
+                  autoFullScreen: false,
+                  enableFullScreenOnVerticalDrag: false,
                 ),
               ),
             ],
@@ -447,3 +450,6 @@ class _InlineVideoModalState extends State<_InlineVideoModal> {
     );
   }
 }
+
+
+
