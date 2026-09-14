@@ -8,10 +8,11 @@ import '../screens/what_are_graphs_screen.dart';
 
 enum ExplanationWebPage { algorithms, graphs, assignment, johnson }
 
-class WebExplanationNavbar extends StatelessWidget {
+class WebExplanationShell extends StatelessWidget {
   final ExplanationWebPage activePage;
+  final Widget? child;
 
-  const WebExplanationNavbar({super.key, required this.activePage});
+  const WebExplanationShell({super.key, required this.activePage, this.child});
 
   void _navigateTo(BuildContext context, ExplanationWebPage page) {
     if (page == activePage) return;
@@ -50,153 +51,391 @@ class WebExplanationNavbar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+    final colorScheme = Theme.of(context).colorScheme;
     final width = MediaQuery.of(context).size.width;
 
-    return Container(
-      height: 72,
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHigh,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 12,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 1100),
+    if (width >= 1024) {
+      // Desktop Viewport Layout: Left Vertical Sidebar Navigation (>= 1024px)
+      return Scaffold(
+        backgroundColor: colorScheme.surface,
+        body: SafeArea(
+          top: true,
+          bottom: true,
+          left: true,
+          right: true,
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Logo and Title
-              InkWell(
-                onTap: () =>
-                    _navigateTo(context, ExplanationWebPage.algorithms),
-                borderRadius: BorderRadius.circular(12),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 6,
-                    vertical: 4,
+              // Left Desktop Vertical Menu Sidebar (270px)
+              Container(
+                width: 270,
+                height: double.infinity,
+                decoration: BoxDecoration(
+                  color: colorScheme.surfaceContainerHigh,
+                  border: Border(
+                    right: BorderSide(
+                      color: colorScheme.outline.withValues(alpha: 0.25),
+                      width: 1.5,
+                    ),
                   ),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: colorScheme.primary,
-                          borderRadius: BorderRadius.circular(12),
+                ),
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    return SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minHeight: constraints.maxHeight,
                         ),
-                        child: const Icon(
-                          Icons.hub_rounded,
-                          color: Colors.white,
-                          size: 22,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 20,
+                          ),
+                          child: _buildSidebarMenuContent(context),
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      Text(
-                        'Nodos & Algoritmos',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: -0.3,
-                          color: colorScheme.onSurface,
-                        ),
-                      ),
-                    ],
-                  ),
+                    );
+                  },
                 ),
               ),
 
-              // Navigation Links (Wide screen) or Menu Button (Mobile)
-              if (width >= 850)
-                Row(
-                  children: [
-                    _buildNavLink(
-                      context,
-                      label: 'Algoritmos',
-                      page: ExplanationWebPage.algorithms,
-                      icon: Icons.lightbulb_outline_rounded,
-                    ),
-                    const SizedBox(width: 4),
-                    _buildNavLink(
-                      context,
-                      label: '¿Qué son Grafos?',
-                      page: ExplanationWebPage.graphs,
-                      icon: Icons.bubble_chart_outlined,
-                    ),
-                    const SizedBox(width: 4),
-                    _buildNavLink(
-                      context,
-                      label: 'Algoritmo Asignación',
-                      page: ExplanationWebPage.assignment,
-                      icon: Icons.assignment_turned_in_outlined,
-                    ),
-                    const SizedBox(width: 4),
-                    _buildNavLink(
-                      context,
-                      label: 'Algoritmo Johnson',
-                      page: ExplanationWebPage.johnson,
-                      icon: Icons.alt_route_rounded,
-                    ),
-                  ],
+              // Right Scrollable Main Content Area
+              Expanded(
+                child: SizedBox(
+                  height: double.infinity,
+                  child: child ?? const SizedBox.shrink(),
                 ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
 
-              // Action CTA & Mobile Dropdown
+    // Mobile & Tablet Viewport Layout (< 1024px) with Side Drawer
+    final topPadding = MediaQuery.of(context).padding.top;
+    return Scaffold(
+      backgroundColor: colorScheme.surface,
+      drawer: Drawer(
+        backgroundColor: colorScheme.surfaceContainerHigh,
+        child: SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 20,
+                    ),
+                    child: _buildSidebarMenuContent(context, isDrawer: true),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ),
+      appBar: PreferredSize(
+        preferredSize: Size.fromHeight(60 + (topPadding > 0 ? topPadding : 0)),
+        child: Container(
+          padding: EdgeInsets.only(
+            top: topPadding > 0 ? topPadding + 4 : 8,
+            bottom: 8,
+            left: 16,
+            right: 16,
+          ),
+          decoration: BoxDecoration(
+            color: colorScheme.surfaceContainerHigh,
+            border: Border(
+              bottom: BorderSide(
+                color: colorScheme.outline.withValues(alpha: 0.25),
+                width: 1.5,
+              ),
+            ),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // Mobile Logo & Brand Title
               Row(
                 children: [
-                  if (width < 850)
-                    PopupMenuButton<ExplanationWebPage>(
-                      tooltip: 'Navegar Temas',
-                      icon: Icon(
-                        Icons.menu_rounded,
-                        color: colorScheme.primary,
-                      ),
-                      onSelected: (page) => _navigateTo(context, page),
-                      itemBuilder: (context) => [
-                        const PopupMenuItem(
-                          value: ExplanationWebPage.algorithms,
-                          child: Text('1. ¿Qué son Algoritmos?'),
-                        ),
-                        const PopupMenuItem(
-                          value: ExplanationWebPage.graphs,
-                          child: Text('2. ¿Qué son Grafos?'),
-                        ),
-                        const PopupMenuItem(
-                          value: ExplanationWebPage.assignment,
-                          child: Text('3. Algoritmo Asignación'),
-                        ),
-                        const PopupMenuItem(
-                          value: ExplanationWebPage.johnson,
-                          child: Text('4. Algoritmo Johnson'),
-                        ),
-                      ],
-                    ),
-                  const SizedBox(width: 8),
-                  FilledButton.icon(
-                    onPressed: () => _goToApp(context),
-                    style: FilledButton.styleFrom(
-                      backgroundColor: colorScheme.primary,
-                      foregroundColor: colorScheme.onPrimary,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 18,
-                        vertical: 12,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                  Container(
+                    width: 34,
+                    height: 34,
+                    decoration: BoxDecoration(
+                      color: colorScheme.surfaceContainer,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: colorScheme.outline.withValues(alpha: 0.3),
+                        width: 1,
                       ),
                     ),
-                    icon: const Icon(Icons.apps_rounded, size: 18),
-                    label: const Text(
-                      'Ir a la App',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(6),
+                      child: Image.asset(
+                        'Logo aplicación grafos.png',
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => Icon(
+                          Icons.hub_rounded,
+                          color: colorScheme.primary,
+                          size: 20,
+                        ),
+                      ),
                     ),
                   ),
+                  const SizedBox(width: 10),
+                  const Text(
+                    'Nodos & Algoritmos',
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                  ),
                 ],
+              ),
+
+              // Mobile Hamburger Drawer Trigger Button
+              Builder(
+                builder: (scaffoldCtx) => IconButton(
+                  icon: Icon(
+                    Icons.menu_rounded,
+                    color: colorScheme.primary,
+                    size: 26,
+                  ),
+                  tooltip: 'Abrir Menú Principal',
+                  onPressed: () => Scaffold.of(scaffoldCtx).openDrawer(),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      body: SafeArea(
+        top: false,
+        left: true,
+        right: true,
+        bottom: true,
+        child: child ?? const SizedBox.shrink(),
+      ),
+    );
+  }
+
+  Widget _buildSidebarMenuContent(
+    BuildContext context, {
+    bool isDrawer = false,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Top Logo & Brand Title
+        InkWell(
+          onTap: () {
+            if (isDrawer) Navigator.of(context).pop();
+            _navigateTo(context, ExplanationWebPage.algorithms);
+          },
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+            child: Row(
+              children: [
+                Container(
+                  width: 38,
+                  height: 38,
+                  decoration: BoxDecoration(
+                    color: colorScheme.surfaceContainer,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: colorScheme.outline.withValues(alpha: 0.3),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.asset(
+                      'Logo aplicación grafos.png',
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => Icon(
+                        Icons.hub_rounded,
+                        color: colorScheme.primary,
+                        size: 22,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Nodos & Algoritmos',
+                    style: const TextStyle(
+                      fontSize: 15.5,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: -0.3,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 18),
+
+        // FIRST ACTION OPTION: "Editar Grafos"
+        SizedBox(
+          width: double.infinity,
+          child: FilledButton.icon(
+            onPressed: () {
+              if (isDrawer) Navigator.of(context).pop();
+              _goToApp(context);
+            },
+            style: FilledButton.styleFrom(
+              backgroundColor: colorScheme.primary,
+              foregroundColor: colorScheme.onPrimary,
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              elevation: 2,
+            ),
+            icon: const Icon(Icons.edit_note_rounded, size: 20),
+            label: const Text(
+              'Editar Grafos',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            ),
+          ),
+        ),
+        const SizedBox(height: 20),
+        const Divider(height: 1),
+        const SizedBox(height: 16),
+
+        // Sidebar Section Header
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+          child: Text(
+            'TEMAS Y GUÍAS',
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1.0,
+              color: colorScheme.primary,
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+
+        // Vertical Navigation Menu Items
+        _buildVerticalNavLink(
+          context,
+          label: '1. Inicio',
+          page: ExplanationWebPage.algorithms,
+          icon: Icons.home_outlined,
+          isDrawer: isDrawer,
+        ),
+        const SizedBox(height: 6),
+        _buildVerticalNavLink(
+          context,
+          label: '2. Grafos',
+          page: ExplanationWebPage.graphs,
+          icon: Icons.hub_outlined,
+          isDrawer: isDrawer,
+        ),
+        const SizedBox(height: 14),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 4.0),
+          child: Text(
+            '3. ALGORITMOS',
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1.0,
+              color: colorScheme.primary,
+            ),
+          ),
+        ),
+        const SizedBox(height: 4),
+        Padding(
+          padding: const EdgeInsets.only(left: 12.0),
+          child: Column(
+            children: [
+              _buildVerticalNavLink(
+                context,
+                label: 'Asignación',
+                page: ExplanationWebPage.assignment,
+                icon: Icons.assignment_turned_in_outlined,
+                isDrawer: isDrawer,
+              ),
+              const SizedBox(height: 6),
+              _buildVerticalNavLink(
+                context,
+                label: 'Johnson',
+                page: ExplanationWebPage.johnson,
+                icon: Icons.alt_route_rounded,
+                isDrawer: isDrawer,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildVerticalNavLink(
+    BuildContext context, {
+    required String label,
+    required ExplanationWebPage page,
+    required IconData icon,
+    bool isDrawer = false,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isActive = page == activePage;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          if (isDrawer) Navigator.of(context).pop();
+          _navigateTo(context, page);
+        },
+        borderRadius: BorderRadius.circular(10),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          decoration: BoxDecoration(
+            color: isActive
+                ? colorScheme.primaryContainer.withValues(alpha: 0.8)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(10),
+            border: isActive
+                ? Border.all(
+                    color: colorScheme.primary.withValues(alpha: 0.4),
+                    width: 1.5,
+                  )
+                : Border.all(color: Colors.transparent),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                icon,
+                size: 18,
+                color: isActive
+                    ? colorScheme.primary
+                    : colorScheme.onSurfaceVariant,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
+                    fontSize: 13.5,
+                    color: isActive
+                        ? colorScheme.onSurface
+                        : colorScheme.onSurfaceVariant,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
             ],
           ),
@@ -204,36 +443,6 @@ class WebExplanationNavbar extends StatelessWidget {
       ),
     );
   }
-
-  Widget _buildNavLink(
-    BuildContext context, {
-    required String label,
-    required ExplanationWebPage page,
-    required IconData icon,
-  }) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final isActive = page == activePage;
-
-    return TextButton.icon(
-      onPressed: () => _navigateTo(context, page),
-      style: TextButton.styleFrom(
-        foregroundColor: isActive
-            ? colorScheme.primary
-            : colorScheme.onSurfaceVariant,
-        backgroundColor: isActive
-            ? colorScheme.primaryContainer.withValues(alpha: 0.6)
-            : Colors.transparent,
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-      icon: Icon(icon, size: 16),
-      label: Text(
-        label,
-        style: TextStyle(
-          fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
-          fontSize: 13,
-        ),
-      ),
-    );
-  }
 }
+
+typedef WebExplanationNavbar = WebExplanationShell;
