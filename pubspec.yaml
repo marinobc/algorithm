@@ -41,3 +41,7 @@ flutter:
   assets:
     - Logo aplicación grafos.png
     - .env
+    - s.png
+    - m.png
+    - xl.png
+

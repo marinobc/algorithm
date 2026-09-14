@@ -6,16 +6,15 @@ import '../../application/providers/grafo_provider.dart';
 /// Navigation Drawer component for GraphEditorScreen.
 class AppDrawer extends ConsumerWidget {
   final String titleText;
-  final VoidCallback onNewGraph;
-  final VoidCallback onSaveGraph;
   final VoidCallback onVaciarGrafo;
+  final VoidCallback onCargarGraph;
+  final VoidCallback onSaveGraph;
   final VoidCallback onOpenMatrix;
   final VoidCallback onOpenAIChat;
   final VoidCallback onSaveJpg;
   final VoidCallback onOpenTutorial;
   final VoidCallback onOpenConfig;
   final VoidCallback? onGoToInicio;
-  final VoidCallback? onGoToBiblioteca;
   final VoidCallback? onGoToGrafos;
   final VoidCallback? onGoToAsignacion;
   final VoidCallback? onGoToJohnson;
@@ -23,16 +22,15 @@ class AppDrawer extends ConsumerWidget {
   const AppDrawer({
     super.key,
     required this.titleText,
-    required this.onNewGraph,
-    required this.onSaveGraph,
     required this.onVaciarGrafo,
+    required this.onCargarGraph,
+    required this.onSaveGraph,
     required this.onOpenMatrix,
     required this.onOpenAIChat,
     required this.onSaveJpg,
     required this.onOpenTutorial,
     required this.onOpenConfig,
     this.onGoToInicio,
-    this.onGoToBiblioteca,
     this.onGoToGrafos,
     this.onGoToAsignacion,
     this.onGoToJohnson,
@@ -107,13 +105,24 @@ class AppDrawer extends ConsumerWidget {
                 children: [
                   ListTile(
                     leading: Icon(
-                      Icons.add_box_outlined,
+                      Icons.delete_sweep_outlined,
                       color: colorScheme.primary,
                     ),
-                    title: const Text('Nuevo Grafo'),
+                    title: const Text('Vaciar'),
                     onTap: () {
                       Navigator.of(context).pop();
-                      onNewGraph();
+                      onVaciarGrafo();
+                    },
+                  ),
+                  ListTile(
+                    leading: Icon(
+                      Icons.folder_open_rounded,
+                      color: colorScheme.primary,
+                    ),
+                    title: const Text('Cargar'),
+                    onTap: () {
+                      Navigator.of(context).pop();
+                      onCargarGraph();
                     },
                   ),
                   ListTile(
@@ -121,24 +130,14 @@ class AppDrawer extends ConsumerWidget {
                       Icons.save_outlined,
                       color: colorScheme.primary,
                     ),
-                    title: const Text('Guardar Grafo'),
+                    title: const Text('Guardar'),
                     onTap: () {
                       Navigator.of(context).pop();
                       onSaveGraph();
                     },
                   ),
-                  ListTile(
-                    leading: Icon(
-                      Icons.cleaning_services_rounded,
-                      color: colorScheme.primary,
-                    ),
-                    title: const Text('Vaciar Grafo'),
-                    onTap: () {
-                      Navigator.of(context).pop();
-                      onVaciarGrafo();
-                    },
-                  ),
                   const Divider(),
+
                   ListTile(
                     leading: Icon(
                       Icons.grid_on_rounded,
@@ -200,18 +199,7 @@ class AppDrawer extends ConsumerWidget {
                         onGoToInicio!();
                       },
                     ),
-                  if (onGoToBiblioteca != null)
-                    ListTile(
-                      leading: Icon(
-                        Icons.hub_outlined,
-                        color: colorScheme.primary,
-                      ),
-                      title: const Text('Biblioteca de Grafos'),
-                      onTap: () {
-                        Navigator.of(context).pop();
-                        onGoToBiblioteca!();
-                      },
-                    ),
+
                   if (onGoToGrafos != null)
                     ListTile(
                       leading: Icon(

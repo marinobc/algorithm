@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../screens/assignment_algo_screen.dart';
-import '../screens/home_library_screen.dart';
+import '../screens/graph_editor_screen.dart';
 import '../screens/johnson_algo_screen.dart';
 import '../screens/welcome_explanation_screen.dart';
 import '../screens/what_are_graphs_screen.dart';
@@ -45,9 +45,10 @@ class WebExplanationShell extends StatelessWidget {
 
   void _goToApp(BuildContext context) {
     Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => const HomeLibraryScreen()),
+      MaterialPageRoute(builder: (_) => const GraphEditorScreen()),
     );
   }
+
 
   @override
   Widget build(BuildContext context) {

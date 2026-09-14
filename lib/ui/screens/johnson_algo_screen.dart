@@ -2,16 +2,18 @@ import 'package:flutter/material.dart';
 
 import '../widgets/video_resource_card.dart';
 import '../widgets/web_explanation_navbar.dart';
-import 'home_library_screen.dart';
+import 'graph_editor_screen.dart';
 
 class JohnsonAlgoScreen extends StatelessWidget {
   const JohnsonAlgoScreen({super.key});
 
   void _navigateToLibrary(BuildContext context) {
     Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => const HomeLibraryScreen()),
+      MaterialPageRoute(builder: (_) => const GraphEditorScreen()),
     );
   }
+
+
 
   @override
   Widget build(BuildContext context) {

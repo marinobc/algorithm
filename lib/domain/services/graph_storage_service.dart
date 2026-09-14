@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/grafo.dart';
-import 'graph_share_service.dart';
+
 
 class GraphVersion {
   final int versionNumber;
@@ -170,9 +170,6 @@ class GraphStorageService {
         '${now.day.toString().padLeft(2, '0')}/${now.month.toString().padLeft(2, '0')}/${now.year} ${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
 
     final jsonStr = jsonEncode(graph.toJson());
-    final thumbnailBase64 = await GraphShareService.generateThumbnailBase64(
-      graph,
-    );
     final initialVersion = GraphVersion(
       versionNumber: 1,
       fecha: dateStr,
@@ -190,7 +187,7 @@ class GraphStorageService {
       jsonContent: jsonStr,
       currentVersion: 1,
       history: [initialVersion],
-      thumbnailBase64: thumbnailBase64,
+      thumbnailBase64: null,
     );
 
     items.insert(0, newItem);
@@ -217,9 +214,6 @@ class GraphStorageService {
 
     final nextVersionNumber = (existingItem?.currentVersion ?? 0) + 1;
     final jsonStr = jsonEncode(graph.toJson());
-    final thumbnailBase64 = await GraphShareService.generateThumbnailBase64(
-      graph,
-    );
 
     final newVersion = GraphVersion(
       versionNumber: nextVersionNumber,
@@ -255,7 +249,7 @@ class GraphStorageService {
       jsonContent: jsonStr,
       currentVersion: nextVersionNumber,
       history: updatedHistory,
-      thumbnailBase64: thumbnailBase64,
+      thumbnailBase64: null,
     );
 
     if (index != -1) {

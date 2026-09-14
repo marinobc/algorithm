@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../widgets/video_resource_card.dart';
 import '../widgets/web_explanation_navbar.dart';
-import 'home_library_screen.dart';
+import 'graph_editor_screen.dart';
 
 class WelcomeExplanationScreen extends StatefulWidget {
   const WelcomeExplanationScreen({super.key});
@@ -24,9 +24,11 @@ class _WelcomeExplanationScreenState extends State<WelcomeExplanationScreen> {
 
   void _navigateToLibrary(BuildContext context) {
     Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => const HomeLibraryScreen()),
+      MaterialPageRoute(builder: (_) => const GraphEditorScreen()),
     );
   }
+
+
 
   void _scrollToExamples() {
     final context = _examplesKey.currentContext;
@@ -251,7 +253,7 @@ class _WelcomeExplanationScreenState extends State<WelcomeExplanationScreen> {
                       ),
                       icon: const Icon(Icons.rocket_launch_rounded, size: 20),
                       label: const Text(
-                        'Explorar Biblioteca de Grafos',
+                        'Abrir Editor de Grafos',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -991,7 +993,7 @@ class _WelcomeExplanationScreenState extends State<WelcomeExplanationScreen> {
                       TextButton.icon(
                         onPressed: () => _navigateToLibrary(context),
                         icon: const Icon(Icons.launch_rounded, size: 16),
-                        label: const Text('Biblioteca Principal'),
+                        label: const Text('Editor de Grafos'),
                       ),
                     ],
                   );

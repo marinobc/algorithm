@@ -12,10 +12,10 @@ import '../canvas/graph_canvas.dart';
 import '../dialogs/adjacency_matrix_dialog.dart';
 import '../dialogs/ai_chat_dialog.dart';
 import '../dialogs/config_dialog.dart';
+import '../dialogs/load_graph_dialog.dart';
 import '../dialogs/rename_graph_dialog.dart';
 import '../dialogs/tutorial_screen.dart';
 import '../screens/assignment_algo_screen.dart';
-import '../screens/home_library_screen.dart';
 import '../screens/johnson_algo_screen.dart';
 import '../screens/welcome_explanation_screen.dart';
 import '../screens/what_are_graphs_screen.dart';
@@ -214,7 +214,30 @@ class _GraphEditorScreenState extends ConsumerState<GraphEditorScreen> {
     }
   }
 
-  void _onNewGraphSelected() async {
+
+  void _onCargarGraphSelected() async {
+    final selectedItem = await LoadGraphDialog.show(context);
+    if (selectedItem == null || !mounted) return;
+
+    final canProceed = await _promptUnsavedChanges();
+    if (canProceed && mounted) {
+      final loadedGraph = GraphStorageService.importFromJson(selectedItem.jsonContent);
+      ref.read(grafoProvider.notifier).cargarGrafo(loadedGraph);
+      ref.read(loadedGraphItemProvider.notifier).setLoadedItem(selectedItem);
+      ref.read(estadoEdicionProvider.notifier).desmarcarCambiosSinGuardar();
+      ref.read(estadoEdicionProvider.notifier).deseleccionar();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Grafo "${selectedItem.nombre}" cargado.'),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
+
+  void _onVaciarGrafoSelected() async {
     final canProceed = await _promptUnsavedChanges(isNewGraph: true);
     if (canProceed && mounted) {
       ref.read(grafoProvider.notifier).limpiarGrafo();
@@ -223,68 +246,13 @@ class _GraphEditorScreenState extends ConsumerState<GraphEditorScreen> {
       ref.read(estadoEdicionProvider.notifier).deseleccionar();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Nuevo lienzo creado.'),
+          content: Text('Grafo vaciado.'),
           duration: Duration(seconds: 2),
         ),
       );
     }
   }
 
-  void _onVaciarGrafoSelected() async {
-    final currentGraph = ref.read(grafoProvider);
-    if (currentGraph.nodos.isEmpty && currentGraph.conexiones.isEmpty) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('El grafo ya está vacío.'),
-            duration: Duration(seconds: 2),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
-      return;
-    }
-
-    final colorScheme = Theme.of(context).colorScheme;
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text('Vaciar Grafo', style: TextStyle(color: colorScheme.error)),
-        content: const Text(
-          '¿Deseas vaciar todos los nodos y conexiones del grafo actual?\n\n'
-          'Esta acción mantendrá el grafo en edición pero eliminará sus elementos (puedes deshacer con la opción Deshacer).',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Cancelar'),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: colorScheme.error,
-              foregroundColor: colorScheme.onError,
-            ),
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('Vaciar Grafo'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed == true && mounted) {
-      ref.read(grafoProvider.notifier).vaciarGrafo();
-      ref.read(estadoEdicionProvider.notifier).marcarCambioSinGuardar();
-      ref.read(estadoEdicionProvider.notifier).deseleccionar();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Grafo vaciado (nodos y conexiones eliminados).'),
-          duration: Duration(seconds: 2),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    }
-  }
 
   void _navigateToScreen(Widget targetScreen) async {
     final canProceed = await _promptUnsavedChanges();
@@ -324,11 +292,19 @@ class _GraphEditorScreenState extends ConsumerState<GraphEditorScreen> {
           elevation: 1,
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_rounded),
-            tooltip: 'Volver a la Biblioteca',
+            tooltip: 'Volver al Inicio',
             onPressed: () async {
               final canPop = await _promptUnsavedChanges();
               if (canPop && context.mounted) {
-                Navigator.of(context).pop();
+                if (Navigator.of(context).canPop()) {
+                  Navigator.of(context).pop();
+                } else {
+                  Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(
+                      builder: (_) => const WelcomeExplanationScreen(),
+                    ),
+                  );
+                }
               }
             },
           ),
@@ -367,9 +343,9 @@ class _GraphEditorScreenState extends ConsumerState<GraphEditorScreen> {
         ),
         endDrawer: AppDrawer(
           titleText: titleText,
-          onNewGraph: _onNewGraphSelected,
-          onSaveGraph: _saveCurrentGraph,
           onVaciarGrafo: _onVaciarGrafoSelected,
+          onCargarGraph: _onCargarGraphSelected,
+          onSaveGraph: _saveCurrentGraph,
           onOpenMatrix: _openAdjacencyMatrixModal,
           onOpenAIChat: _openAIChatModal,
           onSaveJpg: _saveGraphAsJpg,
@@ -377,7 +353,6 @@ class _GraphEditorScreenState extends ConsumerState<GraphEditorScreen> {
           onOpenConfig: _openConfigModal,
           onGoToInicio: () =>
               _navigateToScreen(const WelcomeExplanationScreen()),
-          onGoToBiblioteca: () => _navigateToScreen(const HomeLibraryScreen()),
           onGoToGrafos: () => _navigateToScreen(const WhatAreGraphsScreen()),
           onGoToAsignacion: () =>
               _navigateToScreen(const AssignmentAlgoScreen()),
