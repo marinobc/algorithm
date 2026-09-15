@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../algorithms/assignment/domain/services/assignment_validator.dart';
+import '../../algorithms/assignment/providers/assignment_provider.dart';
 import '../../algorithms/core/algorithm_registry.dart';
 import '../../algorithms/core/graph_algorithm.dart';
+import '../../algorithms/johnson/domain/services/johnson_validator.dart';
+import '../../algorithms/johnson/providers/johnson_provider.dart';
+import '../../application/providers/grafo_provider.dart';
 
 /// Modal dialog presented to the user to choose which algorithm mode to work in.
 /// Used when entering the editor from general pages, or when changing algorithm
@@ -85,6 +90,10 @@ class AlgorithmSelectionDialog extends StatelessWidget {
               child: InkWell(
                 onTap: () {
                   ref.read(activeAlgorithmProvider.notifier).clear();
+                  ref
+                      .read(transportationNotifierProvider.notifier)
+                      .setActive(false);
+                  ref.read(johnsonNotifierProvider.notifier).setActive(false);
                   Navigator.of(context).pop(null);
                 },
                 borderRadius: BorderRadius.circular(16),
@@ -153,6 +162,45 @@ class AlgorithmSelectionDialog extends StatelessWidget {
                 padding: const EdgeInsets.only(bottom: 8.0),
                 child: InkWell(
                   onTap: () {
+                    final grafo = ref.read(grafoProvider);
+                    if (grafo.conexiones.isNotEmpty) {
+                      if (algo.id == 'assignment') {
+                        final val = TransportationValidator.validate(grafo);
+                        if (!val.isValid) {
+                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Grafo no válido para el algoritmo seleccionado',
+                              ),
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                          return;
+                        }
+                      } else if (algo.id == 'johnson') {
+                        final val = JohnsonValidator.validate(grafo);
+                        if (!val.isValid) {
+                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Grafo no válido para el algoritmo seleccionado',
+                              ),
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                          return;
+                        }
+                      }
+                    }
+
+                    ref
+                        .read(transportationNotifierProvider.notifier)
+                        .setActive(false);
+                    ref
+                        .read(johnsonNotifierProvider.notifier)
+                        .setActive(false);
                     ref
                         .read(activeAlgorithmProvider.notifier)
                         .selectById(algo.id);

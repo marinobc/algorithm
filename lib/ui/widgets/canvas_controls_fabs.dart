@@ -5,8 +5,10 @@ import '../../algorithms/assignment/providers/assignment_provider.dart';
 import '../../algorithms/core/algorithm_registry.dart';
 import '../../algorithms/johnson/providers/johnson_provider.dart';
 import '../../application/providers/config_provider.dart';
+import '../../application/providers/grafo_invalido_provider.dart';
 import '../../application/providers/grafo_provider.dart';
 import '../../debug/graph_debug_fab.dart';
+import '../dialogs/adjacency_matrix_dialog.dart';
 
 class CanvasControlsFabs extends ConsumerWidget {
   final VoidCallback onResetView;
@@ -150,22 +152,53 @@ class CanvasControlsFabs extends ConsumerWidget {
           const SizedBox(height: 10),
         ],
 
-        // Optimizar FAB that automatically runs only the assigned algorithm to the canvas
-        FloatingActionButton.extended(
-          heroTag: 'fab_optimizar',
-          tooltip: 'Ejecutar / Optimizar Algoritmo',
-          elevation: 4,
-          backgroundColor: activeAlgo != null
-              ? activeAlgo.themeColor
-              : colorScheme.primary,
-          foregroundColor: Colors.white,
-          icon: const Icon(Icons.play_arrow_rounded),
-          label: const Text(
-            'Optimizar',
-            style: TextStyle(fontWeight: FontWeight.bold),
+        // When in Modo Libre (activeAlgo == null), show Matriz button
+        // When an algorithm is active, show Optimizar button
+        if (activeAlgo == null)
+          FloatingActionButton.extended(
+            heroTag: 'fab_matriz',
+            tooltip: 'Ver Matriz de Adyacencia',
+            elevation: 4,
+            backgroundColor: colorScheme.secondaryContainer,
+            foregroundColor: colorScheme.onSecondaryContainer,
+            icon: const Icon(Icons.grid_on_rounded),
+            label: const Text(
+              'Matriz',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            onPressed: () {
+              final esInvalido = ref.read(esGrafoInvalidoProvider);
+              if (esInvalido) {
+                ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Conecta el grafo para poder ver la matriz'),
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+                return;
+              }
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const AdjacencyMatrixScreen(),
+                ),
+              );
+            },
+          )
+        else
+          FloatingActionButton.extended(
+            heroTag: 'fab_optimizar',
+            tooltip: 'Ejecutar / Optimizar Algoritmo',
+            elevation: 4,
+            backgroundColor: activeAlgo.themeColor,
+            foregroundColor: Colors.white,
+            icon: const Icon(Icons.play_arrow_rounded),
+            label: const Text(
+              'Optimizar',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            onPressed: () => _runOptimizar(context, ref),
           ),
-          onPressed: () => _runOptimizar(context, ref),
-        ),
       ],
     );
   }
