@@ -7,6 +7,8 @@ import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import 'diceware_service.dart';
+import 'web_download_stub.dart' if (dart.library.html) 'web_download_real.dart';
 import '../models/grafo.dart';
 import '../../ui/canvas/graph_painter.dart';
 import '../../ui/canvas/graph_render_model.dart';
@@ -247,11 +249,22 @@ class GraphShareService {
     return byteData!.buffer.asUint8List();
   }
 
+  static String generateUniqueExportFileName(
+    String extension, {
+    String? dirPath,
+  }) {
+    String name;
+    do {
+      name = generateDicewareName();
+    } while (dirPath != null &&
+        File('$dirPath${Platform.pathSeparator}$name.$extension').existsSync());
+    return '$name.$extension';
+  }
+
   static Future<String> _saveJpgFile(Uint8List bytes, String graphName) async {
     if (kIsWeb) {
-      throw UnsupportedError(
-        'El guardado directo en archivo local no está disponible en la versión web.',
-      );
+      final base64Url = 'data:image/png;base64,${base64Encode(bytes)}';
+      return base64Url;
     }
 
     String? dirPath;
@@ -271,11 +284,7 @@ class GraphShareService {
     }
 
     dirPath ??= Directory.current.path;
-
-    final timestamp = DateTime.now().millisecondsSinceEpoch;
-    final safeName = graphName.replaceAll(RegExp(r'[^\w\s\-]'), '_').trim();
-    final fileName =
-        'grafo_${safeName.isEmpty ? "export" : safeName}_$timestamp.jpg';
+    final fileName = generateUniqueExportFileName('png', dirPath: dirPath);
     final filePath = '$dirPath${Platform.pathSeparator}$fileName';
 
     final file = File(filePath);
@@ -342,7 +351,20 @@ class GraphShareService {
                     jpgBytes,
                     graphName ?? 'Grafo',
                   );
-                  if (context.mounted) {
+                  if (kIsWeb) {
+                    final fileName = generateUniqueExportFileName('png');
+                    downloadBytesWeb(jpgBytes, fileName);
+
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Descarga de imagen iniciada.'),
+                          duration: Duration(seconds: 3),
+                        ),
+                      );
+                      Navigator.of(ctx).pop();
+                    }
+                  } else if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(
