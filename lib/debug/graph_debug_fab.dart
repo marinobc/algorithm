@@ -135,7 +135,7 @@ class GraphDebugFab extends ConsumerWidget {
           tooltip: 'Copiar Datos del Grafo (Debug Test Data)',
           backgroundColor: Colors.deepOrangeAccent,
           foregroundColor: Colors.white,
-          onPressed: () async {
+          onPressed: () {
             final grafo = ref.read(grafoProvider);
 
             // Convert full graph data to formatted JSON
@@ -167,9 +167,8 @@ class GraphDebugFab extends ConsumerWidget {
 
             final exportData = summary.toString();
 
-            await Clipboard.setData(ClipboardData(text: exportData));
-
-            if (context.mounted) {
+            try {
+              Clipboard.setData(ClipboardData(text: exportData));
               ScaffoldMessenger.of(context).hideCurrentSnackBar();
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
@@ -192,6 +191,30 @@ class GraphDebugFab extends ConsumerWidget {
                   backgroundColor: Colors.deepOrange,
                   duration: const Duration(seconds: 3),
                   behavior: SnackBarBehavior.floating,
+                ),
+              );
+            } catch (_) {
+              // Fallback dialog for browsers blocking direct clipboard access in WASM
+              showDialog(
+                context: context,
+                builder: (ctx) => AlertDialog(
+                  title: const Text('Datos del Grafo Exportados'),
+                  content: SizedBox(
+                    width: 400,
+                    child: SelectableText(
+                      exportData,
+                      style: const TextStyle(
+                        fontFamily: 'monospace',
+                        fontSize: 11,
+                      ),
+                    ),
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(ctx).pop(),
+                      child: const Text('Cerrar'),
+                    ),
+                  ],
                 ),
               );
             }
