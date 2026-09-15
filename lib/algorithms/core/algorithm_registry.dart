@@ -54,19 +54,15 @@ class ActiveAlgorithmNotifier extends Notifier<GraphAlgorithm?> {
   }
 
   void _syncAlgorithmNotifiers(String? activeId) {
-    // If Assignment is chosen, activate its notifier and reset active role
+    // When switching algorithm modes, deactivate any previous execution state
+    // so the user starts fresh in the new mode without auto-triggering optimization.
+    ref.read(transportationNotifierProvider.notifier).setActive(false);
+    ref.read(johnsonNotifierProvider.notifier).setActive(false);
+
     if (activeId == AlgorithmRegistry.assignmentId) {
-      ref.read(transportationNotifierProvider.notifier).setActive(true);
-      ref.read(johnsonNotifierProvider.notifier).setActive(false);
       ref
           .read(assignmentActiveRoleProvider.notifier)
           .setRole(AssignmentRoles.origin);
-    } else if (activeId == AlgorithmRegistry.johnsonId) {
-      ref.read(johnsonNotifierProvider.notifier).setActive(true);
-      ref.read(transportationNotifierProvider.notifier).setActive(false);
-    } else {
-      ref.read(transportationNotifierProvider.notifier).setActive(false);
-      ref.read(johnsonNotifierProvider.notifier).setActive(false);
     }
   }
 }
