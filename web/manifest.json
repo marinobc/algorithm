@@ -1,12 +1,14 @@
 {
-    "name": "nodos",
-    "short_name": "nodos",
-    "start_url": ".",
+    "name": "Editor de Nodos y Algoritmos de Grafos",
+    "short_name": "Grafos",
+    "start_url": "index.html",
+    "scope": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
-    "orientation": "portrait-primary",
+    "display_override": ["standalone", "fullscreen", "minimal-ui"],
+    "background_color": "#12131C",
+    "theme_color": "#00BFA5",
+    "description": "Aplicación interactiva para edición, modelado y resolución de algoritmos de grafos.",
+    "orientation": "any",
     "prefer_related_applications": false,
     "icons": [
         {
