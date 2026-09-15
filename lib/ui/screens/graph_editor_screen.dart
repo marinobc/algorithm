@@ -10,6 +10,7 @@ import '../../algorithms/johnson/providers/johnson_provider.dart';
 import '../../application/providers/edicion_provider.dart';
 import '../../application/providers/grafo_invalido_provider.dart';
 import '../../application/providers/grafo_provider.dart';
+import '../../domain/services/diceware_service.dart';
 import '../../domain/services/graph_share_service.dart';
 import '../../domain/services/graph_storage_service.dart';
 import '../canvas/graph_canvas.dart';
@@ -195,7 +196,7 @@ class _GraphEditorScreenState extends ConsumerState<GraphEditorScreen> {
         );
       }
     } else {
-      final initialName = 'Grafo ${DateTime.now().minute}';
+      final initialName = generateDicewareName();
       final savedItem = await showGraphNameDialog(
         context,
         initialName: initialName,
@@ -372,40 +373,6 @@ class _GraphEditorScreenState extends ConsumerState<GraphEditorScreen> {
   }
 
   void _showAlgorithmModeDialog(BuildContext context) {
-    final grafo = ref.read(grafoProvider);
-
-    // If canvas is not empty, do not let user change algorithm
-    if (grafo.nodos.isNotEmpty) {
-      showDialog(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          title: const Row(
-            children: [
-              Icon(Icons.lock_outline_rounded, color: Colors.amber, size: 24),
-              SizedBox(width: 10),
-              Text(
-                'Lienzo no vacío',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-            ],
-          ),
-          content: const Text(
-            'Para cambiar el tipo de algoritmo, el lienzo debe estar completamente vacío.\n\nPor favor vacíe el grafo antes de seleccionar otro algoritmo.',
-          ),
-          actions: [
-            FilledButton(
-              onPressed: () => Navigator.of(ctx).pop(),
-              child: const Text('Entendido'),
-            ),
-          ],
-        ),
-      );
-      return;
-    }
-
     AlgorithmSelectionDialog.show(context, ref);
   }
 
@@ -525,11 +492,12 @@ class _GraphEditorScreenState extends ConsumerState<GraphEditorScreen> {
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              IconButton(
-                icon: const Icon(Icons.edit_rounded, size: 16),
-                tooltip: 'Cambiar Nombre del Grafo',
-                onPressed: _renameCurrentGraph,
-              ),
+              if (loadedItem != null)
+                IconButton(
+                  icon: const Icon(Icons.edit_rounded, size: 16),
+                  tooltip: 'Cambiar Nombre del Grafo',
+                  onPressed: _renameCurrentGraph,
+                ),
             ],
           ),
           actions: [
