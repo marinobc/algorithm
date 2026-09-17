@@ -90,7 +90,7 @@ class GraphPainter extends CustomPainter {
   }
 
   void _drawAlgorithmHighlightsUnderlay(Canvas canvas) {
-    final highlightBaseColor = palette.isDark ? Colors.white : Colors.black;
+    final highlightBaseColor = palette.isDark ? Colors.white : palette.primary;
 
     // 1. Highlighted Connections
     for (final conn in renderModel.connections.where((c) => c.isHighlighted)) {

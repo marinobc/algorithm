@@ -1,24 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../widgets/web_explanation_navbar.dart';
 
 class TeamMemberData {
   final String name;
-  final String role;
-  final String bio;
   final String email;
-  final String github;
-  final String? imagePath;
-  final IconData icon;
+  final String imagePath;
 
   const TeamMemberData({
     required this.name,
-    required this.role,
-    required this.bio,
     required this.email,
-    required this.github,
-    this.imagePath,
-    required this.icon,
+    required this.imagePath,
   });
 }
 
@@ -27,28 +20,19 @@ class ContactScreen extends StatelessWidget {
 
   static const List<TeamMemberData> teamMembers = [
     TeamMemberData(
-      name: 'Desarrollador 1',
-      role: 'Arquitecto de Software & Backend',
-      bio: 'Especialista en estructura de aplicaciones, lógica de estado global y motor computacional de grafos.',
-      email: 'desarrollador1@ejemplo.com',
-      github: 'https://github.com/dev1',
-      icon: Icons.code_rounded,
+      name: 'Neil Erick Lipan Valdez',
+      email: 'neil.lipan.valdez@gmail.com',
+      imagePath: 'assets/images/Neil.webp',
     ),
     TeamMemberData(
-      name: 'Desarrollador 2',
-      role: 'Diseñador UI/UX & Frontend',
-      bio: 'Enfocado en la experiencia de usuario, diseño de interfaces responsivas y componentes interactivos.',
-      email: 'desarrollador2@ejemplo.com',
-      github: 'https://github.com/dev2',
-      icon: Icons.palette_rounded,
+      name: 'Eduardo Hugo Apaza Condori',
+      email: 'eduardo.apaza@ucb.edu.bo',
+      imagePath: 'assets/images/Eduardo.webp',
     ),
     TeamMemberData(
-      name: 'Desarrollador 3',
-      role: 'Especialista en Algoritmos & QA',
-      bio: 'Investigación e implementación de algoritmos de optimización (Johnson, Asignación) y aseguramiento de calidad.',
-      email: 'desarrollador3@ejemplo.com',
-      github: 'https://github.com/dev3',
-      icon: Icons.functions_rounded,
+      name: 'Saire Marino Barroso Calle',
+      email: 'saire.barroso@ucb.edu.bo',
+      imagePath: 'assets/images/Marino.webp',
     ),
   ];
 
@@ -97,7 +81,7 @@ class ContactScreen extends StatelessWidget {
                     ),
                     const SizedBox(width: 12),
                     Text(
-                      'Nuestro Equipo de Desarrolladores (3)',
+                      'Nuestro Equipo de Desarrolladores',
                       style: TextStyle(
                         fontSize: width > 600 ? 22 : 18,
                         fontWeight: FontWeight.bold,
@@ -255,7 +239,7 @@ class ContactScreen extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            'Contacto y Desarrolladores',
+            'Desarrolladores del Proyecto',
             style: TextStyle(
               fontSize: width > 600 ? 30 : 22,
               fontWeight: FontWeight.bold,
@@ -265,7 +249,7 @@ class ContactScreen extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           Text(
-            'Conoce a los 3 integrantes responsables del diseño, desarrollo y pruebas de esta plataforma educativa interactiva de grafos.',
+            'Conoce a los integrantes del equipo de desarrollo y explora el código fuente del proyecto.',
             style: TextStyle(
               fontSize: width > 600 ? 15 : 13.5,
               height: 1.5,
@@ -301,130 +285,77 @@ class ContactScreen extends StatelessWidget {
       ),
       clipBehavior: Clip.antiAlias,
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           // Square Image Hero Container (1:1 Aspect Ratio)
           AspectRatio(
             aspectRatio: 1.0,
-            child: _buildSquareImageContent(context, member),
+            child: Image.asset(
+              member.imagePath,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) => Container(
+                color: colorScheme.primaryContainer.withValues(alpha: 0.5),
+                child: Center(
+                  child: Icon(
+                    Icons.person_rounded,
+                    size: 48,
+                    color: colorScheme.primary,
+                  ),
+                ),
+              ),
+            ),
           ),
 
-          // Content Details Section
+          // Name & Email Section
           Padding(
             padding: EdgeInsets.all(isCompact ? 16 : 20),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Name
                 Text(
                   member.name,
+                  textAlign: TextAlign.center,
                   style: TextStyle(
-                    fontSize: isCompact ? 18 : 20,
+                    fontSize: isCompact ? 16 : 18,
                     fontWeight: FontWeight.bold,
                     color: colorScheme.onSurface,
                     letterSpacing: -0.3,
                   ),
                 ),
-                const SizedBox(height: 6),
-
-                // Role Tag
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: colorScheme.primary.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: colorScheme.primary.withValues(alpha: 0.25),
+                const SizedBox(height: 8),
+                InkWell(
+                  onTap: () async {
+                    final uri = Uri(scheme: 'mailto', path: member.email);
+                    if (await canLaunchUrl(uri)) {
+                      await launchUrl(uri);
+                    }
+                  },
+                  borderRadius: BorderRadius.circular(8),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 4,
                     ),
-                  ),
-                  child: Text(
-                    member.role,
-                    style: TextStyle(
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.bold,
-                      color: colorScheme.primary,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 14),
-
-                // Bio
-                Text(
-                  member.bio,
-                  style: TextStyle(
-                    fontSize: 13.5,
-                    height: 1.55,
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                const SizedBox(height: 18),
-                const Divider(height: 1),
-                const SizedBox(height: 14),
-
-                // Contact Email
-                Row(
-                  children: [
-                    Icon(
-                      Icons.email_outlined,
-                      size: 16,
-                      color: colorScheme.primary,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        member.email,
-                        style: TextStyle(
-                          fontSize: 12.5,
-                          color: colorScheme.onSurfaceVariant,
-                          fontWeight: FontWeight.w500,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.email_outlined,
+                          size: 14,
+                          color: colorScheme.primary,
                         ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 14),
-
-                // GitHub Button
-                Tooltip(
-                  message: 'GitHub: ${member.github}',
-                  child: InkWell(
-                    onTap: () {},
-                    borderRadius: BorderRadius.circular(10),
-                    child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      decoration: BoxDecoration(
-                        color: colorScheme.surfaceContainerHigh,
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(
-                          color: colorScheme.outlineVariant.withValues(
-                            alpha: 0.4,
-                          ),
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.code_rounded,
-                            size: 16,
-                            color: colorScheme.onSurface,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Ver en GitHub',
+                        const SizedBox(width: 6),
+                        Flexible(
+                          child: Text(
+                            member.email,
                             style: TextStyle(
-                              fontSize: 12.5,
-                              fontWeight: FontWeight.bold,
-                              color: colorScheme.onSurface,
+                              fontSize: 12,
+                              color: colorScheme.primary,
+                              fontWeight: FontWeight.w500,
                             ),
+                            overflow: TextOverflow.ellipsis,
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -432,45 +363,6 @@ class ContactScreen extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildSquareImageContent(BuildContext context, TeamMemberData member) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    if (member.imagePath != null) {
-      return Image.asset(
-        member.imagePath!,
-        fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) =>
-            _buildSquareAvatarFallback(colorScheme, member),
-      );
-    } else {
-      return _buildSquareAvatarFallback(colorScheme, member);
-    }
-  }
-
-  Widget _buildSquareAvatarFallback(
-    ColorScheme colorScheme,
-    TeamMemberData member,
-  ) {
-    return Container(
-      color: colorScheme.primaryContainer.withValues(alpha: 0.5),
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: colorScheme.surface.withValues(alpha: 0.7),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(member.icon, size: 40, color: colorScheme.primary),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -520,7 +412,12 @@ class ContactScreen extends StatelessWidget {
           ),
           const SizedBox(height: 20),
           OutlinedButton.icon(
-            onPressed: () {},
+            onPressed: () async {
+              final uri = Uri.parse('https://github.com/marinobc/algorithm');
+              if (await canLaunchUrl(uri)) {
+                await launchUrl(uri, mode: LaunchMode.externalApplication);
+              }
+            },
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
               shape: RoundedRectangleBorder(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../domain/services/graph_storage_service.dart';
 
@@ -406,10 +407,10 @@ class _LoadGraphDialogState extends State<LoadGraphDialog> {
   }
 }
 
-/// 3-step cluster image icon widget based on graph node count:
-/// - < 5 nodes: 1st stage -> s.png (small cluster)
-/// - 5 to 9 nodes: 2nd stage -> m.png (medium cluster)
-/// - 10+ nodes: 3rd stage -> xl.png (large cluster)
+/// 3-step cluster SVG icon widget based on graph node count:
+/// - < 5 nodes: 1st stage -> small size graph.svg (small cluster)
+/// - 5 to 9 nodes: 2nd stage -> mid size graph.svg (medium cluster)
+/// - 10+ nodes: 3rd stage -> large size graph.svg (large cluster)
 class GraphClusterIconWidget extends StatelessWidget {
   final int nodeCount;
   final double size;
@@ -422,24 +423,28 @@ class GraphClusterIconWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
-    String imageAsset;
+    String svgAsset;
     Color containerBg;
 
     if (nodeCount < 5) {
       // 1st stage: Small cluster (< 5 nodes)
-      imageAsset = 's.png';
+      svgAsset = 'assets/icons/small size graph.svg';
       containerBg = colorScheme.primaryContainer;
     } else if (nodeCount < 10) {
       // 2nd stage: Medium cluster (5 to 9 nodes)
-      imageAsset = 'm.png';
+      svgAsset = 'assets/icons/mid size graph.svg';
       containerBg = colorScheme.secondaryContainer;
     } else {
       // 3rd stage: Large cluster (10+ nodes)
-      imageAsset = 'xl.png';
+      svgAsset = 'assets/icons/large size graph.svg';
       containerBg = colorScheme.tertiaryContainer;
     }
+
+    final isDark = theme.brightness == Brightness.dark;
+    final svgColor = isDark ? Colors.white : colorScheme.primary;
 
     return Container(
       width: size,
@@ -452,14 +457,10 @@ class GraphClusterIconWidget extends StatelessWidget {
       child: Center(
         child: Padding(
           padding: EdgeInsets.all(size * 0.12),
-          child: Image.asset(
-            imageAsset,
+          child: SvgPicture.asset(
+            svgAsset,
             fit: BoxFit.contain,
-            errorBuilder: (context, error, stackTrace) => Icon(
-              Icons.hub_rounded,
-              size: size * 0.55,
-              color: colorScheme.onSurfaceVariant,
-            ),
+            colorFilter: ColorFilter.mode(svgColor, BlendMode.srcIn),
           ),
         ),
       ),
