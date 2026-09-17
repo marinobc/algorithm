@@ -12,6 +12,7 @@ dependencies:
   flutter_dotenv: ^5.2.1
   flutter_markdown: ^0.7.7+1
   flutter_riverpod: ^3.4.2
+  flutter_svg: ^2.3.0
   google_generative_ai: ^0.4.0
   shared_preferences: ^2.5.3
   url_launcher: ^6.3.1
@@ -27,22 +28,22 @@ dev_dependencies:
 flutter_launcher_icons:
   android: "ic_launcher"
   ios: false
-  image_path: "Logo aplicación grafos.png"
+  image_path: "assets/images/logo.png"
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/images/logo.png"
   min_sdk_android: 21
   web:
     generate: true
-    image_path: "Logo aplicación grafos.png"
+    image_path: "assets/images/logo.png"
   windows:
     generate: true
-    image_path: "Logo aplicación grafos.png"
+    image_path: "assets/images/logo.png"
     icon_size: 48
 
 flutter:
   uses-material-design: true
   assets:
-    - Logo aplicación grafos.png
     - .env
-    - s.png
-    - m.png
-    - xl.png
+    - assets/icons/
+    - assets/images/
 
