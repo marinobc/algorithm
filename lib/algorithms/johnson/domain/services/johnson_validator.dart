@@ -16,6 +16,22 @@ class JohnsonValidator {
       );
     }
 
+    // Check for isolated nodes (nodes with 0 incoming and 0 outgoing connections)
+    for (final node in grafo.nodos.values) {
+      final inD = grafo.conexiones.values
+          .where((c) => c.nodoDestinoId == node.id)
+          .length;
+      final outD = grafo.conexiones.values
+          .where((c) => c.nodoOrigenId == node.id)
+          .length;
+      if (inD == 0 && outD == 0) {
+        final nodeName = node.nombre ?? node.id;
+        return JohnsonValidationResult.invalid(
+          'No se puede aplicar el algoritmo, modifique el nodo aislado "$nodeName" conectándolo a la red.',
+        );
+      }
+    }
+
     // Check that all connections are strictly unidirectional (directed)
     for (final conn in grafo.conexiones.values) {
       if (conn.direccion != Direccion.unidireccional) {

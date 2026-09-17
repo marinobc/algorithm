@@ -19,6 +19,7 @@ import '../../domain/models/nodo.dart';
 import '../../domain/services/graph_geometry.dart';
 import '../dialogs/overlapping_elements_dialog.dart';
 import '../theme/app_theme.dart';
+import '../widgets/app_toast.dart';
 import '../widgets/floating_context_menu.dart';
 import 'canvas_camera.dart';
 import 'graph_canvas_dialogs.dart';
@@ -491,6 +492,11 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
           ref
               .read(grafoProvider.notifier)
               .agregarConexion(startId, targetNode.id);
+          _singleTapEditTimer?.cancel();
+          _lastTapNodeId = null;
+          _lastTapTime = null;
+          _hasPannedCanvas = true;
+          ref.read(estadoEdicionProvider.notifier).deseleccionar();
         } else if (distWorld <= 15.0 || targetNode?.id == startId) {
           if (screenDelta < 200.0) {
             // Tap / release on same node -> Edit node!
@@ -728,29 +734,13 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
 
   void _showPolicyDeniedSnackBar(String? message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const Icon(Icons.block_rounded, color: Colors.white, size: 20),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                message ?? 'Acción no permitida en este modo de algoritmo.',
-                style: const TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 13,
-                ),
-              ),
-            ),
-          ],
-        ),
-        backgroundColor: Colors.red.shade800,
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 3),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
+    AppToast.show(
+      context,
+      message ?? 'Acción no permitida en este modo de algoritmo.',
+      icon: Icons.block_rounded,
+      backgroundColor: Colors.red.shade800,
+      textColor: Colors.white,
+      duration: const Duration(seconds: 3),
     );
   }
 
