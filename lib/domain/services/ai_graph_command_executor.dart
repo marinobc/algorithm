@@ -13,6 +13,7 @@ import '../../domain/models/grafo.dart';
 import '../../domain/models/nodo.dart';
 import '../../domain/services/graph_storage_service.dart';
 import '../../ui/theme/app_theme.dart';
+import '../../ui/widgets/app_toast.dart';
 
 /// Helper service responsible for extracting structured graph modification
 /// JSON actions from LLM responses and executing them on the active graph state.
@@ -477,11 +478,10 @@ class AIGraphCommandExecutor {
       ref.read(estadoEdicionProvider.notifier).marcarCambioSinGuardar();
 
       if (isMounted()) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('✏️ Conexiones actualizadas en el lienzo.'),
-            behavior: SnackBarBehavior.floating,
-          ),
+        AppToast.show(
+          context,
+          'Conexiones actualizadas en el lienzo.',
+          icon: Icons.edit_note_rounded,
         );
       }
     } catch (_) {}

@@ -24,6 +24,7 @@ import '../dialogs/tutorial_screen.dart';
 import '../screens/welcome_explanation_screen.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_drawer.dart';
+import '../widgets/app_toast.dart';
 import '../widgets/canvas_controls_fabs.dart';
 import '../widgets/edit_panel.dart';
 import '../widgets/floating_algorithm_card.dart';
@@ -80,12 +81,10 @@ class _GraphEditorScreenState extends ConsumerState<GraphEditorScreen> {
   void _openAdjacencyMatrixModal() {
     final esInvalido = ref.read(esGrafoInvalidoProvider);
     if (esInvalido) {
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Conecta el grafo para poder ver la matriz'),
-          behavior: SnackBarBehavior.floating,
-        ),
+      AppToast.show(
+        context,
+        'Conecta el grafo para poder ver la matriz.',
+        icon: Icons.hub_outlined,
       );
       return;
     }
@@ -166,11 +165,11 @@ class _GraphEditorScreenState extends ConsumerState<GraphEditorScreen> {
     if (loadedItem != null) {
       if (!hasUnsavedMutations) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('No había cambios por guardar.'),
-              duration: Duration(seconds: 2),
-            ),
+          AppToast.show(
+            context,
+            'No había cambios por guardar.',
+            icon: Icons.info_outline_rounded,
+            duration: const Duration(seconds: 2),
           );
         }
         return;
@@ -186,13 +185,11 @@ class _GraphEditorScreenState extends ConsumerState<GraphEditorScreen> {
       ref.read(estadoEdicionProvider.notifier).desmarcarCambiosSinGuardar();
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Grafo "${updatedItem.nombre}" guardado exitosamente.',
-            ),
-            duration: const Duration(seconds: 2),
-          ),
+        AppToast.show(
+          context,
+          'Grafo "${updatedItem.nombre}" guardado exitosamente.',
+          icon: Icons.check_circle_rounded,
+          duration: const Duration(seconds: 2),
         );
       }
     } else {
@@ -210,11 +207,11 @@ class _GraphEditorScreenState extends ConsumerState<GraphEditorScreen> {
       ref.read(estadoEdicionProvider.notifier).desmarcarCambiosSinGuardar();
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Grafo guardado como "${savedItem.nombre}".'),
-            duration: const Duration(seconds: 2),
-          ),
+        AppToast.show(
+          context,
+          'Grafo guardado como "${savedItem.nombre}".',
+          icon: Icons.check_circle_rounded,
+          duration: const Duration(seconds: 2),
         );
       }
     }
@@ -239,11 +236,11 @@ class _GraphEditorScreenState extends ConsumerState<GraphEditorScreen> {
     ref.read(estadoEdicionProvider.notifier).desmarcarCambiosSinGuardar();
 
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Nombre del grafo cambiado a "${updatedItem.nombre}".'),
-          duration: const Duration(seconds: 2),
-        ),
+      AppToast.show(
+        context,
+        'Nombre del grafo cambiado a "${updatedItem.nombre}".',
+        icon: Icons.edit_rounded,
+        duration: const Duration(seconds: 2),
       );
     }
   }
@@ -277,82 +274,13 @@ class _GraphEditorScreenState extends ConsumerState<GraphEditorScreen> {
 
       final currentAlgo = ref.read(activeAlgorithmProvider);
       final algoName = currentAlgo?.name ?? 'Modo Libre';
-      final algoColor =
-          currentAlgo?.themeColor ?? Theme.of(context).colorScheme.primary;
       final algoIcon = currentAlgo?.icon ?? Icons.brush_outlined;
 
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(28),
-            side: BorderSide(
-              color: algoColor.withValues(alpha: 0.5),
-              width: 1.2,
-            ),
-          ),
-          backgroundColor: Theme.of(context).colorScheme.surfaceContainerHigh
-              .withValues(alpha: 0.95),
-          elevation: 6,
-          margin: const EdgeInsets.only(bottom: 24, left: 32, right: 32),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          duration: const Duration(seconds: 3),
-          content: Row(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(
-                Icons.check_circle_rounded,
-                color: Color(0xFF00BFA5),
-                size: 20,
-              ),
-              const SizedBox(width: 10),
-              Flexible(
-                child: Text(
-                  'Grafo "${selectedItem.nombre}" cargado',
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurface,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 13,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              const SizedBox(width: 12),
-              // Algorithm pill
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 5,
-                ),
-                decoration: BoxDecoration(
-                  color: algoColor.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: algoColor.withValues(alpha: 0.7),
-                    width: 1.2,
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(algoIcon, size: 14, color: algoColor),
-                    const SizedBox(width: 6),
-                    Text(
-                      algoName,
-                      style: TextStyle(
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.bold,
-                        color: algoColor,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
+      AppToast.show(
+        context,
+        'Grafo "${selectedItem.nombre}" cargado ($algoName)',
+        icon: algoIcon,
+        duration: const Duration(seconds: 3),
       );
     }
   }
@@ -362,12 +290,11 @@ class _GraphEditorScreenState extends ConsumerState<GraphEditorScreen> {
     if (canProceed && mounted) {
       _cleanAndUnloadAll();
 
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Lienzo vaciado. Modo Libre activado.'),
-          duration: Duration(seconds: 2),
-        ),
+      AppToast.show(
+        context,
+        'Lienzo vaciado. Modo Libre activado.',
+        icon: Icons.delete_sweep_outlined,
+        duration: const Duration(seconds: 2),
       );
     }
   }

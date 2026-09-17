@@ -8,6 +8,7 @@ import '../../algorithms/core/graph_algorithm.dart';
 import '../../algorithms/johnson/domain/services/johnson_validator.dart';
 import '../../algorithms/johnson/providers/johnson_provider.dart';
 import '../../application/providers/grafo_provider.dart';
+import '../widgets/app_toast.dart';
 
 /// Modal dialog presented to the user to choose which algorithm mode to work in.
 /// Used when entering the editor from general pages, or when changing algorithm
@@ -167,28 +168,22 @@ class AlgorithmSelectionDialog extends StatelessWidget {
                       if (algo.id == 'assignment') {
                         final val = TransportationValidator.validate(grafo);
                         if (!val.isValid) {
-                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text(
+                          AppToast.show(
+                            context,
+                            val.errorMessage ??
                                 'Grafo no válido para el algoritmo seleccionado',
-                              ),
-                              behavior: SnackBarBehavior.floating,
-                            ),
+                            icon: Icons.warning_amber_rounded,
                           );
                           return;
                         }
                       } else if (algo.id == 'johnson') {
                         final val = JohnsonValidator.validate(grafo);
                         if (!val.isValid) {
-                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text(
+                          AppToast.show(
+                            context,
+                            val.errorMessage ??
                                 'Grafo no válido para el algoritmo seleccionado',
-                              ),
-                              behavior: SnackBarBehavior.floating,
-                            ),
+                            icon: Icons.warning_amber_rounded,
                           );
                           return;
                         }

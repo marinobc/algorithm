@@ -13,6 +13,7 @@ import '../models/grafo.dart';
 import '../../ui/canvas/graph_painter.dart';
 import '../../ui/canvas/graph_render_model.dart';
 import '../../ui/theme/app_theme.dart';
+import '../../ui/widgets/app_toast.dart';
 
 class GraphShareService {
   /// Generates a base64-encoded thumbnail with the canvas sized to match the
@@ -376,34 +377,30 @@ class GraphShareService {
                     downloadBytesWeb(jpgBytes, fileName);
 
                     if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Descarga de imagen iniciada.'),
-                          duration: Duration(seconds: 3),
-                        ),
+                      AppToast.show(
+                        context,
+                        'Descarga de imagen iniciada.',
+                        icon: Icons.download_done_rounded,
                       );
                       Navigator.of(ctx).pop();
                     }
                   } else if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          'Imagen guardada exitosamente en:\n$savedPath',
-                        ),
-                        duration: const Duration(seconds: 4),
-                        action: SnackBarAction(label: 'OK', onPressed: () {}),
-                      ),
+                    AppToast.show(
+                      context,
+                      'Imagen guardada exitosamente en:\n$savedPath',
+                      icon: Icons.check_circle_rounded,
+                      duration: const Duration(seconds: 4),
                     );
                     Navigator.of(ctx).pop();
                   }
                 } catch (e) {
                   if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Error al guardar la imagen: $e'),
-                        backgroundColor: Theme.of(context).colorScheme.error,
-                        duration: const Duration(seconds: 4),
-                      ),
+                    AppToast.show(
+                      context,
+                      'Error al guardar la imagen: $e',
+                      icon: Icons.error_outline_rounded,
+                      backgroundColor: Theme.of(context).colorScheme.error,
+                      duration: const Duration(seconds: 4),
                     );
                   }
                 }

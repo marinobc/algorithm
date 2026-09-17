@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../application/providers/grafo_provider.dart';
 import '../domain/models/grafo.dart';
+import '../ui/widgets/app_toast.dart';
 
 /// A standalone debug FAB widget group containing export/copy and import/paste buttons
 /// for quick node data testing and debugging.
@@ -88,22 +89,17 @@ class GraphDebugFab extends ConsumerWidget {
                   ref.read(grafoProvider.notifier).cargarGrafo(nuevoGrafo);
 
                   Navigator.of(dialogContext).pop();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        'Grafo importado exitosamente (${nuevoGrafo.nodos.length} nodos, ${nuevoGrafo.conexiones.length} conexiones)',
-                      ),
-                      backgroundColor: Colors.green,
-                      behavior: SnackBarBehavior.floating,
-                    ),
+                  AppToast.show(
+                    context,
+                    'Grafo importado exitosamente (${nuevoGrafo.nodos.length} nodos, ${nuevoGrafo.conexiones.length} conexiones)',
+                    icon: Icons.check_circle_rounded,
                   );
                 } catch (e) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Error al procesar el JSON del grafo: $e'),
-                      backgroundColor: Colors.redAccent,
-                      behavior: SnackBarBehavior.floating,
-                    ),
+                  AppToast.show(
+                    context,
+                    'Error al procesar el JSON del grafo: $e',
+                    icon: Icons.error_outline_rounded,
+                    backgroundColor: Colors.redAccent,
                   );
                 }
               },
@@ -169,29 +165,10 @@ class GraphDebugFab extends ConsumerWidget {
 
             try {
               Clipboard.setData(ClipboardData(text: exportData));
-              ScaffoldMessenger.of(context).hideCurrentSnackBar();
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Row(
-                    children: [
-                      const Icon(
-                        Icons.bug_report,
-                        color: Colors.white,
-                        size: 20,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          'Grafo copiado al portapapeles (${grafo.nodos.length} nodos, ${grafo.conexiones.length} conexiones)',
-                          style: const TextStyle(fontSize: 12),
-                        ),
-                      ),
-                    ],
-                  ),
-                  backgroundColor: Colors.deepOrange,
-                  duration: const Duration(seconds: 3),
-                  behavior: SnackBarBehavior.floating,
-                ),
+              AppToast.show(
+                context,
+                'Grafo copiado al portapapeles (${grafo.nodos.length} nodos, ${grafo.conexiones.length} conexiones)',
+                icon: Icons.bug_report,
               );
             } catch (_) {
               // Fallback dialog for browsers blocking direct clipboard access in WASM

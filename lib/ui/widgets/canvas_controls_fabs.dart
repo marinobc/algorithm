@@ -12,6 +12,8 @@ import '../../application/providers/grafo_provider.dart';
 import '../../debug/graph_debug_fab.dart';
 import '../dialogs/adjacency_matrix_dialog.dart';
 
+import 'app_toast.dart';
+
 class CanvasControlsFabs extends ConsumerWidget {
   final VoidCallback onResetView;
 
@@ -24,15 +26,11 @@ class CanvasControlsFabs extends ConsumerWidget {
     if (activeAlgo.id == AlgorithmRegistry.assignmentId) {
       final validation = ref.read(transportationValidationProvider);
       if (!validation.isValid) {
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              validation.errorMessage ??
-                  'Grafo no válido para el algoritmo de Asignación.',
-            ),
-            behavior: SnackBarBehavior.floating,
-          ),
+        AppToast.show(
+          context,
+          validation.errorMessage ??
+              'Grafo no válido para el algoritmo de Asignación.',
+          icon: Icons.warning_amber_rounded,
         );
         return;
       }
@@ -40,15 +38,11 @@ class CanvasControlsFabs extends ConsumerWidget {
     } else if (activeAlgo.id == AlgorithmRegistry.johnsonId) {
       final validation = ref.read(johnsonValidationProvider);
       if (!validation.isValid) {
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              validation.errorMessage ??
-                  'Grafo no válido para el algoritmo de Johnson.',
-            ),
-            behavior: SnackBarBehavior.floating,
-          ),
+        AppToast.show(
+          context,
+          validation.errorMessage ??
+              'Grafo no válido para el algoritmo de Johnson.',
+          icon: Icons.warning_amber_rounded,
         );
         return;
       }
@@ -60,14 +54,10 @@ class CanvasControlsFabs extends ConsumerWidget {
     final activeAlgo = ref.read(activeAlgorithmProvider);
 
     if (activeAlgo == null) {
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Seleccione un tipo de algoritmo en la barra superior para optimizar.',
-          ),
-          behavior: SnackBarBehavior.floating,
-        ),
+      AppToast.show(
+        context,
+        'Seleccione un tipo de algoritmo en la barra superior para optimizar.',
+        icon: Icons.info_outline_rounded,
       );
       return;
     }
@@ -75,15 +65,11 @@ class CanvasControlsFabs extends ConsumerWidget {
     if (activeAlgo.id == AlgorithmRegistry.assignmentId) {
       final validation = ref.read(transportationValidationProvider);
       if (!validation.isValid) {
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              validation.errorMessage ??
-                  'Grafo no válido para el algoritmo de Asignación.',
-            ),
-            behavior: SnackBarBehavior.floating,
-          ),
+        AppToast.show(
+          context,
+          validation.errorMessage ??
+              'Grafo no válido para el algoritmo de Asignación.',
+          icon: Icons.warning_amber_rounded,
         );
         return;
       }
@@ -91,26 +77,20 @@ class CanvasControlsFabs extends ConsumerWidget {
       ref.read(johnsonNotifierProvider.notifier).setActive(false);
       ref.read(transportationNotifierProvider.notifier).setActive(true);
 
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Optimizando con Algoritmo de Asignación...'),
-          behavior: SnackBarBehavior.floating,
-          duration: Duration(seconds: 2),
-        ),
+      AppToast.show(
+        context,
+        'Optimizando con Algoritmo de Asignación...',
+        icon: Icons.play_arrow_rounded,
+        duration: const Duration(seconds: 2),
       );
     } else if (activeAlgo.id == AlgorithmRegistry.johnsonId) {
       final validation = ref.read(johnsonValidationProvider);
       if (!validation.isValid) {
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              validation.errorMessage ??
-                  'Grafo no válido para el algoritmo de Johnson.',
-            ),
-            behavior: SnackBarBehavior.floating,
-          ),
+        AppToast.show(
+          context,
+          validation.errorMessage ??
+              'Grafo no válido para el algoritmo de Johnson.',
+          icon: Icons.warning_amber_rounded,
         );
         return;
       }
@@ -118,13 +98,11 @@ class CanvasControlsFabs extends ConsumerWidget {
       ref.read(transportationNotifierProvider.notifier).setActive(false);
       ref.read(johnsonNotifierProvider.notifier).setActive(true);
 
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Optimizando con Algoritmo de Johnson...'),
-          behavior: SnackBarBehavior.floating,
-          duration: Duration(seconds: 2),
-        ),
+      AppToast.show(
+        context,
+        'Optimizando con Algoritmo de Johnson...',
+        icon: Icons.play_arrow_rounded,
+        duration: const Duration(seconds: 2),
       );
     }
   }
@@ -239,12 +217,10 @@ class CanvasControlsFabs extends ConsumerWidget {
             onPressed: () {
               final esInvalido = ref.read(esGrafoInvalidoProvider);
               if (esInvalido) {
-                ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Conecta el grafo para poder ver la matriz'),
-                    behavior: SnackBarBehavior.floating,
-                  ),
+                AppToast.show(
+                  context,
+                  'Conecta el grafo para poder ver la matriz.',
+                  icon: Icons.hub_outlined,
                 );
                 return;
               }

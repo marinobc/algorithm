@@ -8,6 +8,8 @@ import '../../domain/models/grafo.dart';
 import '../../domain/models/nodo.dart';
 import '../theme/app_theme.dart';
 
+import 'app_toast.dart';
+
 class InvalidGraphBanner extends ConsumerWidget {
   const InvalidGraphBanner({super.key});
 
@@ -23,36 +25,13 @@ class InvalidGraphBanner extends ConsumerWidget {
       icon: Icon(Icons.gpp_maybe_rounded, color: colorScheme.error, size: 24),
       tooltip: 'Grafo Inválido',
       onPressed: () {
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            backgroundColor: colorScheme.errorContainer,
-            content: Row(
-              children: [
-                Icon(
-                  Icons.gpp_maybe_rounded,
-                  color: colorScheme.onErrorContainer,
-                  size: 20,
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    'Grafo Inválido: Hay nodos o componentes desconectados.',
-                    style: TextStyle(
-                      color: colorScheme.onErrorContainer,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 13,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            duration: const Duration(seconds: 3),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            behavior: SnackBarBehavior.floating,
-          ),
+        AppToast.show(
+          context,
+          'Grafo Inválido: Hay nodos o componentes desconectados.',
+          icon: Icons.gpp_maybe_rounded,
+          backgroundColor: colorScheme.errorContainer,
+          textColor: colorScheme.onErrorContainer,
+          duration: const Duration(seconds: 3),
         );
       },
     );
