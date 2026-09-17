@@ -1,10 +1,14 @@
 {
-    "name": "Editor de Nodos y Algoritmos de Grafos",
-    "short_name": "Grafos",
+    "name": "sleepNode",
+    "short_name": "sleepNode",
     "start_url": "index.html",
     "scope": ".",
     "display": "standalone",
-    "display_override": ["standalone", "fullscreen", "minimal-ui"],
+    "display_override": [
+        "standalone",
+        "fullscreen",
+        "minimal-ui"
+    ],
     "background_color": "#12131C",
     "theme_color": "#00BFA5",
     "description": "Aplicación interactiva para edición, modelado y resolución de algoritmos de grafos.",

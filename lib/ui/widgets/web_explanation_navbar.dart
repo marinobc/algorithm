@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../algorithms/core/algorithm_registry.dart';
 import '../screens/assignment_algo_screen.dart';
@@ -186,32 +187,27 @@ class WebExplanationShell extends ConsumerWidget {
               Row(
                 children: [
                   Container(
-                    width: 34,
-                    height: 34,
+                    width: 32,
+                    height: 32,
                     decoration: BoxDecoration(
-                      color: colorScheme.surfaceContainer,
+                      color: Colors.white,
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
                         color: colorScheme.outline.withValues(alpha: 0.3),
                         width: 1,
                       ),
                     ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(6),
-                      child: Image.asset(
-                        'Logo aplicación grafos.png',
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) => Icon(
-                          Icons.hub_rounded,
-                          color: colorScheme.primary,
-                          size: 20,
-                        ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(3),
+                      child: SvgPicture.asset(
+                        'assets/icons/logo.svg',
+                        fit: BoxFit.contain,
                       ),
                     ),
                   ),
                   const SizedBox(width: 10),
                   const Text(
-                    'Nodos & Algoritmos',
+                    'sleepNode',
                     style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                   ),
                 ],
@@ -268,30 +264,25 @@ class WebExplanationShell extends ConsumerWidget {
                   width: 38,
                   height: 38,
                   decoration: BoxDecoration(
-                    color: colorScheme.surfaceContainer,
+                    color: Colors.white,
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(
                       color: colorScheme.outline.withValues(alpha: 0.3),
                       width: 1.5,
                     ),
                   ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: Image.asset(
-                      'Logo aplicación grafos.png',
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => Icon(
-                        Icons.hub_rounded,
-                        color: colorScheme.primary,
-                        size: 22,
-                      ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(4),
+                    child: SvgPicture.asset(
+                      'assets/icons/logo.svg',
+                      fit: BoxFit.contain,
                     ),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'Nodos & Algoritmos',
+                    'sleepNode',
                     style: const TextStyle(
                       fontSize: 15.5,
                       fontWeight: FontWeight.bold,
