@@ -81,7 +81,7 @@ class ContactScreen extends StatelessWidget {
                     ),
                     const SizedBox(width: 12),
                     Text(
-                      'Nuestro Equipo de Desarrolladores',
+                      'Equipo SleepCode();',
                       style: TextStyle(
                         fontSize: width > 600 ? 22 : 18,
                         fontWeight: FontWeight.bold,
@@ -226,7 +226,7 @@ class ContactScreen extends StatelessWidget {
                 ),
                 const SizedBox(width: 6),
                 Text(
-                  'EQUIPO DE TRABAJO',
+                  'EQUIPO: SleepCode();',
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
@@ -239,7 +239,7 @@ class ContactScreen extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            'Desarrolladores del Proyecto',
+            'Desarrolladores de SleepCode();',
             style: TextStyle(
               fontSize: width > 600 ? 30 : 22,
               fontWeight: FontWeight.bold,
@@ -249,7 +249,7 @@ class ContactScreen extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           Text(
-            'Conoce a los integrantes del equipo de desarrollo y explora el código fuente del proyecto.',
+            'Conoce a los integrantes del equipo SleepCode(); y explora el código fuente del proyecto.',
             style: TextStyle(
               fontSize: width > 600 ? 15 : 13.5,
               height: 1.5,
