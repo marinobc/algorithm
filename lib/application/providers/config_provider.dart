@@ -12,7 +12,7 @@ class ConfigEstado {
 
   const ConfigEstado({
     this.valorConexionPorDefecto = '1',
-    this.themeMode = ThemeMode.system,
+    this.themeMode = ThemeMode.light,
     this.tipoConexionPorDefecto = Direccion.unidireccional,
     this.mostrarBotonesDebug = false,
   });
