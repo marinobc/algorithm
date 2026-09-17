@@ -277,9 +277,29 @@ class GraphShareService {
         }
       }
     } else if (Platform.isAndroid || Platform.isIOS) {
-      final docsDir = Directory('/storage/emulated/0/Download');
-      if (docsDir.existsSync()) {
-        dirPath = docsDir.path;
+      final candidates = [
+        '/storage/emulated/0/Download',
+        '/sdcard/Download',
+        Directory.systemTemp.path,
+      ];
+      for (final candidate in candidates) {
+        try {
+          final dir = Directory(candidate);
+          if (!dir.existsSync()) {
+            dir.createSync(recursive: true);
+          }
+          final fileName = generateUniqueExportFileName(
+            'png',
+            dirPath: candidate,
+          );
+          final filePath = '$candidate${Platform.pathSeparator}$fileName';
+          final file = File(filePath);
+          await file.writeAsBytes(bytes);
+          return filePath;
+        } catch (_) {
+          // If permission denied or invalid path, continue to fallback candidate
+          continue;
+        }
       }
     }
 

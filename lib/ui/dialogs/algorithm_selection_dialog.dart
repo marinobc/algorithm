@@ -198,9 +198,7 @@ class AlgorithmSelectionDialog extends StatelessWidget {
                     ref
                         .read(transportationNotifierProvider.notifier)
                         .setActive(false);
-                    ref
-                        .read(johnsonNotifierProvider.notifier)
-                        .setActive(false);
+                    ref.read(johnsonNotifierProvider.notifier).setActive(false);
                     ref
                         .read(activeAlgorithmProvider.notifier)
                         .selectById(algo.id);
