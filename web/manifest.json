@@ -1,6 +1,6 @@
 {
-    "name": "sleepNode",
-    "short_name": "sleepNode",
+    "name": "SleepNode",
+    "short_name": "SleepNode",
     "start_url": "index.html",
     "scope": ".",
     "display": "standalone",

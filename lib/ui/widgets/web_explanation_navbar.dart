@@ -207,7 +207,7 @@ class WebExplanationShell extends ConsumerWidget {
                   ),
                   const SizedBox(width: 10),
                   const Text(
-                    'sleepNode',
+                    'SleepNode',
                     style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                   ),
                 ],
@@ -282,7 +282,7 @@ class WebExplanationShell extends ConsumerWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'sleepNode',
+                    'SleepNode',
                     style: const TextStyle(
                       fontSize: 15.5,
                       fontWeight: FontWeight.bold,
