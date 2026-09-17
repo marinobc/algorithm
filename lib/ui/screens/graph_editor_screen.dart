@@ -428,6 +428,20 @@ class _GraphEditorScreenState extends ConsumerState<GraphEditorScreen> {
     );
   }
 
+  Future<void> _handleGoBack() async {
+    final canProceed = await _promptUnsavedChanges();
+    if (canProceed && mounted) {
+      _cleanAndUnloadAll();
+      if (Navigator.of(context).canPop()) {
+        Navigator.of(context).pop();
+      } else {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const WelcomeExplanationScreen()),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final palette = NeumorphicPalette.of(context);
@@ -449,11 +463,7 @@ class _GraphEditorScreenState extends ConsumerState<GraphEditorScreen> {
       canPop: false,
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
-        final canPop = await _promptUnsavedChanges();
-        if (canPop && context.mounted) {
-          _cleanAndUnloadAll();
-          Navigator.of(context).pop();
-        }
+        await _handleGoBack();
       },
       child: Scaffold(
         backgroundColor: palette.canvasBg,
@@ -463,21 +473,7 @@ class _GraphEditorScreenState extends ConsumerState<GraphEditorScreen> {
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_rounded),
             tooltip: 'Volver al Inicio',
-            onPressed: () async {
-              final canPop = await _promptUnsavedChanges();
-              if (canPop && context.mounted) {
-                _cleanAndUnloadAll();
-                if (Navigator.of(context).canPop()) {
-                  Navigator.of(context).pop();
-                } else {
-                  Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(
-                      builder: (_) => const WelcomeExplanationScreen(),
-                    ),
-                  );
-                }
-              }
-            },
+            onPressed: _handleGoBack,
           ),
           title: Row(
             mainAxisSize: MainAxisSize.min,
