@@ -11,7 +11,6 @@ import '../../application/providers/grafo_invalido_provider.dart';
 import '../../application/providers/grafo_provider.dart';
 import '../../debug/graph_debug_fab.dart';
 import '../dialogs/adjacency_matrix_dialog.dart';
-
 import 'app_toast.dart';
 
 class CanvasControlsFabs extends ConsumerWidget {

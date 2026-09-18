@@ -138,42 +138,47 @@ class HungarianAssignmentSolver implements ITransportationSolver {
     required TransportationMethod method,
     required OptimizationGoal goal,
   }) {
-    final origNames = problem.origins.map((o) => o.nombre ?? o.id).toList();
-    final destNames = problem.destinations
-        .map((d) => d.nombre ?? d.id)
-        .toList();
+    final origCount = problem.origins.length;
+    final destCount = problem.destinations.length;
+    final n = max(origCount, destCount);
 
-    // 1. Balance/Pad rectangular matrix to square N x N (N = max(M, N)) with 0 cost for dummy nodes
-    final balanced = TransportationSolverHelper.balanceProblem(
-      origNames,
-      destNames,
-      problem.supplies,
-      problem.demands,
-      problem.costMatrix,
-    );
-
-    final n = max(
-      balanced.originLabels.length,
-      balanced.destinationLabels.length,
-    );
-    final origLabels = List<String>.from(balanced.originLabels);
-    final destLabels = List<String>.from(balanced.destinationLabels);
-    final costs = List.generate(
-      n,
-      (i) => List<double>.from(balanced.costMatrix[i]),
-    );
-
-    // Pad matrix up to square n x n if origins or destinations lengths differ
+    final origLabels = <String>[];
+    for (int i = 0; i < origCount; i++) {
+      origLabels.add(problem.origins[i].nombre ?? problem.origins[i].id);
+    }
     while (origLabels.length < n) {
       origLabels.add('0 (Origen ${origLabels.length + 1})');
-      costs.add(List<double>.filled(n, 0.0));
+    }
+
+    final destLabels = <String>[];
+    for (int j = 0; j < destCount; j++) {
+      destLabels.add(
+        problem.destinations[j].nombre ?? problem.destinations[j].id,
+      );
     }
     while (destLabels.length < n) {
       destLabels.add('0 (Destino ${destLabels.length + 1})');
-      for (int i = 0; i < n; i++) {
-        costs[i].add(0.0);
-      }
     }
+
+    const bigM = 1e6;
+    final costs = List.generate(
+      n,
+      (i) => List.generate(n, (j) {
+        if (i < origCount && j < destCount) {
+          final val = problem.costMatrix[i][j];
+          if (val.isInfinite || val.isNaN || val >= bigM) {
+            return bigM;
+          }
+          return val;
+        }
+        return 0.0;
+      }),
+    );
+
+    final bool wasBalancedWithDummy = origCount != destCount;
+    final String? dummyLabelAdded = wasBalancedWithDummy
+        ? (origCount < destCount ? '0 (Origen)' : '0 (Destino)')
+        : null;
 
     final steps = <StepExplanation>[];
     int stepCounter = 1;
@@ -197,7 +202,7 @@ class HungarianAssignmentSolver implements ITransportationSolver {
       double minVal = rowReduced[i].reduce(min);
       alpha[i] = minVal;
       for (int j = 0; j < n; j++) {
-        rowReduced[i][j] -= minVal;
+        rowReduced[i][j] = max(0.0, rowReduced[i][j] - minVal);
       }
     }
     steps.add(
@@ -226,7 +231,7 @@ class HungarianAssignmentSolver implements ITransportationSolver {
       }
       beta[j] = minVal;
       for (int i = 0; i < n; i++) {
-        colReduced[i][j] -= minVal;
+        colReduced[i][j] = max(0.0, colReduced[i][j] - minVal);
       }
     }
     steps.add(
@@ -249,28 +254,35 @@ class HungarianAssignmentSolver implements ITransportationSolver {
     );
     var match = _findMaximumMatching(workingMatrix, n);
 
-    while (match.length < n) {
+    int maxIterations = n * n * 2;
+    int iteration = 0;
+
+    while (match.length < n && iteration < maxIterations) {
+      iteration++;
       final lineCover = _computeMinimumLineCover(workingMatrix, n, match);
       final coveredRows = lineCover.coveredRows;
       final coveredCols = lineCover.coveredCols;
 
-      // Find min uncovered value (\theta)
+      // Find min uncovered value (\theta > 1e-5)
       double theta = double.infinity;
       for (int i = 0; i < n; i++) {
         if (coveredRows.contains(i)) continue;
         for (int j = 0; j < n; j++) {
           if (coveredCols.contains(j)) continue;
-          if (workingMatrix[i][j] < theta) theta = workingMatrix[i][j];
+          final val = workingMatrix[i][j];
+          if (val > 1e-5 && val < theta) {
+            theta = val;
+          }
         }
       }
 
-      if (theta.isInfinite || theta <= 0) break;
+      if (theta.isInfinite || theta <= 1e-5) break;
 
       // Adjust matrix with \theta
       for (int i = 0; i < n; i++) {
         for (int j = 0; j < n; j++) {
           if (!coveredRows.contains(i) && !coveredCols.contains(j)) {
-            workingMatrix[i][j] -= theta;
+            workingMatrix[i][j] = max(0.0, workingMatrix[i][j] - theta);
           } else if (coveredRows.contains(i) && coveredCols.contains(j)) {
             workingMatrix[i][j] += theta;
           }
@@ -278,6 +290,26 @@ class HungarianAssignmentSolver implements ITransportationSolver {
       }
 
       match = _findMaximumMatching(workingMatrix, n);
+    }
+
+    // Guarantee full matching of size n for complete allocation table
+    if (match.length < n) {
+      final unmatchedRows = <int>[];
+      final unmatchedCols = <int>[];
+      for (int i = 0; i < n; i++) {
+        if (!match.containsKey(i)) unmatchedRows.add(i);
+      }
+      final matchedCols = match.values.toSet();
+      for (int j = 0; j < n; j++) {
+        if (!matchedCols.contains(j)) unmatchedCols.add(j);
+      }
+      for (
+        int k = 0;
+        k < unmatchedRows.length && k < unmatchedCols.length;
+        k++
+      ) {
+        match[unmatchedRows[k]] = unmatchedCols[k];
+      }
     }
 
     // 6. Build final allocation matrix n x n
@@ -291,10 +323,10 @@ class HungarianAssignmentSolver implements ITransportationSolver {
       final j = match[i];
       if (j != null && j >= 0 && j < n) {
         allocationMatrix[i][j] = 1.0;
-        final actualCost = (i < costs.length && j < costs[i].length)
-            ? costs[i][j]
+        final actualCost = (i < origCount && j < destCount)
+            ? problem.costMatrix[i][j]
             : 0.0;
-        if (actualCost.isFinite) {
+        if (actualCost.isFinite && actualCost < bigM) {
           totalCost += actualCost;
         }
       }
@@ -311,11 +343,8 @@ class HungarianAssignmentSolver implements ITransportationSolver {
       allocationMatrix: allocationMatrix,
       totalCost: totalCost,
       steps: steps,
-      wasBalancedWithDummy:
-          balanced.wasBalanced ||
-          origLabels.length > problem.origins.length ||
-          destLabels.length > problem.destinations.length,
-      dummyLabelAdded: balanced.dummyAddedLabel,
+      wasBalancedWithDummy: wasBalancedWithDummy,
+      dummyLabelAdded: dummyLabelAdded,
     );
   }
 

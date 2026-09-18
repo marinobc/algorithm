@@ -1,5 +1,6 @@
 import '../../../../domain/models/direccion.dart';
 import '../../../../domain/models/grafo.dart';
+import '../../../../domain/services/graph_validation.dart';
 import '../models/johnson_models.dart';
 
 class JohnsonValidator {
@@ -30,6 +31,14 @@ class JohnsonValidator {
           'No se puede aplicar el algoritmo, modifique el nodo aislado "$nodeName" conectándolo a la red.',
         );
       }
+    }
+
+    // Check for disconnected subgraphs (multiple components)
+    final disconnectedNodes = GraphValidation.findDisconnectedNodes(grafo);
+    if (disconnectedNodes.isNotEmpty) {
+      return const JohnsonValidationResult.invalid(
+        'El grafo contiene subgrafos no conectados. El algoritmo de Johnson requiere una red completamente conectada.',
+      );
     }
 
     // Check that all connections are strictly unidirectional (directed)

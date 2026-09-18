@@ -8,7 +8,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'diceware_service.dart';
-import 'web_download_stub.dart' if (dart.library.js_interop) 'web_download_real.dart';
+import 'web_download_stub.dart'
+    if (dart.library.js_interop) 'web_download_real.dart';
 import '../models/grafo.dart';
 import '../../ui/canvas/graph_painter.dart';
 import '../../ui/canvas/graph_render_model.dart';

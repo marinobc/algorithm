@@ -170,8 +170,7 @@ class AlgorithmSelectionDialog extends StatelessWidget {
                         if (!val.isValid) {
                           AppToast.show(
                             context,
-                            val.errorMessage ??
-                                'Grafo no válido para el algoritmo seleccionado',
+                            val.errorMessage ?? 'Grafo no válido para el algoritmo seleccionado',
                             icon: Icons.warning_amber_rounded,
                           );
                           return;
@@ -181,8 +180,7 @@ class AlgorithmSelectionDialog extends StatelessWidget {
                         if (!val.isValid) {
                           AppToast.show(
                             context,
-                            val.errorMessage ??
-                                'Grafo no válido para el algoritmo seleccionado',
+                            val.errorMessage ?? 'Grafo no válido para el algoritmo seleccionado',
                             icon: Icons.warning_amber_rounded,
                           );
                           return;

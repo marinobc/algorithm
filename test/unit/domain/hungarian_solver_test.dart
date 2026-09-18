@@ -183,5 +183,114 @@ void main() {
       // Max cost for real valid assignments should be 2.0
       expect(result.totalCost, equals(2.0));
     });
+
+    test('Hungarian Assignment Solver correctly solves heavily unbalanced graph (2 origins x 9 destinations)', () {
+      final origins = List.generate(
+        2,
+        (i) => Nodo(
+          id: 'O${i + 1}',
+          nombre: 'Origen ${i + 1}',
+          colorValue: 0,
+          x: 0,
+          y: 0,
+        ),
+      );
+      final destinations = List.generate(
+        9,
+        (j) => Nodo(
+          id: 'D${j + 1}',
+          nombre: 'Destino ${j + 1}',
+          colorValue: 0,
+          x: 100,
+          y: 100,
+        ),
+      );
+
+      // 2x9 cost matrix
+      final costMatrix = [
+        [10.0, 2.0, 8.0, 4.0, 6.0, 5.0, 9.0, 3.0, 7.0],
+        [5.0, 9.0, 3.0, 7.0, 1.0, 8.0, 4.0, 6.0, 2.0],
+      ];
+
+      final problem = TransportationProblemData(
+        origins: origins,
+        destinations: destinations,
+        supplies: List.filled(2, 1.0),
+        demands: List.filled(9, 1.0),
+        costMatrix: costMatrix,
+        isBalanced: false,
+        totalSupply: 2,
+        totalDemand: 9,
+      );
+
+      final solver = HungarianAssignmentSolver();
+      final result = solver.solve(
+        problem: problem,
+        method: TransportationMethod.hungarian,
+        goal: OptimizationGoal.minimize,
+      );
+
+      expect(result.wasBalancedWithDummy, isTrue);
+      expect(result.originLabels.length, equals(9));
+      expect(result.destinationLabels.length, equals(9));
+      // Optimal assignment for O1 -> D2 (cost 2) and O2 -> D5 (cost 1) => total 3.0
+      expect(result.totalCost, equals(3.0));
+      expect(result.allocationMatrix.length, equals(9));
+      for (int i = 0; i < 9; i++) {
+        expect(result.allocationMatrix[i].length, equals(9));
+      }
+    });
+
+    test('Hungarian Assignment Solver correctly solves heavily unbalanced graph (9 origins x 2 destinations)', () {
+      final origins = List.generate(
+        9,
+        (i) => Nodo(
+          id: 'O${i + 1}',
+          nombre: 'Origen ${i + 1}',
+          colorValue: 0,
+          x: 0,
+          y: 0,
+        ),
+      );
+      final destinations = List.generate(
+        2,
+        (j) => Nodo(
+          id: 'D${j + 1}',
+          nombre: 'Destino ${j + 1}',
+          colorValue: 0,
+          x: 100,
+          y: 100,
+        ),
+      );
+
+      final costMatrix = List.generate(
+        9,
+        (i) => [(i + 1) * 1.0, (10 - i) * 1.0],
+      );
+
+      final problem = TransportationProblemData(
+        origins: origins,
+        destinations: destinations,
+        supplies: List.filled(9, 1.0),
+        demands: List.filled(2, 1.0),
+        costMatrix: costMatrix,
+        isBalanced: false,
+        totalSupply: 9,
+        totalDemand: 2,
+      );
+
+      final solver = HungarianAssignmentSolver();
+      final result = solver.solve(
+        problem: problem,
+        method: TransportationMethod.hungarian,
+        goal: OptimizationGoal.minimize,
+      );
+
+      expect(result.wasBalancedWithDummy, isTrue);
+      expect(result.originLabels.length, equals(9));
+      expect(result.destinationLabels.length, equals(9));
+      // Optimal min cost: O1 -> D1 (cost 1.0) and O9 -> D2 (cost 2.0) => total 3.0
+      expect(result.totalCost, equals(3.0));
+    });
   });
 }
