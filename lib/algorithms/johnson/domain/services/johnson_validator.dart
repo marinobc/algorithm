@@ -1,6 +1,7 @@
 import '../../../../domain/models/direccion.dart';
 import '../../../../domain/models/grafo.dart';
 import '../../../../domain/services/graph_validation.dart';
+import '../../../assignment/domain/services/assignment_validator.dart';
 import '../models/johnson_models.dart';
 
 class JohnsonValidator {
@@ -38,6 +39,15 @@ class JohnsonValidator {
     if (disconnectedNodes.isNotEmpty) {
       return const JohnsonValidationResult.invalid(
         'El grafo contiene subgrafos no conectados. El algoritmo de Johnson requiere una red completamente conectada.',
+      );
+    }
+
+    // Exclusion: If graph structurally matches a connected Assignment problem (bipartite directed origins -> destinations),
+    // it must be classified as Assignment, not Johnson.
+    final assignmentValidation = TransportationValidator.validate(grafo);
+    if (assignmentValidation.isValid) {
+      return const JohnsonValidationResult.invalid(
+        'El grafo corresponde a una estructura de problema de Asignación (bipartito de orígenes a destinos). Debe utilizar el algoritmo de Asignación.',
       );
     }
 

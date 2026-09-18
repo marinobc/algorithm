@@ -154,6 +154,31 @@ void main() {
       expect(result.errorMessage, isNull);
     });
 
+    test(
+      'returns valid when graph is a simple 2-node directed edge (A -> B)',
+      () {
+        final grafo = Grafo(
+          nodos: {
+            'n1': const Nodo(id: 'n1', nombre: 'A', colorValue: 0, x: 0, y: 0),
+            'n2': const Nodo(id: 'n2', nombre: 'B', colorValue: 0, x: 50, y: 0),
+          },
+          conexiones: {
+            'c1': const Conexion(
+              id: 'c1',
+              nodoOrigenId: 'n1',
+              nodoDestinoId: 'n2',
+              colorValue: 0,
+              direccion: Direccion.unidireccional,
+            ),
+          },
+        );
+
+        final result = JohnsonValidator.validate(grafo);
+        expect(result.isValid, isTrue);
+        expect(result.errorMessage, isNull);
+      },
+    );
+
     test('returns invalid when graph contains cycles', () {
       final grafo = Grafo(
         nodos: {
@@ -181,6 +206,44 @@ void main() {
       final result = JohnsonValidator.validate(grafo);
       expect(result.isValid, isFalse);
       expect(result.errorMessage, contains('contiene ciclos'));
+    });
+
+    test('returns invalid when graph is a 3x4 Bipartite Assignment graph (classified as ASSIGNMENT, not JOHNSON)', () {
+      // 3 origins (o1, o2, o3) and 4 destinations (d1, d2, d3, d4)
+      final nodos = <String, Nodo>{
+        'o1': const Nodo(id: 'o1', nombre: 'O1', colorValue: 0, x: 0, y: 0),
+        'o2': const Nodo(id: 'o2', nombre: 'O2', colorValue: 0, x: 0, y: 50),
+        'o3': const Nodo(id: 'o3', nombre: 'O3', colorValue: 0, x: 0, y: 100),
+        'd1': const Nodo(id: 'd1', nombre: 'D1', colorValue: 0, x: 100, y: 0),
+        'd2': const Nodo(id: 'd2', nombre: 'D2', colorValue: 0, x: 100, y: 50),
+        'd3': const Nodo(id: 'd3', nombre: 'D3', colorValue: 0, x: 100, y: 100),
+        'd4': const Nodo(id: 'd4', nombre: 'D4', colorValue: 0, x: 100, y: 150),
+      };
+
+      final conexiones = <String, Conexion>{};
+      int counter = 1;
+      for (final o in ['o1', 'o2', 'o3']) {
+        for (final d in ['d1', 'd2', 'd3', 'd4']) {
+          final id = 'c_$counter';
+          conexiones[id] = Conexion(
+            id: id,
+            nodoOrigenId: o,
+            nodoDestinoId: d,
+            colorValue: 0,
+            direccion: Direccion.unidireccional,
+            atributos: const [
+              AtributoValor(atributoId: 'attr_valor', valor: '5'),
+            ],
+          );
+          counter++;
+        }
+      }
+
+      final grafo = Grafo(nodos: nodos, conexiones: conexiones);
+
+      final result = JohnsonValidator.validate(grafo);
+      expect(result.isValid, isFalse);
+      expect(result.errorMessage, contains('Asignación'));
     });
   });
 }
