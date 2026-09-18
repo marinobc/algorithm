@@ -1,89 +1,133 @@
 # Editor de Nodos y Grafos (Nodos)
 
-Aplicación interactiva desarrollada en **Flutter** y **Riverpod** para la creación, visualización y edición avanzada de grafos (nodos y conexiones) con soporte para curvas Bézier 2D bidireccionales, personalización de colores, atributos dinámicos y validación de conectividad.
+Aplicación web y móvil interactiva desarrollada en **Flutter** y **Riverpod** para el diseño, simulación, visualización y resolución algorítmica de grafos. Cuenta con soporte para curvas Bézier 2D bidireccionales, políticas de dibujo en tiempo real, matrices interactivas dedicadas, shell web educativo (PWA), y un sistema desacoplado y modular para incorporar nuevos algoritmos de teoría de grafos.
 
 ---
 
 ## 🌟 Características Principales
 
-- **Gestión de Nodos y Conexiones:**
-  - Creación de nodos (cápsulas/círculos) con etiquetas personalizadas y paleta de colores HSL/Neumorphism.
-  - Modos de interacción claros: **Añadir**, **Modificar** y **Eliminar**.
-  - Soporte para conexiones **sin dirección**, **unidireccionales** y **bidireccionales**.
-  - **Manipulación de Curvas 2D:** Ajuste individual e independiente de la curvatura/puntos de control Bézier para cada línea de una conexión bidireccional.
-  - **Bucle (Self-loops):** Conexiones de un nodo a sí mismo con rotación orbital de 360°.
+### 1. Motor de Lienzo y Dibujo Avanzado
+- **Interacción Multitáctil y Fluida:**
+  - Desplazamiento (pan), zoom centrado suave e inicialización automática en zoom óptimo.
+  - Botones flotantes (FAB) para control de zoom y centrado de lienzo.
+  - Detección precisa de selección (*Hit Testing*) para nodos, aristas curvas y bucles orbitales.
+  - Diálogo inteligente para resolución de selección de elementos superpuestos (`OverlappingElementsDialog`).
+- **Nodos y Conexiones Personalizables:**
+  - Nodos con nombres dinámicos, colores personalizados y roles contextuales.
+  - Conexiones no dirigidas, unidireccionales y bidireccionales con curvaturas Bézier 2D independientes por sentido.
+  - Auto-conexiones orbitales (*self-loops*) de 360°.
+  - Edición de valores numéricos, costos y atributos dinámicos mediante diálogos contextuales.
+- **Historial Completo (Undo / Redo):**
+  - Deshacer y rehacer cualquier mutación (creación, edición, arrastre o eliminación) con detección de cambios no guardados.
 
-- **Diseño UI / UX Neumórfico y M3:**
-  - Sistema de temas Neumórficos (modo claro y oscuro) con paleta `NeumorphicPalette`.
-  - Configuración global en pantalla completa (`ConfigScreen`) para evitar recortes de texto y mantener espaciados óptimos.
-  - Controles flotantes inferiores en fila única horizontal para evitar solapamientos entre la instrucción de modo y las acciones FAB.
-  - Diálogos descriptivos confirmando el nombre explícito del nodo a eliminar (ej. *"¿Está seguro de que desea eliminar el nodo [Nombre]?"*).
+### 2. Arquitectura Modular de Algoritmos (Extensible)
+El lienzo se adapta dinámicamente al algoritmo seleccionado a través de contratos desacoplados (**SOLID & SRP**):
+- **Modo Libre (Freehand):** Creación libre y sin restricciones de cualquier topología de grafo.
+- **Algoritmo de Asignación (Método Húngaro):**
+  - Política de grafo bipartito (partición estricta entre nodos Origen y Destino).
+  - Selector flotante sobre el lienzo para alternar roles `[+ Origen | + Destino]`.
+  - Matriz de costos bipartita dedicada (`AssignmentBipartiteMatrixScreen`) con editor interactivo de valores (`AssignmentMatrixInputDialog`).
+  - Iluminación en tiempo real en el lienzo de las aristas y nodos asignados óptimamente.
+- **Algoritmo de Johnson (Ruta Crítica / CPM - PERT):**
+  - Validación de grafo acíclico dirigido (DAG) en tiempo real (evita ciclos y aristas hacia atrás).
+  - Cálculo de tiempos tempranos, tiempos tardíos y holguras.
+  - Resaltado automático de la Ruta Crítica sobre el lienzo con capa luminosa (*glow underlay*).
 
-- **Validación de Grafos en Tiempo Real:**
-  - Detección automática de nodos desconectados.
-  - Borde rojo persistente (2.5px) alrededor de nodos desconectados que se mantiene visible incluso tras editar el color de relleno del nodo, desapareciendo únicamente al conectarse a otro nodo.
-  - Banner informativo en la barra superior con formato descriptivo: `"Grafo inválido. Conecte el (nodo A), (nodo B)"`.
+### 3. Matrices Interactivas y Coordinador Modular
+- **Coordinador Central (`MatrixViewCoordinator`):** Resuelve dinámicamente la vista matricial correspondiente según el modo activo.
+- **Matriz de Adyacencia General:** Cálculo de conexiones, grados máximos y estado de conectividad.
+- **Matriz Bipartita de Asignación:** Visualización tabular orígenes vs destinos, totales, costos mínimos y edición de celdas.
 
-- **Control de Lienzo Avanzado:**
-  - Inicialización automática en el máximo nivel de zoom (Zoom Max In).
-  - Gestos táctiles separados: 2 dedos para zoom/escalado centrado y 3 dedos para desplazamiento (pan).
-  - Botones FAB laterales flotantes (Zoom In, Zoom Out, Centrar) con posición estática fija (`bottom: 84.0`) para evitar saltos de interfaz al abrir/cerrar el panel de edición.
+### 4. Plataforma Web Educativa y PWA
+- **Shell de Explicación Responsivo:**
+  - Barra de navegación (`WebExplanationNavbar`) y menú lateral drawer para escritorio y móviles.
+  - Pantalla explicativa interactiva: *¿Qué son los Grafos?*, fundamentos, aplicaciones reales y conceptos visuales.
+  - Páginas dedicadas para cada algoritmo con teoría, ejemplos paso a paso y botón de lanzamiento directo al editor.
+  - Instalable como Progressive Web App (PWA) con soporte offline y manifiesto web optimizado.
 
-- **Historial e Deshacer/Rehacer (Undo/Redo):**
-  - Control completo de estados anteriores para deshacer/rehacer cualquier adición, modificación o eliminación.
+### 5. Asistente IA y Herramientas
+- **Chat Asistente con IA (`AIChatDialog`):** Asistencia en lenguaje natural para manipulación guiada de grafos y consultas teóricas.
+- **Gestión de Proyectos:** Guardado local, carga de proyectos guardados, renombramiento y exportación directa del grafo a imagen JPG.
+- **Retroalimentación Unificada:** Sistema centralizado de notificaciones flotantes tipo píldora (`AppToast`).
 
 ---
 
-## 🏗️ Arquitectura del Proyecto
+## 🏗️ Arquitectura del Software
 
-El proyecto sigue **Clean Architecture** estructurada en 3 capas desacopladas:
+El proyecto implementa los principios de **Clean Architecture**, **SOLID** y programación reactiva con **Riverpod**:
 
 ```text
 lib/
-├── application/         # Gestión de estado (Riverpod providers & notifiers)
-│   ├── providers/       # GrafoNotifier, ModoActivo, Config, Validación, etc.
-│   └── state/           # Clases inmutables de estado
-├── domain/              # Lógica de dominio pura sin dependencias de Flutter
-│   ├── models/          # Nodo, Conexion, Grafo, Direccion, Atributo
-│   └── services/        # GraphGeometry, GraphValidation
-└── ui/                  # Presentación y widgets Flutter
-    ├── canvas/          # GraphCanvas, GraphPainter, GraphHitTester
-    ├── dialogs/         # ConfigScreen, DeleteConfirmationDialog, ConnectionDirectionDialog
-    ├── theme/           # AppTheme, NeumorphicPalette
-    └── widgets/         # EditPanel, HistoryControlsBar, InvalidGraphBanner, BottomMenuBar
+├── algorithms/                  # Framework y plugins de algoritmos
+│   ├── core/                   # Contratos abstractos (GraphAlgorithm, GraphAlgorithmPolicy, AlgorithmRegistry)
+│   ├── assignment/             # Algoritmo de Asignación (Húngaro: modelos, solvers, UI y matriz)
+│   └── johnson/                # Algoritmo de Johnson (CPM/PERT: modelos, validación DAG y UI)
+│
+├── application/                # Gestión de estado (Riverpod StateNotifiers / Notifiers)
+│   ├── providers/              # grafoProvider, edicionProvider, modoActivoProvider, etc.
+│   └── state/                  # Modelos inmutables de estado de aplicación
+│
+├── domain/                     # Lógica de negocio pura (Dart puro, sin dependencias de Flutter)
+│   ├── models/                 # Grafo, Nodo, Conexion, Atributo, Direccion
+│   ├── highlights/             # AlgorithmHighlight (contrato visual de resaltado)
+│   └── services/               # Geometría, validación de conectividad, exportación
+│
+├── ui/                         # Capa de presentación y widgets Flutter
+│   ├── canvas/                 # GraphCanvas, GraphPainter (renderizado de curvas y glow underlays)
+│   ├── dialogs/                # Diálogos modales, matrices, configuración, chat IA
+│   ├── screens/                # GraphEditorScreen, pantallas explicativas web
+│   ├── theme/                  # AppTheme (Neumorphic & Material 3, soporte claro/oscuro)
+│   └── widgets/                # AppToast, EditPanel, AppDrawer, CanvasControlsFabs
+│
+└── main.dart                   # Punto de entrada de la aplicación
 ```
 
 ---
 
-## 🛠️ Ejecución y Pruebas
+## 🛠️ Instalación y Desarrollo
 
 ### Prerrequisitos
-- **Flutter SDK** >= 3.0.0
-- **Dart SDK** >= 3.0.0
+- **Flutter SDK**: `>= 3.19.0` (o versión estable reciente)
+- **Dart SDK**: `>= 3.3.0`
 
-### Instalación
+### 1. Clonar el repositorio
+```bash
+git clone https://github.com/marinobc/algorithm.git
+cd algorithm
+```
+
+### 2. Instalar dependencias
 ```bash
 flutter pub get
 ```
 
-### Ejecutar Aplicación
+### 3. Ejecutar en local
 ```bash
-flutter run
+# Para Web (Chrome)
+flutter run -d chrome
+
+# Para Windows Desktop
+flutter run -d windows
 ```
 
-### Análisis Estático
+### 4. Análisis de código
 ```bash
 flutter analyze
 ```
 
-### Ejecución de Pruebas Unitarias y de Widget
+### 5. Suite de Pruebas
+Ejecutar la suite completa de pruebas unitarias y de widgets:
 ```bash
 flutter test
 ```
 
-Actualmente, la suite consta de **29 pruebas automatizadas** que cubren:
-- Geometría de curvas Bézier y distribución de 12 puntos de conexión por perímetro.
-- Algoritmo de resolución de colisiones y separación entre nodos.
-- Detección de conectividad de grafos.
-- Independencia de curvas 2D en pares bidireccionales.
-- Gestión de gestos y límites de zoom/pan en el lienzo.
+Las pruebas cubren:
+- Geometría de curvas Bézier y puntos de anclaje perimetrales.
+- Validación de políticas de algoritmos (restricciones de asignación bipartita y aciclicidad de Johnson).
+- Algoritmos matemáticos (Hungarian solver, Johnson topological pass).
+- Pruebas de widgets (renderizado del canvas, paneles de edición y matrices modulares).
+
+---
+
+## 🤝 Cómo Contribuir
+Consulta el archivo [`AGENTS.md`](./AGENTS.md) para conocer las pautas de estilo de código, buenas prácticas de desarrollo, manejo de estado con Riverpod y la guía paso a paso para crear un nuevo algoritmo modular.
