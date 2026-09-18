@@ -10,7 +10,7 @@
         "minimal-ui"
     ],
     "background_color": "#141218",
-    "theme_color": "#7C4DFF",
+    "theme_color": "#FFFFFF",
     "description": "Aplicación interactiva para edición, modelado y resolución de algoritmos de grafos.",
     "orientation": "any",
     "prefer_related_applications": false,
