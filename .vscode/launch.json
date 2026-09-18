@@ -30,6 +30,27 @@
             "toolArgs": [
                 "--wasm"
             ]
+        },
+        {
+            "name": "Flutter Web (Debug)",
+            "type": "dart",
+            "request": "launch",
+            "deviceId": "chrome",
+            "flutterMode": "debug"
+        },
+        {
+            "name": "Flutter Web (Profile)",
+            "type": "dart",
+            "request": "launch",
+            "deviceId": "chrome",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "Flutter Web (Release)",
+            "type": "dart",
+            "request": "launch",
+            "deviceId": "chrome",
+            "flutterMode": "release"
         }
     ]
 }
