@@ -107,17 +107,24 @@ class TransportationValidator {
       }
     }
 
-    if (origins.length < 2) {
+    if (origins.isEmpty) {
       return const TransportationValidationResult(
         isValid: false,
-        errorMessage: 'No se puede aplicar el algoritmo, modifique el grafo para incluir al menos dos nodos de Origen (sin conexiones entrantes).',
+        errorMessage: 'No se puede aplicar el algoritmo, modifique el grafo para incluir al menos un nodo de Origen (sin conexiones entrantes).',
       );
     }
 
-    if (destinations.length < 2) {
+    if (destinations.isEmpty) {
       return const TransportationValidationResult(
         isValid: false,
-        errorMessage: 'No se puede aplicar el algoritmo, modifique el grafo para incluir al menos dos nodos de Destino (sin conexiones salientes).',
+        errorMessage: 'No se puede aplicar el algoritmo, modifique el grafo para incluir al menos un nodo de Destino (sin conexiones salientes).',
+      );
+    }
+
+    if (origins.length < 2 && destinations.length < 2) {
+      return const TransportationValidationResult(
+        isValid: false,
+        errorMessage: 'No se puede aplicar el algoritmo, modifique el grafo para incluir al menos dos orígenes o dos destinos.',
       );
     }
 

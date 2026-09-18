@@ -150,5 +150,103 @@ void main() {
         contains('No se puede aplicar el algoritmo, modifique'),
       );
     });
+
+    test('Validates unbalanced bipartite graph with 2 origins and 1 destination (2x1)', () {
+      final o1 = const Nodo(
+        id: 'O1',
+        nombre: 'Viaje',
+        colorValue: 0,
+        x: 0,
+        y: 0,
+      );
+      final o2 = const Nodo(
+        id: 'O2',
+        nombre: 'Cumbre',
+        colorValue: 0,
+        x: 0,
+        y: 50,
+      );
+      final d1 = const Nodo(
+        id: 'D1',
+        nombre: 'Pluma',
+        colorValue: 0,
+        x: 100,
+        y: 25,
+      );
+
+      final c1 = const Conexion(
+        id: 'c1',
+        nodoOrigenId: 'O1',
+        nodoDestinoId: 'D1',
+        colorValue: 0,
+        direccion: Direccion.unidireccional,
+      );
+      final c2 = const Conexion(
+        id: 'c2',
+        nodoOrigenId: 'O2',
+        nodoDestinoId: 'D1',
+        colorValue: 0,
+        direccion: Direccion.unidireccional,
+      );
+
+      final grafo = Grafo(
+        nodos: {'O1': o1, 'O2': o2, 'D1': d1},
+        conexiones: {'c1': c1, 'c2': c2},
+      );
+
+      final result = TransportationValidator.validate(grafo);
+      expect(result.isValid, isTrue);
+      expect(result.origins.length, equals(2));
+      expect(result.destinations.length, equals(1));
+    });
+
+    test('Validates unbalanced bipartite graph with 1 origin and 2 destinations (1x2)', () {
+      final o1 = const Nodo(
+        id: 'O1',
+        nombre: 'Origen 1',
+        colorValue: 0,
+        x: 0,
+        y: 0,
+      );
+      final d1 = const Nodo(
+        id: 'D1',
+        nombre: 'Destino 1',
+        colorValue: 0,
+        x: 100,
+        y: 0,
+      );
+      final d2 = const Nodo(
+        id: 'D2',
+        nombre: 'Destino 2',
+        colorValue: 0,
+        x: 100,
+        y: 50,
+      );
+
+      final c1 = const Conexion(
+        id: 'c1',
+        nodoOrigenId: 'O1',
+        nodoDestinoId: 'D1',
+        colorValue: 0,
+        direccion: Direccion.unidireccional,
+      );
+      final c2 = const Conexion(
+        id: 'c2',
+        nodoOrigenId: 'O1',
+        nodoDestinoId: 'D2',
+        colorValue: 0,
+        direccion: Direccion.unidireccional,
+      );
+
+      final grafo = Grafo(
+        nodos: {'O1': o1, 'D1': d1, 'D2': d2},
+        conexiones: {'c1': c1, 'c2': c2},
+      );
+
+      final result = TransportationValidator.validate(grafo);
+      expect(result.isValid, isTrue);
+      expect(result.origins.length, equals(1));
+      expect(result.destinations.length, equals(2));
+    });
   });
 }
