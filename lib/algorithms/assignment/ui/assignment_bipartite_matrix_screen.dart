@@ -7,7 +7,6 @@ import '../../../../domain/models/conexion.dart';
 import '../../../../domain/models/grafo.dart';
 import '../../../../domain/models/nodo.dart';
 import '../providers/assignment_provider.dart';
-import 'assignment_matrix_input_dialog.dart';
 
 /// Screen displaying the dedicated Bipartite Matrix (Origins x Destinations)
 /// for the Assignment / Hungarian Algorithm.
@@ -88,29 +87,7 @@ class _AssignmentBipartiteMatrixScreenState
         ),
         elevation: 0,
         backgroundColor: Colors.transparent,
-        actions: [
-          if (validation.isValid)
-            Padding(
-              padding: const EdgeInsets.only(right: 12),
-              child: FilledButton.icon(
-                style: FilledButton.styleFrom(
-                  visualDensity: VisualDensity.compact,
-                ),
-                icon: const Icon(Icons.edit_note_rounded, size: 18),
-                label: const Text('Editar Lista'),
-                onPressed: () => AssignmentMatrixInputDialog.show(context),
-              ),
-            ),
-        ],
       ),
-      floatingActionButton: validation.isValid
-          ? FloatingActionButton.extended(
-              heroTag: 'fab_edit_assignment_costs',
-              onPressed: () => AssignmentMatrixInputDialog.show(context),
-              icon: const Icon(Icons.edit_note_rounded),
-              label: const Text('Editar Lista de Costos'),
-            )
-          : null,
       body: SafeArea(
         child: !validation.isValid
             ? Center(
@@ -182,14 +159,6 @@ class _AssignmentBipartiteMatrixScreenState
                           ),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    // Summary Footer
-                    _buildStatsFooter(
-                      originsCount: origins.length,
-                      destinationsCount: destinations.length,
-                      totalConnections: grafo.conexiones.length,
-                      colorScheme: colorScheme,
                     ),
                   ],
                 ),
@@ -813,68 +782,6 @@ class _AssignmentBipartiteMatrixScreenState
               color: textColor,
             ),
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStatsFooter({
-    required int originsCount,
-    required int destinationsCount,
-    required int totalConnections,
-    required ColorScheme colorScheme,
-  }) {
-    final isBalanced = originsCount == destinationsCount;
-
-    return Card(
-      margin: EdgeInsets.zero,
-      elevation: 0,
-      color: colorScheme.surfaceContainerHigh,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: colorScheme.outlineVariant),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        child: Row(
-          children: [
-            Icon(
-              Icons.compare_arrows_rounded,
-              color: colorScheme.primary,
-              size: 22,
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                'Dimensión: $originsCount Orígenes × $destinationsCount Destinos ($totalConnections conexiones asignadas)',
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 13,
-                ),
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: (isBalanced ? Colors.green : Colors.amber).withValues(
-                  alpha: 0.15,
-                ),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: isBalanced ? Colors.green : Colors.amber,
-                  width: 1,
-                ),
-              ),
-              child: Text(
-                isBalanced ? 'Equilibrado' : 'Desbalanceado',
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
-                  color: isBalanced ? Colors.green[800] : Colors.amber[900],
-                ),
-              ),
-            ),
-          ],
         ),
       ),
     );
