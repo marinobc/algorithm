@@ -180,13 +180,16 @@ class JohnsonDetailsScreen extends ConsumerWidget {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  Card(
-                    elevation: 1,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+                  Align(
+                    alignment: Alignment.center,
+                    child: Card(
+                      elevation: 1,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      clipBehavior: Clip.antiAlias,
+                      child: _buildNodeDataTable(result, colorScheme),
                     ),
-                    clipBehavior: Clip.antiAlias,
-                    child: _buildNodeDataTable(result, colorScheme),
                   ),
                   const SizedBox(height: 24),
 
@@ -200,13 +203,16 @@ class JohnsonDetailsScreen extends ConsumerWidget {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  Card(
-                    elevation: 1,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+                  Align(
+                    alignment: Alignment.center,
+                    child: Card(
+                      elevation: 1,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      clipBehavior: Clip.antiAlias,
+                      child: _buildEdgesTable(result, colorScheme),
                     ),
-                    clipBehavior: Clip.antiAlias,
-                    child: _buildEdgesTable(result, colorScheme),
                   ),
                   const SizedBox(height: 24),
                 ],

@@ -64,4 +64,14 @@ class JohnsonAlgorithm implements GraphAlgorithm {
     WidgetRef ref,
     Nodo nodo,
   ) => null;
+
+  @override
+  bool get supportsMatrix => false;
+
+  @override
+  String? get matrixUnavailableReason =>
+      'El algoritmo de Johnson / CPM opera sobre redes de actividades acíclicas (DAG) y listas de predecesores; no utiliza matriz de adyacencia.';
+
+  @override
+  Widget? buildMatrixScreen(BuildContext context, WidgetRef ref) => null;
 }

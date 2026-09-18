@@ -10,7 +10,7 @@ import '../../application/providers/config_provider.dart';
 import '../../application/providers/grafo_invalido_provider.dart';
 import '../../application/providers/grafo_provider.dart';
 import '../../debug/graph_debug_fab.dart';
-import '../dialogs/adjacency_matrix_dialog.dart';
+import '../dialogs/matrix_view_coordinator.dart';
 import 'app_toast.dart';
 
 class CanvasControlsFabs extends ConsumerWidget {
@@ -129,12 +129,36 @@ class CanvasControlsFabs extends ConsumerWidget {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
-        // Algorithm Values Matrix Input FAB (with number icon) when algorithm is active and valid
+        // When in Algorithm mode, show dedicated Matrix FAB if algorithm supports matrix
+        if (activeAlgo != null && activeAlgo.supportsMatrix) ...[
+          FloatingActionButton.small(
+            heroTag: 'fab_algo_matrix_view',
+            tooltip: isAlgoValid
+                ? 'Ver Matriz de ${activeAlgo.shortName}'
+                : 'Conecte o corrija el grafo para ver la matriz',
+            elevation: isAlgoValid ? 2 : 0,
+            backgroundColor: isAlgoValid
+                ? colorScheme.secondaryContainer
+                : colorScheme.surfaceContainerLow,
+            foregroundColor: isAlgoValid
+                ? colorScheme.onSecondaryContainer
+                : colorScheme.onSurface.withValues(alpha: 0.38),
+            onPressed: isAlgoValid
+                ? () => MatrixViewCoordinator.openMatrix(context, ref)
+                : null,
+            child: const Icon(Icons.grid_on_rounded, size: 20),
+          ),
+          const SizedBox(height: 10),
+        ],
+
+        // Algorithm Values Input FAB (with number icon) when algorithm is active and valid
         if (activeAlgo != null) ...[
           FloatingActionButton.small(
             heroTag: 'fab_algo_matrix_input',
             tooltip: isAlgoValid
-                ? 'Editar Matriz de Valores del Algoritmo'
+                ? (activeAlgo.id == AlgorithmRegistry.assignmentId
+                      ? 'Editar Costos de Asignación'
+                      : 'Editar Actividades del Algoritmo')
                 : 'Conecte o corrija el grafo para editar valores',
             elevation: isAlgoValid ? 3 : 0,
             backgroundColor: isAlgoValid
@@ -202,31 +226,34 @@ class CanvasControlsFabs extends ConsumerWidget {
         // When in Modo Libre (activeAlgo == null), show Matriz button
         // When an algorithm is active, show Optimizar button
         if (activeAlgo == null)
-          FloatingActionButton.extended(
-            heroTag: 'fab_matriz',
-            tooltip: 'Ver Matriz de Adyacencia',
-            elevation: 4,
-            backgroundColor: colorScheme.secondaryContainer,
-            foregroundColor: colorScheme.onSecondaryContainer,
-            icon: const Icon(Icons.grid_on_rounded),
-            label: const Text(
-              'Matriz',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            onPressed: () {
-              final esInvalido = ref.read(esGrafoInvalidoProvider);
-              if (esInvalido) {
-                AppToast.show(
-                  context,
-                  'Conecta el grafo para poder ver la matriz.',
-                  icon: Icons.hub_outlined,
-                );
-                return;
-              }
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => const AdjacencyMatrixScreen(),
+          Builder(
+            builder: (context) {
+              final esInvalido = ref.watch(esGrafoInvalidoProvider);
+              final grafo = ref.watch(grafoProvider);
+              final isMatrixDisabled = esInvalido || grafo.nodos.isEmpty;
+
+              return FloatingActionButton.extended(
+                heroTag: 'fab_matriz',
+                tooltip: isMatrixDisabled
+                    ? (grafo.nodos.isEmpty
+                          ? 'Agregue nodos para ver la matriz'
+                          : 'Conecta el grafo para poder ver la matriz')
+                    : 'Ver Matriz de Adyacencia',
+                elevation: isMatrixDisabled ? 0 : 4,
+                backgroundColor: isMatrixDisabled
+                    ? colorScheme.surfaceContainerLow
+                    : colorScheme.secondaryContainer,
+                foregroundColor: isMatrixDisabled
+                    ? colorScheme.onSurface.withValues(alpha: 0.38)
+                    : colorScheme.onSecondaryContainer,
+                icon: const Icon(Icons.grid_on_rounded),
+                label: const Text(
+                  'Matriz',
+                  style: TextStyle(fontWeight: FontWeight.bold),
                 ),
+                onPressed: isMatrixDisabled
+                    ? null
+                    : () => MatrixViewCoordinator.openMatrix(context, ref),
               );
             },
           )

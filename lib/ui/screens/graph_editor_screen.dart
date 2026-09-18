@@ -14,11 +14,11 @@ import '../../domain/services/diceware_service.dart';
 import '../../domain/services/graph_share_service.dart';
 import '../../domain/services/graph_storage_service.dart';
 import '../canvas/graph_canvas.dart';
-import '../dialogs/adjacency_matrix_dialog.dart';
 import '../dialogs/ai_chat_dialog.dart';
 import '../dialogs/algorithm_selection_dialog.dart';
 import '../dialogs/config_dialog.dart';
 import '../dialogs/load_graph_dialog.dart';
+import '../dialogs/matrix_view_coordinator.dart';
 import '../dialogs/rename_graph_dialog.dart';
 import '../dialogs/tutorial_screen.dart';
 import '../screens/welcome_explanation_screen.dart';
@@ -79,17 +79,7 @@ class _GraphEditorScreenState extends ConsumerState<GraphEditorScreen> {
   }
 
   void _openAdjacencyMatrixModal() {
-    final esInvalido = ref.read(esGrafoInvalidoProvider);
-    if (esInvalido) {
-      AppToast.show(
-        context,
-        'Conecta el grafo para poder ver la matriz.',
-        icon: Icons.hub_outlined,
-      );
-      return;
-    }
-    Navigator.of(context)
-        .push(MaterialPageRoute(builder: (_) => const AdjacencyMatrixScreen()));
+    MatrixViewCoordinator.openMatrix(context, ref);
   }
 
   void _openAIChatModal() {

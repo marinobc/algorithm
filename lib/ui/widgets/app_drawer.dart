@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../algorithms/assignment/providers/assignment_provider.dart';
+import '../../algorithms/core/algorithm_registry.dart';
+import '../../application/providers/grafo_invalido_provider.dart';
 import '../../application/providers/grafo_provider.dart';
 
 /// Navigation Drawer component for GraphEditorScreen.
@@ -130,15 +133,86 @@ class AppDrawer extends ConsumerWidget {
                     },
                   ),
                   const Divider(),
-                  ListTile(
-                    leading: Icon(
-                      Icons.grid_on_rounded,
-                      color: colorScheme.secondary,
-                    ),
-                    title: const Text('Matriz'),
-                    onTap: () {
-                      Navigator.of(context).pop();
-                      onOpenMatrix();
+                  Builder(
+                    builder: (context) {
+                      final activeAlgo = ref.watch(activeAlgorithmProvider);
+                      final supportsMatrix =
+                          activeAlgo == null || activeAlgo.supportsMatrix;
+                      final reason = activeAlgo?.matrixUnavailableReason;
+
+                      // Check validity according to active mode
+                      bool isGraphValid = true;
+                      String? invalidReason;
+
+                      if (activeAlgo == null) {
+                        final esInvalido = ref.watch(esGrafoInvalidoProvider);
+                        final g = ref.watch(grafoProvider);
+                        if (g.nodos.isEmpty) {
+                          isGraphValid = false;
+                          invalidReason = 'Lienzo vacío';
+                        } else if (esInvalido) {
+                          isGraphValid = false;
+                          invalidReason = 'Grafo desconectado';
+                        }
+                      } else if (activeAlgo.id ==
+                          AlgorithmRegistry.assignmentId) {
+                        final validation = ref.watch(
+                          transportationValidationProvider,
+                        );
+                        if (!validation.isValid) {
+                          isGraphValid = false;
+                          invalidReason = 'Grafo no válido para asignación';
+                        }
+                      }
+
+                      final isEnabled = supportsMatrix && isGraphValid;
+
+                      String? subtitleText;
+                      if (!supportsMatrix && reason != null) {
+                        subtitleText =
+                            'No requerida en ${activeAlgo.shortName}';
+                      } else if (!isGraphValid && invalidReason != null) {
+                        subtitleText = invalidReason;
+                      } else if (activeAlgo != null) {
+                        subtitleText = 'Matriz de ${activeAlgo.shortName}';
+                      }
+
+                      return ListTile(
+                        enabled: isEnabled,
+                        leading: Icon(
+                          Icons.grid_on_rounded,
+                          color: isEnabled
+                              ? colorScheme.secondary
+                              : colorScheme.onSurface.withValues(alpha: 0.38),
+                        ),
+                        title: Text(
+                          'Matriz',
+                          style: TextStyle(
+                            color: isEnabled
+                                ? null
+                                : colorScheme.onSurface.withValues(alpha: 0.38),
+                          ),
+                        ),
+                        subtitle: subtitleText != null
+                            ? Text(
+                                subtitleText,
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: isEnabled
+                                      ? colorScheme.secondary
+                                      : colorScheme.onSurfaceVariant.withValues(
+                                          alpha: 0.7,
+                                        ),
+                                ),
+                              )
+                            : null,
+                        onTap: isEnabled
+                            ? () {
+                                Navigator.of(context).pop();
+                                onOpenMatrix();
+                              }
+                            : null,
+                      );
                     },
                   ),
                   ListTile(

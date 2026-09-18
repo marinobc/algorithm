@@ -7,6 +7,7 @@ import '../core/graph_algorithm.dart';
 import 'domain/policy/assignment_graph_policy.dart';
 import 'providers/assignment_provider.dart';
 import 'ui/assignment_algorithm_card.dart';
+import 'ui/assignment_bipartite_matrix_screen.dart';
 import 'ui/assignment_canvas_controls.dart';
 import 'ui/assignment_launch_button.dart';
 
@@ -140,5 +141,16 @@ class AssignmentAlgorithm implements GraphAlgorithm {
         ],
       ),
     );
+  }
+
+  @override
+  bool get supportsMatrix => true;
+
+  @override
+  String? get matrixUnavailableReason => null;
+
+  @override
+  Widget? buildMatrixScreen(BuildContext context, WidgetRef ref) {
+    return const AssignmentBipartiteMatrixScreen();
   }
 }

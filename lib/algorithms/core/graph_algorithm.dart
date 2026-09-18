@@ -108,4 +108,15 @@ abstract class GraphAlgorithm {
     WidgetRef ref,
     Nodo nodo,
   ) => null;
+
+  /// Whether this algorithm supports or uses a matrix view representation.
+  /// Defaults to false.
+  bool get supportsMatrix => false;
+
+  /// Reason why a matrix is unavailable for this algorithm, shown to users if queried.
+  String? get matrixUnavailableReason => null;
+
+  /// Builds the dedicated matrix view/screen for this algorithm.
+  /// Returns null if not supported.
+  Widget? buildMatrixScreen(BuildContext context, WidgetRef ref) => null;
 }
