@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'application/providers/theme_provider.dart';
 import 'ui/screens/welcome_explanation_screen.dart';
 import 'ui/theme/app_theme.dart';
+import 'ui/theme/theme_color_sync.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -14,14 +14,6 @@ void main() async {
   } catch (_) {
     // If .env is missing or unreadable, safely continue with fallback
   }
-  SystemChrome.setSystemUIOverlayStyle(
-    const SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.dark,
-      systemNavigationBarColor: Colors.transparent,
-      systemNavigationBarIconBrightness: Brightness.dark,
-    ),
-  );
   runApp(const ProviderScope(child: MainApp()));
 }
 
@@ -31,6 +23,14 @@ class MainApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeModeProvider);
+
+    final isDark =
+        themeMode == ThemeMode.dark ||
+        (themeMode == ThemeMode.system &&
+            WidgetsBinding.instance.platformDispatcher.platformBrightness ==
+                Brightness.dark);
+
+    ThemeColorSync.updateThemeColor(isDark);
 
     return MaterialApp(
       title: 'SleepNode',
