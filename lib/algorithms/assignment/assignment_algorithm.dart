@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../application/providers/grafo_provider.dart';
+import '../../domain/models/conexion.dart';
 import '../../domain/models/nodo.dart';
+import '../../ui/dialogs/connection_value_input_dialog.dart';
 import '../core/graph_algorithm.dart';
 import 'domain/policy/assignment_graph_policy.dart';
 import 'providers/assignment_provider.dart';
@@ -152,5 +154,32 @@ class AssignmentAlgorithm implements GraphAlgorithm {
   @override
   Widget? buildMatrixScreen(BuildContext context, WidgetRef ref) {
     return const AssignmentBipartiteMatrixScreen();
+  }
+
+  @override
+  Future<bool?> showConnectionValueInputDialog(
+    BuildContext context,
+    WidgetRef ref,
+    Conexion conexion,
+  ) {
+    return ConnectionValueInputDialog.show(
+      context: context,
+      ref: ref,
+      conexion: conexion,
+      title: 'Costo de Conexión (Asignación)',
+      valueLabel: 'Costo de Asignación',
+    );
+  }
+
+  @override
+  Future<void> onConnectionCreated(
+    BuildContext context,
+    WidgetRef ref,
+    Conexion conexion,
+  ) {
+    // Opens the single-connection value input popup (pre-filled with default),
+    // allowing the user to set the cost immediately after creating the connection.
+    showConnectionValueInputDialog(context, ref, conexion);
+    return Future.value();
   }
 }

@@ -17,6 +17,7 @@ import '../../domain/models/direccion.dart';
 import '../../domain/models/grafo.dart';
 import '../../domain/models/nodo.dart';
 import '../../domain/services/graph_geometry.dart';
+import '../dialogs/connection_value_input_dialog.dart';
 import '../dialogs/overlapping_elements_dialog.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_toast.dart';
@@ -489,7 +490,7 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
             }
           }
 
-          ref
+          final createdConns = ref
               .read(grafoProvider.notifier)
               .agregarConexion(startId, targetNode.id);
           _singleTapEditTimer?.cancel();
@@ -497,6 +498,20 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
           _lastTapTime = null;
           _hasPannedCanvas = true;
           ref.read(estadoEdicionProvider.notifier).deseleccionar();
+
+          if (createdConns.isNotEmpty) {
+            final newConn = createdConns.first;
+            final activeAlgo = ref.read(activeAlgorithmProvider);
+            if (activeAlgo != null) {
+              activeAlgo.onConnectionCreated(context, ref, newConn);
+            } else {
+              ConnectionValueInputDialog.show(
+                context: context,
+                ref: ref,
+                conexion: newConn,
+              );
+            }
+          }
         } else if (distWorld <= 15.0 || targetNode?.id == startId) {
           if (screenDelta < 200.0) {
             // Tap / release on same node -> Edit node!
@@ -627,9 +642,22 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
           return;
         }
 
-        ref
+        final createdConns = ref
             .read(grafoProvider.notifier)
             .agregarConexion(firstNode.id, firstNode.id);
+        if (createdConns.isNotEmpty) {
+          final newConn = createdConns.first;
+          final activeAlgo = ref.read(activeAlgorithmProvider);
+          if (activeAlgo != null) {
+            activeAlgo.onConnectionCreated(context, ref, newConn);
+          } else {
+            ConnectionValueInputDialog.show(
+              context: context,
+              ref: ref,
+              conexion: newConn,
+            );
+          }
+        }
         return;
       }
 
@@ -657,9 +685,8 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
                         .read(estadoEdicionProvider.notifier)
                         .seleccionarNodo(item.id);
                   } else {
-                    ref
-                        .read(estadoEdicionProvider.notifier)
-                        .seleccionarConexion(item.id);
+                    final conn = grafo.conexiones[item.id];
+                    if (conn != null) _onConnectionTapped(conn);
                   }
                 },
               );
@@ -693,18 +720,15 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
                     .read(estadoEdicionProvider.notifier)
                     .seleccionarNodo(item.id);
               } else {
-                ref
-                    .read(estadoEdicionProvider.notifier)
-                    .seleccionarConexion(item.id);
+                final conn = grafo.conexiones[item.id];
+                if (conn != null) _onConnectionTapped(conn);
               }
             },
           );
         },
       );
     } else if (hitConns.length == 1) {
-      ref
-          .read(estadoEdicionProvider.notifier)
-          .seleccionarConexion(hitConns.first.id);
+      _onConnectionTapped(hitConns.first);
     } else {
       // Tap empty canvas -> Create node!
       final validPos = GraphGeometry.clampNodePosition(
@@ -742,6 +766,10 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
       textColor: Colors.white,
       duration: const Duration(seconds: 3),
     );
+  }
+
+  void _onConnectionTapped(Conexion conn) {
+    ref.read(estadoEdicionProvider.notifier).seleccionarConexion(conn.id);
   }
 
   void _triggerContextMenu(Offset screenPos, String targetId, bool isNode) {

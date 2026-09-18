@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../domain/models/conexion.dart';
 import '../../domain/models/nodo.dart';
+import '../../ui/dialogs/connection_value_input_dialog.dart';
 import '../core/graph_algorithm.dart';
 import 'domain/policy/johnson_graph_policy.dart';
 import 'providers/johnson_provider.dart';
+
 import 'ui/johnson_algorithm_card.dart';
 import 'ui/johnson_canvas_controls.dart';
 import 'ui/johnson_launch_button.dart';
@@ -74,4 +77,31 @@ class JohnsonAlgorithm implements GraphAlgorithm {
 
   @override
   Widget? buildMatrixScreen(BuildContext context, WidgetRef ref) => null;
+
+  @override
+  Future<bool?> showConnectionValueInputDialog(
+    BuildContext context,
+    WidgetRef ref,
+    Conexion conexion,
+  ) {
+    return ConnectionValueInputDialog.show(
+      context: context,
+      ref: ref,
+      conexion: conexion,
+      title: 'Duración de Actividad (Johnson)',
+      valueLabel: 'Duración de Actividad',
+    );
+  }
+
+  @override
+  Future<void> onConnectionCreated(
+    BuildContext context,
+    WidgetRef ref,
+    Conexion conexion,
+  ) {
+    // Opens the single-connection value input popup (pre-filled with default),
+    // allowing the user to set the duration immediately after creating the connection.
+    showConnectionValueInputDialog(context, ref, conexion);
+    return Future.value();
+  }
 }

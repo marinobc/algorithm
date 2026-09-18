@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../domain/models/conexion.dart';
 import '../../domain/models/direccion.dart';
 import '../../domain/models/grafo.dart';
 import '../../domain/models/nodo.dart';
+import '../../ui/dialogs/connection_value_input_dialog.dart';
 
 /// Result returned when evaluating whether a graph mutation is permitted
 /// under the active algorithm's policy.
@@ -119,4 +121,29 @@ abstract class GraphAlgorithm {
   /// Builds the dedicated matrix view/screen for this algorithm.
   /// Returns null if not supported.
   Widget? buildMatrixScreen(BuildContext context, WidgetRef ref) => null;
+
+  /// Opens the connection value input dialog/widget for editing a connection's numeric value.
+  Future<bool?> showConnectionValueInputDialog(
+    BuildContext context,
+    WidgetRef ref,
+    Conexion conexion,
+  ) {
+    return ConnectionValueInputDialog.show(
+      context: context,
+      ref: ref,
+      conexion: conexion,
+      title: 'Valor de Conexión ($shortName)',
+    );
+  }
+
+  /// Triggered when a new connection is created on the canvas while this algorithm is active.
+  /// Defaults to displaying [showConnectionValueInputDialog].
+  Future<void> onConnectionCreated(
+    BuildContext context,
+    WidgetRef ref,
+    Conexion conexion,
+  ) {
+    showConnectionValueInputDialog(context, ref, conexion);
+    return Future.value();
+  }
 }
