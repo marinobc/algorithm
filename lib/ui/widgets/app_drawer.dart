@@ -12,6 +12,7 @@ class AppDrawer extends ConsumerWidget {
   final VoidCallback onVaciarGrafo;
   final VoidCallback onCargarGraph;
   final VoidCallback onSaveGraph;
+  final ValueChanged<String?> onSelectAlgorithm;
   final VoidCallback onOpenMatrix;
   final VoidCallback onOpenAIChat;
   final VoidCallback onSaveJpg;
@@ -24,6 +25,7 @@ class AppDrawer extends ConsumerWidget {
     required this.onVaciarGrafo,
     required this.onCargarGraph,
     required this.onSaveGraph,
+    required this.onSelectAlgorithm,
     required this.onOpenMatrix,
     required this.onOpenAIChat,
     required this.onSaveJpg,
@@ -66,6 +68,14 @@ class AppDrawer extends ConsumerWidget {
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),
+                      ),
+                      IconButton(
+                        icon: Icon(
+                          Icons.close_rounded,
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                        tooltip: 'Cerrar Menú',
+                        onPressed: () => Navigator.of(context).pop(),
                       ),
                     ],
                   ),
@@ -132,6 +142,8 @@ class AppDrawer extends ConsumerWidget {
                       onSaveGraph();
                     },
                   ),
+                  const Divider(),
+                  _buildAlgorithmSelectorSection(context, ref),
                   const Divider(),
                   Builder(
                     builder: (context) {
@@ -266,6 +278,75 @@ class AppDrawer extends ConsumerWidget {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildAlgorithmSelectorSection(BuildContext context, WidgetRef ref) {
+    final activeAlgo = ref.watch(activeAlgorithmProvider);
+    final algorithms = ref.watch(algorithmRegistryProvider);
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+          child: Text(
+            'ALGORITMOS',
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+              color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+              letterSpacing: 1.1,
+            ),
+          ),
+        ),
+        ListTile(
+          leading: Icon(
+            Icons.brush_outlined,
+            color: activeAlgo == null
+                ? colorScheme.primary
+                : colorScheme.onSurfaceVariant,
+          ),
+          title: const Text('Modo Libre'),
+          trailing: activeAlgo == null
+              ? Icon(
+                  Icons.check_circle_rounded,
+                  color: colorScheme.primary,
+                  size: 20,
+                )
+              : null,
+          selected: activeAlgo == null,
+          onTap: () {
+            Navigator.of(context).pop();
+            onSelectAlgorithm(null);
+          },
+        ),
+        ...algorithms.map((algo) {
+          final isSelected = activeAlgo?.id == algo.id;
+          return ListTile(
+            leading: Icon(
+              algo.icon,
+              color: isSelected
+                  ? algo.themeColor
+                  : colorScheme.onSurfaceVariant,
+            ),
+            title: Text(algo.name),
+            trailing: isSelected
+                ? Icon(
+                    Icons.check_circle_rounded,
+                    color: algo.themeColor,
+                    size: 20,
+                  )
+                : null,
+            selected: isSelected,
+            onTap: () {
+              Navigator.of(context).pop();
+              onSelectAlgorithm(algo.id);
+            },
+          );
+        }),
+      ],
     );
   }
 }

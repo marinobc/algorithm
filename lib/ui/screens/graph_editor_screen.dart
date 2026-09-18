@@ -8,7 +8,6 @@ import '../../algorithms/core/algorithm_registry.dart';
 import '../../algorithms/core/graph_algorithm.dart';
 import '../../algorithms/johnson/providers/johnson_provider.dart';
 import '../../application/providers/edicion_provider.dart';
-import '../../application/providers/grafo_invalido_provider.dart';
 import '../../application/providers/grafo_provider.dart';
 import '../../domain/services/diceware_service.dart';
 import '../../domain/services/graph_share_service.dart';
@@ -53,10 +52,12 @@ class _GraphEditorScreenState extends ConsumerState<GraphEditorScreen> {
     });
   }
 
-  void _cleanAndUnloadAll() {
+  void _cleanAndUnloadAll({bool preserveAlgorithm = false}) {
     ref.read(grafoProvider.notifier).limpiarGrafo();
     ref.read(loadedGraphItemProvider.notifier).setLoadedItem(null);
-    ref.read(activeAlgorithmProvider.notifier).clear();
+    if (!preserveAlgorithm) {
+      ref.read(activeAlgorithmProvider.notifier).clear();
+    }
     ref.read(transportationNotifierProvider.notifier).setActive(false);
     ref.read(johnsonNotifierProvider.notifier).setActive(false);
     ref.read(estadoEdicionProvider.notifier).desmarcarCambiosSinGuardar();
@@ -278,19 +279,54 @@ class _GraphEditorScreenState extends ConsumerState<GraphEditorScreen> {
   void _onVaciarGrafoSelected() async {
     final canProceed = await _promptUnsavedChanges(isNewGraph: true);
     if (canProceed && mounted) {
-      _cleanAndUnloadAll();
+      final currentAlgo = ref.read(activeAlgorithmProvider);
+      _cleanAndUnloadAll(preserveAlgorithm: currentAlgo != null);
 
+      final algoName = currentAlgo?.shortName ?? 'Modo Libre';
       AppToast.show(
         context,
-        'Lienzo vaciado. Modo Libre activado.',
+        'Lienzo vaciado ($algoName).',
         icon: Icons.delete_sweep_outlined,
         duration: const Duration(seconds: 2),
       );
     }
   }
 
-  void _showAlgorithmModeDialog(BuildContext context) {
-    AlgorithmSelectionDialog.show(context, ref);
+  Future<void> _onSelectAlgorithm(String? targetAlgoId) async {
+    final currentAlgo = ref.read(activeAlgorithmProvider);
+    if (currentAlgo?.id == targetAlgoId ||
+        (currentAlgo == null && targetAlgoId == null)) {
+      return;
+    }
+
+    final grafo = ref.read(grafoProvider);
+    if (grafo.nodos.isNotEmpty) {
+      final canProceed = await _promptUnsavedChanges(isNewGraph: true);
+      if (!canProceed || !mounted) return;
+
+      _cleanAndUnloadAll();
+    }
+
+    if (targetAlgoId == null) {
+      ref.read(activeAlgorithmProvider.notifier).clear();
+    } else {
+      ref.read(activeAlgorithmProvider.notifier).selectById(targetAlgoId);
+    }
+    ref.read(transportationNotifierProvider.notifier).setActive(false);
+    ref.read(johnsonNotifierProvider.notifier).setActive(false);
+
+    final newAlgo = ref.read(activeAlgorithmProvider);
+    final algoName = newAlgo?.shortName ?? 'Modo Libre';
+    final algoIcon = newAlgo?.icon ?? Icons.brush_outlined;
+
+    if (mounted) {
+      AppToast.show(
+        context,
+        'Modo cambiado a $algoName.',
+        icon: algoIcon,
+        duration: const Duration(seconds: 2),
+      );
+    }
   }
 
   Widget _buildAlgorithmModeBadge(
@@ -307,40 +343,30 @@ class _GraphEditorScreenState extends ConsumerState<GraphEditorScreen> {
     final badgeLabel = isAlgoActive ? activeAlgo.shortName : 'Modo Libre';
     final badgeIcon = isAlgoActive ? activeAlgo.icon : Icons.brush_outlined;
 
-    return InkWell(
-      onTap: () => _showAlgorithmModeDialog(context),
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        decoration: BoxDecoration(
-          color: badgeColor.withValues(alpha: isAlgoActive ? 0.16 : 0.08),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: badgeColor.withValues(alpha: isAlgoActive ? 0.6 : 0.25),
-            width: 1.2,
-          ),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: badgeColor.withValues(alpha: isAlgoActive ? 0.16 : 0.08),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: badgeColor.withValues(alpha: isAlgoActive ? 0.6 : 0.25),
+          width: 1.2,
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(badgeIcon, size: 16, color: badgeColor),
-            const SizedBox(width: 6),
-            Text(
-              badgeLabel,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                color: isAlgoActive ? badgeColor : colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(width: 2),
-            Icon(
-              Icons.arrow_drop_down_rounded,
-              size: 16,
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(badgeIcon, size: 16, color: badgeColor),
+          const SizedBox(width: 6),
+          Text(
+            badgeLabel,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
               color: isAlgoActive ? badgeColor : colorScheme.onSurfaceVariant,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -433,6 +459,7 @@ class _GraphEditorScreenState extends ConsumerState<GraphEditorScreen> {
           onVaciarGrafo: _onVaciarGrafoSelected,
           onCargarGraph: _onCargarGraphSelected,
           onSaveGraph: _saveCurrentGraph,
+          onSelectAlgorithm: _onSelectAlgorithm,
           onOpenMatrix: _openAdjacencyMatrixModal,
           onOpenAIChat: _openAIChatModal,
           onSaveJpg: _saveGraphAsJpg,

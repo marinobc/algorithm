@@ -181,39 +181,8 @@ class WebExplanationShell extends ConsumerWidget {
             ),
           ),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // Mobile Logo & Brand Title
-              Row(
-                children: [
-                  Container(
-                    width: 32,
-                    height: 32,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: colorScheme.outline.withValues(alpha: 0.3),
-                        width: 1,
-                      ),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(3),
-                      child: SvgPicture.asset(
-                        'assets/icons/logo.svg',
-                        fit: BoxFit.contain,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  const Text(
-                    'SleepNode',
-                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
-
-              // Mobile Hamburger Drawer Trigger Button
+              // Mobile Hamburger Drawer Trigger Button (on the LEFT side)
               Builder(
                 builder: (scaffoldCtx) => IconButton(
                   icon: Icon(
@@ -223,6 +192,42 @@ class WebExplanationShell extends ConsumerWidget {
                   ),
                   tooltip: 'Abrir Menú Principal',
                   onPressed: () => Scaffold.of(scaffoldCtx).openDrawer(),
+                ),
+              ),
+              const SizedBox(width: 4),
+
+              // Mobile Logo & Brand Title
+              Expanded(
+                child: Row(
+                  children: [
+                    Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: colorScheme.outline.withValues(alpha: 0.3),
+                          width: 1,
+                        ),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(3),
+                        child: SvgPicture.asset(
+                          'assets/icons/logo.svg',
+                          fit: BoxFit.contain,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    const Text(
+                      'SleepNode',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -249,51 +254,70 @@ class WebExplanationShell extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Top Logo & Brand Title
-        InkWell(
-          onTap: () {
-            if (isDrawer) Navigator.of(context).pop();
-            _navigateTo(context, ExplanationWebPage.algorithms);
-          },
-          borderRadius: BorderRadius.circular(12),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-            child: Row(
-              children: [
-                Container(
-                  width: 38,
-                  height: 38,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: colorScheme.outline.withValues(alpha: 0.3),
-                      width: 1.5,
-                    ),
+        // Top Logo & Brand Title + Close Button (if drawer)
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: InkWell(
+                onTap: () {
+                  if (isDrawer) Navigator.of(context).pop();
+                  _navigateTo(context, ExplanationWebPage.algorithms);
+                },
+                borderRadius: BorderRadius.circular(12),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 4,
+                    vertical: 6,
                   ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(4),
-                    child: SvgPicture.asset(
-                      'assets/icons/logo.svg',
-                      fit: BoxFit.contain,
-                    ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 38,
+                        height: 38,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: colorScheme.outline.withValues(alpha: 0.3),
+                            width: 1.5,
+                          ),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(4),
+                          child: SvgPicture.asset(
+                            'assets/icons/logo.svg',
+                            fit: BoxFit.contain,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          'SleepNode',
+                          style: const TextStyle(
+                            fontSize: 15.5,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: -0.3,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    'SleepNode',
-                    style: const TextStyle(
-                      fontSize: 15.5,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: -0.3,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
+              ),
             ),
-          ),
+            if (isDrawer)
+              IconButton(
+                icon: Icon(
+                  Icons.close_rounded,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+                tooltip: 'Cerrar Menú',
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+          ],
         ),
         const SizedBox(height: 18),
 

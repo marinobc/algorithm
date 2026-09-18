@@ -11,7 +11,7 @@ import 'package:nodos/ui/theme/app_theme.dart';
 void main() {
   group('GraphEditorScreen Navigation & Clear Tests', () {
     testWidgets(
-      'Vaciar from drawer menu clears canvas and automatically sets Free Mode',
+      'Vaciar from drawer menu clears canvas and preserves active algorithm mode',
       (tester) async {
         final container = ProviderContainer();
 
@@ -51,9 +51,9 @@ void main() {
         await tester.tap(vaciarItem);
         await tester.pump();
 
-        // Graph should be empty and Free Mode active (activeAlgorithmProvider == null)
+        // Graph should be empty and active algorithm mode preserved (Johnson)
         expect(container.read(grafoProvider).nodos.isEmpty, isTrue);
-        expect(container.read(activeAlgorithmProvider), isNull);
+        expect(container.read(activeAlgorithmProvider)?.id, equals('johnson'));
 
         // Clean up widget tree before disposing container
         await tester.pumpWidget(const SizedBox());
