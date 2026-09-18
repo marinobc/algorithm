@@ -91,13 +91,27 @@ class _AssignmentBipartiteMatrixScreenState
         backgroundColor: Colors.transparent,
         actions: [
           if (validation.isValid)
-            IconButton(
-              icon: const Icon(Icons.edit_note_rounded),
-              tooltip: 'Editar Costos de Asignación',
-              onPressed: () => AssignmentMatrixInputDialog.show(context),
+            Padding(
+              padding: const EdgeInsets.only(right: 12),
+              child: FilledButton.icon(
+                style: FilledButton.styleFrom(
+                  visualDensity: VisualDensity.compact,
+                ),
+                icon: const Icon(Icons.edit_note_rounded, size: 18),
+                label: const Text('Editar Lista'),
+                onPressed: () => AssignmentMatrixInputDialog.show(context),
+              ),
             ),
         ],
       ),
+      floatingActionButton: validation.isValid
+          ? FloatingActionButton.extended(
+              heroTag: 'fab_edit_assignment_costs',
+              onPressed: () => AssignmentMatrixInputDialog.show(context),
+              icon: const Icon(Icons.edit_note_rounded),
+              label: const Text('Editar Lista de Costos'),
+            )
+          : null,
       body: SafeArea(
         child: !validation.isValid
             ? Center(

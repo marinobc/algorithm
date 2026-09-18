@@ -2,10 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../algorithms/assignment/providers/assignment_provider.dart';
-import '../../algorithms/assignment/ui/assignment_matrix_input_dialog.dart';
 import '../../algorithms/core/algorithm_registry.dart';
 import '../../algorithms/johnson/providers/johnson_provider.dart';
-import '../../algorithms/johnson/ui/johnson_activity_input_dialog.dart';
 import '../../application/providers/config_provider.dart';
 import '../../application/providers/grafo_invalido_provider.dart';
 import '../../application/providers/grafo_provider.dart';
@@ -17,37 +15,6 @@ class CanvasControlsFabs extends ConsumerWidget {
   final VoidCallback onResetView;
 
   const CanvasControlsFabs({super.key, required this.onResetView});
-
-  void _openAlgorithmMatrixDialog(BuildContext context, WidgetRef ref) {
-    final activeAlgo = ref.read(activeAlgorithmProvider);
-    if (activeAlgo == null) return;
-
-    if (activeAlgo.id == AlgorithmRegistry.assignmentId) {
-      final validation = ref.read(transportationValidationProvider);
-      if (!validation.isValid) {
-        AppToast.show(
-          context,
-          validation.errorMessage ??
-              'Grafo no válido para el algoritmo de Asignación.',
-          icon: Icons.warning_amber_rounded,
-        );
-        return;
-      }
-      AssignmentMatrixInputDialog.show(context);
-    } else if (activeAlgo.id == AlgorithmRegistry.johnsonId) {
-      final validation = ref.read(johnsonValidationProvider);
-      if (!validation.isValid) {
-        AppToast.show(
-          context,
-          validation.errorMessage ??
-              'Grafo no válido para el algoritmo de Johnson.',
-          icon: Icons.warning_amber_rounded,
-        );
-        return;
-      }
-      JohnsonActivityInputDialog.show(context);
-    }
-  }
 
   void _runOptimizar(BuildContext context, WidgetRef ref) {
     final activeAlgo = ref.read(activeAlgorithmProvider);
@@ -147,28 +114,6 @@ class CanvasControlsFabs extends ConsumerWidget {
                 ? () => MatrixViewCoordinator.openMatrix(context, ref)
                 : null,
             child: const Icon(Icons.grid_on_rounded, size: 20),
-          ),
-          const SizedBox(height: 10),
-        ],
-
-        // Algorithm Values Input FAB (with number icon) when algorithm is active and valid
-        if (activeAlgo != null) ...[
-          FloatingActionButton.small(
-            heroTag: 'fab_algo_matrix_input',
-            tooltip: isAlgoValid
-                ? (activeAlgo.id == AlgorithmRegistry.assignmentId
-                      ? 'Editar Costos de Asignación'
-                      : 'Editar Actividades del Algoritmo')
-                : 'Conecte o corrija el grafo para editar valores',
-            elevation: isAlgoValid ? 3 : 0,
-            backgroundColor: isAlgoValid
-                ? colorScheme.secondaryContainer
-                : colorScheme.surfaceContainerLow,
-            foregroundColor: isAlgoValid
-                ? colorScheme.onSecondaryContainer
-                : colorScheme.onSurface.withValues(alpha: 0.38),
-            onPressed: () => _openAlgorithmMatrixDialog(context, ref),
-            child: const Icon(Icons.onetwothree_rounded, size: 24),
           ),
           const SizedBox(height: 10),
         ],
