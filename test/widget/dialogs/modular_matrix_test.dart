@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nodos/algorithms/assignment/assignment_algorithm.dart';
-import 'package:nodos/algorithms/assignment/domain/services/assignment_validator.dart';
 import 'package:nodos/algorithms/assignment/ui/assignment_bipartite_matrix_screen.dart';
 import 'package:nodos/algorithms/core/algorithm_registry.dart';
 import 'package:nodos/algorithms/johnson/johnson_algorithm.dart';
@@ -112,11 +111,25 @@ void main() {
               nombre: 'Origen 1',
               colorValue: 0xFF2196F3,
             ),
+            'o2': const Nodo(
+              id: 'o2',
+              x: 0,
+              y: 50,
+              nombre: 'Origen 2',
+              colorValue: 0xFF2196F3,
+            ),
             'd1': const Nodo(
               id: 'd1',
               x: 100,
               y: 0,
               nombre: 'Destino 1',
+              colorValue: 0xFF4CAF50,
+            ),
+            'd2': const Nodo(
+              id: 'd2',
+              x: 100,
+              y: 50,
+              nombre: 'Destino 2',
               colorValue: 0xFF4CAF50,
             ),
           },
@@ -128,6 +141,14 @@ void main() {
               direccion: Direccion.unidireccional,
               colorValue: 0xFF000000,
               atributos: [AtributoValor(atributoId: 'attr_valor', valor: '15')],
+            ),
+            'c2': const Conexion(
+              id: 'c2',
+              nodoOrigenId: 'o2',
+              nodoDestinoId: 'd2',
+              direccion: Direccion.unidireccional,
+              colorValue: 0xFF000000,
+              atributos: [AtributoValor(atributoId: 'attr_valor', valor: '20')],
             ),
           },
         );
@@ -256,7 +277,6 @@ void main() {
 
         await tester.pumpAndSettle();
 
-        final fabFinder = find.byKey(const ValueKey('fab_matriz'));
         // Alternative: find by tooltip or FloatingActionButton
         final fab = tester.widget<FloatingActionButton>(
           find.widgetWithText(FloatingActionButton, 'Matriz'),

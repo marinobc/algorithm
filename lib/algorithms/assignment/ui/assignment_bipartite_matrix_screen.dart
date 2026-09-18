@@ -6,7 +6,6 @@ import '../../../../domain/models/atributo.dart';
 import '../../../../domain/models/conexion.dart';
 import '../../../../domain/models/grafo.dart';
 import '../../../../domain/models/nodo.dart';
-import '../domain/services/assignment_validator.dart';
 import '../providers/assignment_provider.dart';
 import 'assignment_matrix_input_dialog.dart';
 
