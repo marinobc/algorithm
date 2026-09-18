@@ -3,6 +3,7 @@ import 'dart:math';
 import '../../../../domain/models/direccion.dart';
 import '../../../../domain/models/grafo.dart';
 import '../../../../domain/models/nodo.dart';
+import '../../../../domain/services/diceware_service.dart';
 import '../../../../domain/services/graph_color_generator.dart';
 import '../../../../domain/services/graph_geometry.dart';
 import '../../../core/graph_algorithm.dart';
@@ -46,8 +47,8 @@ class AssignmentGraphPolicy implements GraphAlgorithmPolicy {
     int? colorValue,
     Map<String, dynamic>? params,
   }) {
-    final nextNumber = grafo.nodos.length + 1;
-    final nodeName = nombre ?? 'Nodo $nextNumber';
+    final randomName = generateRandomSingleWord();
+    final nodeName = nombre ?? randomName;
     final nodeColor =
         colorValue ?? GraphColorGenerator.generateMaximallyDistinctColor(grafo);
 

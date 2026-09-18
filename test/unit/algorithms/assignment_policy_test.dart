@@ -14,7 +14,9 @@ void main() {
 
       final node1 = policy.prepareNewNode(emptyGraph, 100, 100);
       expect(node1.rol, isNull);
-      expect(node1.nombre, equals('Nodo 1'));
+      expect(node1.nombre, isNotNull);
+      expect(node1.nombre, isNotEmpty);
+      expect(node1.nombre, isNot(equals('Nodo 1')));
 
       final graphWithNode1 = Grafo(
         nodos: {node1.id: node1},
@@ -23,7 +25,8 @@ void main() {
 
       final node2 = policy.prepareNewNode(graphWithNode1, 200, 200);
       expect(node2.rol, isNull);
-      expect(node2.nombre, equals('Nodo 2'));
+      expect(node2.nombre, isNotNull);
+      expect(node2.nombre, isNotEmpty);
     });
 
     test('allows first connection between two neutral nodes', () {

@@ -125,3 +125,12 @@ String generateDicewareName() {
   final word3 = dicewareWords[rng.nextInt(dicewareWords.length)];
   return '$word1-$word2-$word3';
 }
+
+/// Generates a single capitalized random Diceware word.
+/// Example output: `Esmeralda`
+String generateRandomSingleWord() {
+  final rng = Random.secure();
+  final word = dicewareWords[rng.nextInt(dicewareWords.length)];
+  if (word.isEmpty) return 'Nodo';
+  return word[0].toUpperCase() + word.substring(1);
+}
