@@ -116,9 +116,9 @@ class NorthwestProblemExtractor {
             .firstOrNull
             ?.valor;
         final cost = raw == null ? null : double.tryParse(raw);
-        if (cost == null || !cost.isFinite) {
+        if (cost == null || !cost.isFinite || cost < 0) {
           return const NorthwestValidationResult.invalid(
-            'Todos los costos deben ser numeros finitos.',
+            'Todos los costos deben ser numeros finitos no negativos.',
           );
         }
         row.add(cost);

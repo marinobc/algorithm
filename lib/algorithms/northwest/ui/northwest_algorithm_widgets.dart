@@ -81,9 +81,29 @@ class NorthwestCanvasControls extends ConsumerWidget {
         .where((node) => node.rol == NorthwestRoles.destination)
         .length;
     final colors = Theme.of(context).colorScheme;
-    return Material(
-      color: colors.surfaceContainerHigh.withValues(alpha: .95),
-      borderRadius: BorderRadius.circular(12),
+    return Container(
+      decoration: BoxDecoration(
+        color: colors.surfaceContainerHigh.withValues(alpha: 0.96),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: colors.outlineVariant.withValues(alpha: 0.35),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 10,
+            spreadRadius: 0,
+            offset: const Offset(0, 3),
+          ),
+          BoxShadow(
+            color: colors.shadow.withValues(alpha: 0.04),
+            blurRadius: 4,
+            spreadRadius: 0,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
       child: Padding(
         padding: const EdgeInsets.all(10),
         child: Column(
@@ -91,7 +111,7 @@ class NorthwestCanvasControls extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             const Text(
-              'Nuevo nodo',
+              'Nuevo nodo (Esquina Noroeste)',
               style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 7),

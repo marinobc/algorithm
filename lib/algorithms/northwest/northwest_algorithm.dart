@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../application/providers/grafo_provider.dart';
-import '../../domain/models/atributo.dart';
 import '../../domain/models/conexion.dart';
 import '../../domain/models/nodo.dart';
+import '../../ui/dialogs/connection_value_input_dialog.dart';
 import '../../ui/screens/graph_editor_screen.dart';
 import '../core/algorithm_registry.dart';
 import '../core/graph_algorithm.dart';
@@ -12,6 +11,7 @@ import 'domain/policy/northwest_graph_policy.dart';
 import 'providers/northwest_provider.dart';
 import 'ui/northwest_algorithm_widgets.dart';
 import 'ui/northwest_matrix_screen.dart';
+import 'ui/northwest_node_input_dialog.dart';
 
 class NorthwestAlgorithm implements GraphAlgorithm {
   static const String algorithmId = 'northwest';
@@ -64,8 +64,7 @@ class NorthwestAlgorithm implements GraphAlgorithm {
   };
 
   @override
-  Widget? buildEmptyState(BuildContext context, WidgetRef ref) =>
-      const NorthwestEmptyState();
+  Widget? buildEmptyState(BuildContext context, WidgetRef ref) => null;
 
   @override
   Widget? buildAlgorithmCard(BuildContext context, WidgetRef ref) {
@@ -99,62 +98,13 @@ class NorthwestAlgorithm implements GraphAlgorithm {
     WidgetRef ref,
     Conexion conexion,
   ) {
-    final current = conexion.atributos
-        .where((attribute) => attribute.atributoId == 'attr_valor')
-        .firstOrNull
-        ?.valor;
-    final controller = TextEditingController(text: current ?? '');
-    String? error;
-    return showDialog<bool>(
+    return ConnectionValueInputDialog.show(
       context: context,
-      builder: (dialogContext) => StatefulBuilder(
-        builder: (context, setState) => AlertDialog(
-          title: const Text('Costo de transporte'),
-          content: TextField(
-            controller: controller,
-            autofocus: true,
-            keyboardType: const TextInputType.numberWithOptions(
-              signed: true,
-              decimal: true,
-            ),
-            decoration: InputDecoration(labelText: 'Costo', errorText: error),
-            onTap: () => controller.selection = TextSelection(
-              baseOffset: 0,
-              extentOffset: controller.text.length,
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext, false),
-              child: const Text('Cancelar'),
-            ),
-            FilledButton(
-              onPressed: () {
-                final value = double.tryParse(controller.text.trim());
-                if (value == null || !value.isFinite) {
-                  setState(() => error = 'Ingresa un numero finito.');
-                  return;
-                }
-                ref
-                    .read(grafoProvider.notifier)
-                    .actualizarConexion(
-                      conexion.id,
-                      atributos: [
-                        AtributoValor(
-                          atributoId: 'attr_valor',
-                          valor: _format(value),
-                        ),
-                      ],
-                    );
-                ref.read(northwestNotifierProvider.notifier).setActive(false);
-                Navigator.pop(dialogContext, true);
-              },
-              child: const Text('Guardar'),
-            ),
-          ],
-        ),
-      ),
-    ).whenComplete(controller.dispose);
+      ref: ref,
+      conexion: conexion,
+      title: 'Costo de Transporte (Esquina Noroeste)',
+      valueLabel: 'Costo unitario de transporte (no negativo)',
+    );
   }
 
   @override
@@ -163,10 +113,21 @@ class NorthwestAlgorithm implements GraphAlgorithm {
     WidgetRef ref,
     Conexion conexion,
   ) async {
-    await showConnectionValueInputDialog(context, ref, conexion);
+    final result = await showConnectionValueInputDialog(context, ref, conexion);
+    if (result == true) {
+      ref.read(northwestNotifierProvider.notifier).setActive(false);
+    }
   }
 
-  static String _format(double value) => value == value.roundToDouble()
-      ? value.toInt().toString()
-      : value.toStringAsFixed(2);
+  @override
+  Future<void> onNodeCreated(
+    BuildContext context,
+    WidgetRef ref,
+    Nodo nodo,
+  ) async {
+    final result = await NorthwestNodeInputDialog.show(context, ref, nodo);
+    if (result == true) {
+      ref.read(northwestNotifierProvider.notifier).setActive(false);
+    }
+  }
 }
