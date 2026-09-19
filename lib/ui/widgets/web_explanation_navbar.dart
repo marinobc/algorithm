@@ -7,10 +7,18 @@ import '../dialogs/algorithm_selection_dialog.dart';
 import '../screens/assignment_algo_screen.dart';
 import '../screens/contact_screen.dart';
 import '../screens/johnson_algo_screen.dart';
+import '../screens/northwest_algo_screen.dart';
 import '../screens/welcome_explanation_screen.dart';
 import '../screens/what_are_graphs_screen.dart';
 
-enum ExplanationWebPage { algorithms, graphs, assignment, johnson, contact }
+enum ExplanationWebPage {
+  algorithms,
+  graphs,
+  assignment,
+  johnson,
+  northwest,
+  contact,
+}
 
 class WebExplanationShell extends ConsumerWidget {
   final ExplanationWebPage activePage;
@@ -34,6 +42,9 @@ class WebExplanationShell extends ConsumerWidget {
         break;
       case ExplanationWebPage.johnson:
         targetScreen = const JohnsonAlgoScreen();
+        break;
+      case ExplanationWebPage.northwest:
+        targetScreen = const NorthwestAlgoScreen();
         break;
       case ExplanationWebPage.contact:
         targetScreen = const ContactScreen();
@@ -59,6 +70,10 @@ class WebExplanationShell extends ConsumerWidget {
       ref
           .read(activeAlgorithmProvider.notifier)
           .selectById(AlgorithmRegistry.johnsonId);
+    } else if (activePage == ExplanationWebPage.northwest) {
+      ref
+          .read(activeAlgorithmProvider.notifier)
+          .selectById(AlgorithmRegistry.northwestId);
     } else {
       ref.read(activeAlgorithmProvider.notifier).clear();
     }
@@ -411,6 +426,14 @@ class WebExplanationShell extends ConsumerWidget {
                 label: 'Johnson',
                 page: ExplanationWebPage.johnson,
                 icon: Icons.alt_route_rounded,
+                isDrawer: isDrawer,
+              ),
+              const SizedBox(height: 6),
+              _buildVerticalNavLink(
+                context,
+                label: 'Northwest',
+                page: ExplanationWebPage.northwest,
+                icon: Icons.grid_view_rounded,
                 isDrawer: isDrawer,
               ),
             ],

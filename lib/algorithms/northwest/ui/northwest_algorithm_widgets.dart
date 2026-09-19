@@ -10,20 +10,7 @@ import '../providers/northwest_provider.dart';
 import 'northwest_details_screen.dart';
 import 'northwest_matrix_screen.dart';
 
-class NorthwestLaunchButton extends ConsumerWidget {
-  final VoidCallback onPressed;
-
-  const NorthwestLaunchButton({super.key, required this.onPressed});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return ElevatedButton.icon(
-      onPressed: onPressed,
-      icon: const Icon(Icons.local_shipping_outlined),
-      label: const Text('Abrir Esquina Noroeste'),
-    );
-  }
-}
+export 'northwest_launch_button.dart';
 
 class NorthwestEmptyState extends StatelessWidget {
   const NorthwestEmptyState({super.key});
@@ -241,7 +228,7 @@ class NorthwestAlgorithmCard extends ConsumerWidget {
     final colors = Theme.of(context).colorScheme;
     return BaseAlgorithmCard(
       title: 'Esquina Noroeste / MODI',
-      icon: Icons.local_shipping_outlined,
+      icon: Icons.grid_view_rounded,
       onClose: () =>
           ref.read(northwestNotifierProvider.notifier).setActive(false),
       resultBanner: Container(

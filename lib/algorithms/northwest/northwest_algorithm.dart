@@ -32,7 +32,7 @@ class NorthwestAlgorithm implements GraphAlgorithm {
       'Resuelve problemas de transporte mediante esquina noroeste y optimizacion MODI.';
 
   @override
-  IconData get icon => Icons.local_shipping_rounded;
+  IconData get icon => Icons.grid_view_rounded;
 
   @override
   Color get themeColor => const Color(0xFFE54872);

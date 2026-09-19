@@ -388,11 +388,7 @@ class _LoadGraphDialogState extends State<LoadGraphDialog> {
         child: const Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              Icons.local_shipping_rounded,
-              size: 11,
-              color: Color(0xFFE54872),
-            ),
+            Icon(Icons.grid_view_rounded, size: 11, color: Color(0xFFE54872)),
             SizedBox(width: 4),
             Text(
               'Northwest',
