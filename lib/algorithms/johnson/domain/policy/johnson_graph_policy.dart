@@ -20,6 +20,14 @@ class JohnsonGraphPolicy implements GraphAlgorithmPolicy {
   const JohnsonGraphPolicy();
 
   @override
+  PolicyResult canDeleteNode(Grafo grafo, String nodeId) =>
+      const PolicyResult.allow();
+
+  @override
+  PolicyResult canDeleteConnection(Grafo grafo, String connectionId) =>
+      const PolicyResult.allow();
+
+  @override
   PolicyResult canCreateNode(
     Grafo grafo,
     double x,

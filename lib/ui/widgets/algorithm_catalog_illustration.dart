@@ -2,7 +2,13 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
-enum AlgorithmCatalogIllustration { freeMode, assignment, johnson, upcoming }
+enum AlgorithmCatalogIllustration {
+  freeMode,
+  assignment,
+  johnson,
+  northwest,
+  upcoming,
+}
 
 class AlgorithmCatalogIllustrationWidget extends StatelessWidget {
   final AlgorithmCatalogIllustration illustration;
@@ -52,6 +58,8 @@ class _AlgorithmCatalogIllustrationPainter extends CustomPainter {
         _drawBipartiteGraph(canvas, size, linePaint, nodePaint, mutedNodePaint);
       case AlgorithmCatalogIllustration.johnson:
         _drawDirectedGraph(canvas, size, linePaint, nodePaint, mutedNodePaint);
+      case AlgorithmCatalogIllustration.northwest:
+        _drawBipartiteGraph(canvas, size, linePaint, nodePaint, mutedNodePaint);
       case AlgorithmCatalogIllustration.upcoming:
         _drawUpcomingGraph(canvas, size, linePaint, mutedNodePaint);
     }

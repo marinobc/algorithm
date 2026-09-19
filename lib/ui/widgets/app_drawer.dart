@@ -175,6 +175,13 @@ class AppDrawer extends ConsumerWidget {
                           isGraphValid = false;
                           invalidReason = 'Grafo no válido para asignación';
                         }
+                      } else if (activeAlgo.id ==
+                          AlgorithmRegistry.northwestId) {
+                        final graph = ref.watch(grafoProvider);
+                        if (graph.nodos.isEmpty) {
+                          isGraphValid = false;
+                          invalidReason = 'Lienzo vacío';
+                        }
                       }
 
                       final isEnabled = supportsMatrix && isGraphValid;
@@ -185,6 +192,9 @@ class AppDrawer extends ConsumerWidget {
                             'No requerida en ${activeAlgo.shortName}';
                       } else if (!isGraphValid && invalidReason != null) {
                         subtitleText = invalidReason;
+                      } else if (activeAlgo?.id ==
+                          AlgorithmRegistry.northwestId) {
+                        subtitleText = 'Matriz del grafo';
                       } else if (activeAlgo != null) {
                         subtitleText = 'Matriz de ${activeAlgo.shortName}';
                       }

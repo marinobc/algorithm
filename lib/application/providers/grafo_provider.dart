@@ -152,6 +152,8 @@ class GrafoNotifier extends Notifier<Grafo> {
     int? colorValue,
     String? rol,
     bool clearRol = false,
+    double? cantidad,
+    bool clearCantidad = false,
   }) {
     final nodo = state.nodos[id];
     if (nodo == null) return;
@@ -161,6 +163,8 @@ class GrafoNotifier extends Notifier<Grafo> {
       colorValue: colorValue ?? nodo.colorValue,
       rol: clearRol ? null : (rol ?? nodo.rol),
       clearRol: clearRol,
+      cantidad: cantidad,
+      clearCantidad: clearCantidad,
     );
     final updatedNodos = Map<String, Nodo>.from(state.nodos)
       ..[id] = updatedNodo;
@@ -542,6 +546,12 @@ class GrafoNotifier extends Notifier<Grafo> {
   void vaciarGrafo() {
     _recordUndoState();
     state = const Grafo();
+  }
+
+  /// Replaces the graph as one undoable operation.
+  void reemplazarGrafo(Grafo grafo) {
+    _recordUndoState();
+    state = grafo;
   }
 
   /// Clears all nodes, connections, resets state and undo/redo stacks, and sets saved checkpoint.

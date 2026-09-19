@@ -88,6 +88,27 @@ class NodeRenderHelper {
       ),
     );
 
+    if (node.quantityLabel != null) {
+      final quantityPainter = TextPainter(
+        text: TextSpan(
+          text: node.quantityLabel,
+          style: TextStyle(
+            color: palette.textPrimary,
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      final labelX = node.quantityLabelOnLeft
+          ? node.position.dx - node.width / 2 - quantityPainter.width - 12
+          : node.position.dx + node.width / 2 + 12;
+      quantityPainter.paint(
+        canvas,
+        Offset(labelX, node.position.dy - quantityPainter.height / 2),
+      );
+    }
+
     if (node.isOverlapping) {
       canvas.restore();
     }

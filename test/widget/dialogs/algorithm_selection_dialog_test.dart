@@ -113,5 +113,41 @@ void main() {
       await tester.pumpWidget(const SizedBox());
       container.dispose();
     });
+
+    testWidgets('selects Esquina Noroeste from the shared catalog', (
+      tester,
+    ) async {
+      final container = ProviderContainer();
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp(
+            theme: AppTheme.darkTheme,
+            home: Scaffold(
+              body: Consumer(
+                builder: (context, ref, _) =>
+                    AlgorithmSelectionDialog(ref: ref),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.drag(find.byType(GridView), const Offset(0, -600));
+      await tester.pumpAndSettle();
+      final northwest = find.text('Algoritmo de Esquina Noroeste');
+      await tester.tap(northwest);
+      await tester.pump();
+
+      expect(
+        container.read(activeAlgorithmProvider)?.id,
+        AlgorithmRegistry.northwestId,
+      );
+
+      await tester.pumpWidget(const SizedBox());
+      container.dispose();
+    });
   });
 }

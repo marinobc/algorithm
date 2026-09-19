@@ -6,6 +6,7 @@ class Nodo {
   final double y;
   final double radius;
   final String? rol; // Optional semantic role (e.g. 'origen', 'destino')
+  final double? cantidad; // Optional supply/demand used by transport modes.
 
   static const double defaultRadius = 32.0; // Default diameter = 64.0
 
@@ -17,6 +18,7 @@ class Nodo {
     required this.y,
     this.radius = defaultRadius,
     this.rol,
+    this.cantidad,
   });
 
   double get diameter => radius * 2;
@@ -29,7 +31,9 @@ class Nodo {
     double? y,
     double? radius,
     String? rol,
+    double? cantidad,
     bool clearRol = false,
+    bool clearCantidad = false,
   }) {
     return Nodo(
       id: id ?? this.id,
@@ -39,6 +43,7 @@ class Nodo {
       y: y ?? this.y,
       radius: radius ?? this.radius,
       rol: clearRol ? null : (rol ?? this.rol),
+      cantidad: clearCantidad ? null : (cantidad ?? this.cantidad),
     );
   }
 
@@ -51,6 +56,7 @@ class Nodo {
       'y': y,
       'radius': radius,
       if (rol != null) 'rol': rol,
+      if (cantidad != null) 'cantidad': cantidad,
     };
   }
 
@@ -63,6 +69,7 @@ class Nodo {
       y: (json['y'] as num).toDouble(),
       radius: (json['radius'] as num?)?.toDouble() ?? defaultRadius,
       rol: json['rol'] as String?,
+      cantidad: (json['cantidad'] as num?)?.toDouble(),
     );
   }
 
@@ -77,7 +84,8 @@ class Nodo {
           x == other.x &&
           y == other.y &&
           radius == other.radius &&
-          rol == other.rol;
+          rol == other.rol &&
+          cantidad == other.cantidad;
 
   @override
   int get hashCode =>
@@ -87,5 +95,6 @@ class Nodo {
       x.hashCode ^
       y.hashCode ^
       radius.hashCode ^
-      rol.hashCode;
+      rol.hashCode ^
+      cantidad.hashCode;
 }

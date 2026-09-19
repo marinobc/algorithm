@@ -6,6 +6,7 @@ import '../../../../domain/models/atributo.dart';
 import '../../../../domain/models/conexion.dart';
 import '../../../../domain/models/grafo.dart';
 import '../../../../domain/models/nodo.dart';
+import '../../../../ui/widgets/algorithm_optimize_action.dart';
 import '../providers/assignment_provider.dart';
 
 /// Screen displaying the dedicated Bipartite Matrix (Origins x Destinations)
@@ -158,6 +159,23 @@ class _AssignmentBipartiteMatrixScreenState
                             ),
                           ),
                         ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: double.infinity,
+                      child: FilledButton.icon(
+                        onPressed: () async {
+                          final didOptimize = await runActiveAlgorithm(
+                            context,
+                            ref,
+                          );
+                          if (didOptimize && context.mounted) {
+                            Navigator.of(context).pop();
+                          }
+                        },
+                        icon: const Icon(Icons.play_arrow_rounded),
+                        label: const Text('Optimizar asignación'),
                       ),
                     ),
                   ],

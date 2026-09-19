@@ -29,6 +29,8 @@ class RenderNode {
   final bool isDisconnected; // Red glow if true
   final bool isPendingConnectTarget; // Visual hint during creation
   final bool isOverlapping; // Opacity visual indicator when stacked
+  final String? quantityLabel;
+  final bool quantityLabelOnLeft;
 
   const RenderNode({
     required this.id,
@@ -43,6 +45,8 @@ class RenderNode {
     this.isDisconnected = false,
     this.isPendingConnectTarget = false,
     this.isOverlapping = false,
+    this.quantityLabel,
+    this.quantityLabelOnLeft = false,
   });
 }
 
@@ -151,6 +155,8 @@ class GraphRenderModel {
           isHighlighted: highlightedNodeIds.contains(n.id),
           isDisconnected: disconnectedNodeIds.contains(n.id),
           isPendingConnectTarget: pendingConnectNodeId == n.id,
+          quantityLabel: n.cantidad == null ? null : _formatNumber(n.cantidad!),
+          quantityLabelOnLeft: n.rol == 'northwest_origin',
         ),
       );
     }
@@ -190,6 +196,8 @@ class GraphRenderModel {
           isDisconnected: rn.isDisconnected,
           isPendingConnectTarget: rn.isPendingConnectTarget,
           isOverlapping: true,
+          quantityLabel: rn.quantityLabel,
+          quantityLabelOnLeft: rn.quantityLabelOnLeft,
         );
       }
       return rn;
@@ -420,4 +428,8 @@ class GraphRenderModel {
       dragLine: dragLine,
     );
   }
+
+  static String _formatNumber(double value) => value == value.roundToDouble()
+      ? value.toInt().toString()
+      : value.toStringAsFixed(2);
 }

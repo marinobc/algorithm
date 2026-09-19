@@ -51,6 +51,12 @@ class JohnsonAlgorithm implements GraphAlgorithm {
   }
 
   @override
+  Map<String, dynamic>? newNodeParams(WidgetRef ref) => null;
+
+  @override
+  Widget? buildEmptyState(BuildContext context, WidgetRef ref) => null;
+
+  @override
   Widget? buildAlgorithmCard(BuildContext context, WidgetRef ref) {
     final validation = ref.watch(johnsonValidationProvider);
     final state = ref.watch(johnsonNotifierProvider);

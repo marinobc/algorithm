@@ -7,6 +7,7 @@ import '../../algorithms/assignment/providers/assignment_provider.dart';
 import '../../algorithms/core/algorithm_registry.dart';
 import '../../algorithms/core/graph_algorithm.dart';
 import '../../algorithms/johnson/providers/johnson_provider.dart';
+import '../../algorithms/northwest/providers/northwest_provider.dart';
 import '../../application/providers/edicion_provider.dart';
 import '../../application/providers/grafo_provider.dart';
 import '../../domain/services/diceware_service.dart';
@@ -60,6 +61,7 @@ class _GraphEditorScreenState extends ConsumerState<GraphEditorScreen> {
     }
     ref.read(transportationNotifierProvider.notifier).setActive(false);
     ref.read(johnsonNotifierProvider.notifier).setActive(false);
+    ref.read(northwestNotifierProvider.notifier).setActive(false);
     ref.read(estadoEdicionProvider.notifier).desmarcarCambiosSinGuardar();
     ref.read(estadoEdicionProvider.notifier).deseleccionar();
   }
@@ -80,7 +82,7 @@ class _GraphEditorScreenState extends ConsumerState<GraphEditorScreen> {
   }
 
   void _openAdjacencyMatrixModal() {
-    MatrixViewCoordinator.openMatrix(context, ref);
+    MatrixViewCoordinator.openGraphMatrix(context, ref);
   }
 
   void _openAIChatModal() {
@@ -259,6 +261,7 @@ class _GraphEditorScreenState extends ConsumerState<GraphEditorScreen> {
 
       ref.read(transportationNotifierProvider.notifier).setActive(false);
       ref.read(johnsonNotifierProvider.notifier).setActive(false);
+      ref.read(northwestNotifierProvider.notifier).setActive(false);
 
       ref.read(estadoEdicionProvider.notifier).desmarcarCambiosSinGuardar();
       ref.read(estadoEdicionProvider.notifier).deseleccionar();
@@ -314,6 +317,7 @@ class _GraphEditorScreenState extends ConsumerState<GraphEditorScreen> {
     }
     ref.read(transportationNotifierProvider.notifier).setActive(false);
     ref.read(johnsonNotifierProvider.notifier).setActive(false);
+    ref.read(northwestNotifierProvider.notifier).setActive(false);
 
     final newAlgo = ref.read(activeAlgorithmProvider);
     final algoName = newAlgo?.shortName ?? 'Modo Libre';
@@ -395,12 +399,16 @@ class _GraphEditorScreenState extends ConsumerState<GraphEditorScreen> {
     final loadedItem = ref.watch(loadedGraphItemProvider);
     final edicion = ref.watch(estadoEdicionProvider);
     final activeAlgo = ref.watch(activeAlgorithmProvider);
+    final grafo = ref.watch(grafoProvider);
 
     final titleText = loadedItem != null
         ? '${loadedItem.nombre}${edicion.tieneCambiosSinGuardar ? " *" : ""}'
         : 'Nuevo Grafo${edicion.tieneCambiosSinGuardar ? " *" : ""}';
 
     final canvasControls = activeAlgo?.buildCanvasControls(context, ref);
+    final emptyState = grafo.nodos.isEmpty
+        ? activeAlgo?.buildEmptyState(context, ref)
+        : null;
 
     return PopScope(
       canPop: false,
@@ -469,6 +477,7 @@ class _GraphEditorScreenState extends ConsumerState<GraphEditorScreen> {
         body: Stack(
           children: [
             Positioned.fill(child: GraphCanvas(key: _canvasKey)),
+            if (emptyState != null) Positioned.fill(child: emptyState),
             if (canvasControls != null)
               Positioned(top: 14, left: 14, child: canvasControls),
             Positioned(

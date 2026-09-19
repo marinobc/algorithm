@@ -7,6 +7,7 @@ class Grafo {
   final Map<String, Conexion> conexiones;
   final List<Atributo> atributosGlobales;
   final String? tipoAlgoritmo;
+  final Map<String, String> metadata;
 
   const Grafo({
     this.nodos = const {},
@@ -15,6 +16,7 @@ class Grafo {
       Atributo(id: 'attr_valor', nombre: 'Valor'),
     ],
     this.tipoAlgoritmo,
+    this.metadata = const {},
   });
 
   Grafo copyWith({
@@ -23,6 +25,7 @@ class Grafo {
     List<Atributo>? atributosGlobales,
     String? tipoAlgoritmo,
     bool clearTipoAlgoritmo = false,
+    Map<String, String>? metadata,
   }) {
     return Grafo(
       nodos: nodos ?? this.nodos,
@@ -31,6 +34,7 @@ class Grafo {
       tipoAlgoritmo: clearTipoAlgoritmo
           ? null
           : (tipoAlgoritmo ?? this.tipoAlgoritmo),
+      metadata: metadata ?? this.metadata,
     );
   }
 
@@ -42,6 +46,7 @@ class Grafo {
       ),
       'atributosGlobales': atributosGlobales.map((a) => a.toJson()).toList(),
       if (tipoAlgoritmo != null) 'tipoAlgoritmo': tipoAlgoritmo,
+      if (metadata.isNotEmpty) 'metadata': metadata,
     };
   }
 
@@ -68,6 +73,9 @@ class Grafo {
       conexiones: parsedConexiones,
       atributosGlobales: parsedAttrs,
       tipoAlgoritmo: json['tipoAlgoritmo'] as String?,
+      metadata: (json['metadata'] as Map<String, dynamic>? ?? {}).map(
+        (key, value) => MapEntry(key, value.toString()),
+      ),
     );
   }
 
@@ -97,12 +105,16 @@ class Grafo {
     if (other is! Grafo || runtimeType != other.runtimeType) return false;
     return _mapEquals(nodos, other.nodos) &&
         _mapEquals(conexiones, other.conexiones) &&
-        _listEquals(atributosGlobales, other.atributosGlobales);
+        _listEquals(atributosGlobales, other.atributosGlobales) &&
+        _mapEquals(metadata, other.metadata);
   }
 
   @override
   int get hashCode =>
-      _mapHash(nodos) ^ _mapHash(conexiones) ^ _listHash(atributosGlobales);
+      _mapHash(nodos) ^
+      _mapHash(conexiones) ^
+      _listHash(atributosGlobales) ^
+      _mapHash(metadata);
 
   static bool _mapEquals<K, V>(Map<K, V>? a, Map<K, V>? b) {
     if (a == null) return b == null;

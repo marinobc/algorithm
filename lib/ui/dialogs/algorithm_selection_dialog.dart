@@ -7,6 +7,8 @@ import '../../algorithms/core/algorithm_registry.dart';
 import '../../algorithms/core/graph_algorithm.dart';
 import '../../algorithms/johnson/domain/services/johnson_validator.dart';
 import '../../algorithms/johnson/providers/johnson_provider.dart';
+import '../../algorithms/northwest/domain/services/northwest_problem_extractor.dart';
+import '../../algorithms/northwest/providers/northwest_provider.dart';
 import '../../application/providers/grafo_provider.dart';
 import '../widgets/algorithm_catalog_illustration.dart';
 import '../widgets/app_toast.dart';
@@ -96,6 +98,7 @@ class AlgorithmSelectionDialog extends StatelessWidget {
   ) {
     final assignment = registered[AlgorithmRegistry.assignmentId];
     final johnson = registered[AlgorithmRegistry.johnsonId];
+    final northwest = registered[AlgorithmRegistry.northwestId];
     return [
       const _AlgorithmCatalogOption(
         id: 'free-mode',
@@ -131,6 +134,15 @@ class AlgorithmSelectionDialog extends StatelessWidget {
         illustration: AlgorithmCatalogIllustration.upcoming,
         available: false,
       ),
+      if (northwest != null)
+        _AlgorithmCatalogOption(
+          id: northwest.id,
+          title: 'Algoritmo de Esquina Noroeste',
+          description: 'Resuelve problemas de transporte mediante esquina noroeste y optimizacion MODI.',
+          accentColor: const Color(0xFFE54872),
+          illustration: AlgorithmCatalogIllustration.northwest,
+          algorithm: northwest,
+        ),
     ];
   }
 
@@ -139,6 +151,7 @@ class AlgorithmSelectionDialog extends StatelessWidget {
       ref.read(activeAlgorithmProvider.notifier).clear();
       ref.read(transportationNotifierProvider.notifier).setActive(false);
       ref.read(johnsonNotifierProvider.notifier).setActive(false);
+      ref.read(northwestNotifierProvider.notifier).setActive(false);
       Navigator.of(context).pop(null);
       return;
     }
@@ -153,6 +166,9 @@ class AlgorithmSelectionDialog extends StatelessWidget {
         AlgorithmRegistry.johnsonId => JohnsonValidator.validate(
           graph,
         ).errorMessage,
+        AlgorithmRegistry.northwestId => NorthwestProblemExtractor.extract(
+          graph,
+        ).errorMessage,
         _ => null,
       };
       if (error != null) {
@@ -162,6 +178,7 @@ class AlgorithmSelectionDialog extends StatelessWidget {
     }
     ref.read(transportationNotifierProvider.notifier).setActive(false);
     ref.read(johnsonNotifierProvider.notifier).setActive(false);
+    ref.read(northwestNotifierProvider.notifier).setActive(false);
     ref.read(activeAlgorithmProvider.notifier).selectById(algorithm.id);
     Navigator.of(context).pop(algorithm);
   }

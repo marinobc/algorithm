@@ -5,16 +5,20 @@ import '../assignment/domain/policy/assignment_graph_policy.dart';
 import '../assignment/providers/assignment_provider.dart';
 import '../johnson/johnson_algorithm.dart';
 import '../johnson/providers/johnson_provider.dart';
+import '../northwest/northwest_algorithm.dart';
+import '../northwest/providers/northwest_provider.dart';
 import 'graph_algorithm.dart';
 
 /// Central registry managing all registered graph algorithms.
 class AlgorithmRegistry {
   static const String assignmentId = AssignmentAlgorithm.algorithmId;
   static const String johnsonId = JohnsonAlgorithm.algorithmId;
+  static const String northwestId = NorthwestAlgorithm.algorithmId;
 
   static final List<GraphAlgorithm> registeredAlgorithms = [
     const AssignmentAlgorithm(),
     const JohnsonAlgorithm(),
+    const NorthwestAlgorithm(),
   ];
 
   static GraphAlgorithm? findById(String? id) {
@@ -58,6 +62,7 @@ class ActiveAlgorithmNotifier extends Notifier<GraphAlgorithm?> {
     // so the user starts fresh in the new mode without auto-triggering optimization.
     ref.read(transportationNotifierProvider.notifier).setActive(false);
     ref.read(johnsonNotifierProvider.notifier).setActive(false);
+    ref.read(northwestNotifierProvider.notifier).setActive(false);
 
     if (activeId == AlgorithmRegistry.assignmentId) {
       ref

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../algorithms/core/algorithm_registry.dart';
 import '../../application/providers/atributos_provider.dart';
 import '../../application/providers/creacion_provider.dart';
 import '../../application/providers/edicion_provider.dart';
@@ -8,6 +9,7 @@ import '../../application/providers/grafo_provider.dart';
 import '../../domain/models/conexion.dart';
 import '../../domain/models/nodo.dart';
 import '../dialogs/delete_confirmation_dialog.dart';
+import '../widgets/app_toast.dart';
 
 class GraphCanvasDialogs {
   static Future<void> showDeleteNodeDialog({
@@ -17,6 +19,17 @@ class GraphCanvasDialogs {
     required VoidCallback onDeleted,
   }) async {
     final grafo = ref.read(grafoProvider);
+    final deletion = ref
+        .read(activePolicyProvider)
+        ?.canDeleteNode(grafo, nodo.id);
+    if (deletion != null && !deletion.allowed) {
+      AppToast.show(
+        context,
+        deletion.message ?? 'No puedes eliminar este nodo.',
+        icon: Icons.lock_outline_rounded,
+      );
+      return;
+    }
     final conexiones = grafo.obtenerConexionesDeNodo(nodo.id);
     final atributos = ref.read(atributosGlobalesProvider);
 
@@ -58,6 +71,17 @@ class GraphCanvasDialogs {
   }) async {
     final atributos = ref.read(atributosGlobalesProvider);
     final grafo = ref.read(grafoProvider);
+    final deletion = ref
+        .read(activePolicyProvider)
+        ?.canDeleteConnection(grafo, conexion.id);
+    if (deletion != null && !deletion.allowed) {
+      AppToast.show(
+        context,
+        deletion.message ?? 'No puedes eliminar esta conexion.',
+        icon: Icons.lock_outline_rounded,
+      );
+      return;
+    }
 
     final Map<String, String> attrNames = {
       for (final a in atributos) a.id: a.nombre,
