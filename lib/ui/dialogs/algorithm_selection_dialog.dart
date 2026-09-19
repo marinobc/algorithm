@@ -126,14 +126,6 @@ class AlgorithmSelectionDialog extends StatelessWidget {
           illustration: AlgorithmCatalogIllustration.johnson,
           algorithm: johnson,
         ),
-      const _AlgorithmCatalogOption(
-        id: 'upcoming',
-        title: 'Próximamente',
-        description: 'Estamos preparando nuevos algoritmos para ampliar las herramientas disponibles.',
-        accentColor: Color(0xFF756A9F),
-        illustration: AlgorithmCatalogIllustration.upcoming,
-        available: false,
-      ),
       if (northwest != null)
         _AlgorithmCatalogOption(
           id: northwest.id,
@@ -143,6 +135,14 @@ class AlgorithmSelectionDialog extends StatelessWidget {
           illustration: AlgorithmCatalogIllustration.northwest,
           algorithm: northwest,
         ),
+      const _AlgorithmCatalogOption(
+        id: 'upcoming',
+        title: 'Próximamente',
+        description: 'Estamos preparando nuevos algoritmos para ampliar las herramientas disponibles.',
+        accentColor: Color(0xFF756A9F),
+        illustration: AlgorithmCatalogIllustration.upcoming,
+        available: false,
+      ),
     ];
   }
 
@@ -181,6 +181,87 @@ class AlgorithmSelectionDialog extends StatelessWidget {
     ref.read(northwestNotifierProvider.notifier).setActive(false);
     ref.read(activeAlgorithmProvider.notifier).selectById(algorithm.id);
     Navigator.of(context).pop(algorithm);
+  }
+}
+
+class AlgorithmSelectionScreen extends ConsumerWidget {
+  const AlgorithmSelectionScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final registered = {
+      for (final algorithm in ref.read(algorithmRegistryProvider))
+        algorithm.id: algorithm,
+    };
+    final options = AlgorithmSelectionDialog(ref: ref)._options(registered);
+    final colors = Theme.of(context).colorScheme;
+
+    return Scaffold(
+      backgroundColor: colors.surface,
+      body: SafeArea(
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 1280),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(28, 24, 28, 28),
+              child: Column(
+                children: [
+                  _CatalogHeader(
+                    canDismiss: true,
+                    onClose: () => Navigator.of(context).pop(false),
+                  ),
+                  const SizedBox(height: 26),
+                  Expanded(
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        final columns = constraints.maxWidth >= 1040
+                            ? 4
+                            : constraints.maxWidth >= 620
+                            ? 2
+                            : 1;
+                        return GridView.builder(
+                          itemCount: options.length,
+                          gridDelegate:
+                              SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: columns,
+                                crossAxisSpacing: 18,
+                                mainAxisSpacing: 18,
+                                mainAxisExtent: columns == 1 ? 248 : 270,
+                              ),
+                          itemBuilder: (context, index) =>
+                              _AlgorithmCatalogCard(
+                                option: options[index],
+                                onSelect: options[index].available
+                                    ? () =>
+                                          _select(context, ref, options[index])
+                                    : null,
+                              ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _select(
+    BuildContext context,
+    WidgetRef ref,
+    _AlgorithmCatalogOption option,
+  ) {
+    if (option.id == 'free-mode') {
+      ref.read(activeAlgorithmProvider.notifier).clear();
+    } else {
+      final algorithm = option.algorithm;
+      if (algorithm == null) return;
+      ref.read(activeAlgorithmProvider.notifier).selectById(algorithm.id);
+    }
+    Navigator.of(context).pop(true);
   }
 }
 

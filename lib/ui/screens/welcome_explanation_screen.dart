@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../widgets/video_resource_card.dart';
 import '../widgets/web_explanation_navbar.dart';
+import '../dialogs/algorithm_selection_dialog.dart';
 import 'graph_editor_screen.dart';
 
 class WelcomeExplanationScreen extends StatefulWidget {
@@ -22,10 +23,15 @@ class _WelcomeExplanationScreenState extends State<WelcomeExplanationScreen> {
     super.dispose();
   }
 
-  void _navigateToLibrary(BuildContext context) {
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => const GraphEditorScreen()),
+  Future<void> _navigateToLibrary(BuildContext context) async {
+    final didSelect = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(builder: (_) => const AlgorithmSelectionScreen()),
     );
+    if (didSelect == true && context.mounted) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const GraphEditorScreen()),
+      );
+    }
   }
 
   void _scrollToExamples() {

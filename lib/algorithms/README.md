@@ -146,7 +146,7 @@ abstract class GraphAlgorithm {
 
 ### 4.2 Ciclo de Vida y Selección de Modo en el Editor
 - **Entrada desde páginas de algoritmos**: Al ingresar desde la página del algoritmo (ej. Asignación o Johnson), el modo correspondiente queda **automáticamente seleccionado**.
-- **Entrada desde páginas generales**: Al ingresar al editor desde páginas generales o con el lienzo vacío sin preselección, se despliega el modal interactivo `AlgorithmSelectionDialog` para que el usuario elija su modo de trabajo (Asignación, Johnson o Modo Libre).
+- **Entrada desde páginas generales**: Al ingresar desde páginas generales, se abre la página de selección para elegir el modo de trabajo. Si se entra al editor con el lienzo vacío sin preselección, esta página se abre automáticamente.
 - **Restricción de cambio de modo**: A través del dropdown/badge de la barra superior, solo se permite cambiar de algoritmo **si el lienzo está completamente vacío** (`grafo.nodos.isEmpty`). Si hay nodos presentes, se bloquea el cambio mediante un diálogo de advertencia para proteger la consistencia del grafo.
 - **Persistencia**: Al guardar un grafo (como archivo nuevo o sobrescritura), se almacena el campo `tipoAlgoritmo`. Al volver a cargarlo desde la lista de guardados, el modo del algoritmo se restaura automáticamente.
 

@@ -61,7 +61,7 @@ void main() {
       },
     );
 
-    testWidgets('Volver al Inicio button cleans canvas and unloads all state', (
+    testWidgets('home button cleans canvas and unloads all state', (
       tester,
     ) async {
       final container = ProviderContainer();
@@ -87,10 +87,10 @@ void main() {
       );
       await tester.pump();
 
-      // Tap Volver al Inicio (back arrow)
-      final backBtn = find.byIcon(Icons.arrow_back_rounded);
-      expect(backBtn, findsOneWidget);
-      await tester.tap(backBtn);
+      // Tap Ir a la página principal (home icon).
+      final homeButton = find.byIcon(Icons.home_outlined);
+      expect(homeButton, findsOneWidget);
+      await tester.tap(homeButton);
       await tester.pump();
 
       // State should be completely cleaned

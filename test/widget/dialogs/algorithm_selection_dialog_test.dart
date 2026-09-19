@@ -7,6 +7,30 @@ import 'package:nodos/ui/theme/app_theme.dart';
 
 void main() {
   group('AlgorithmSelectionDialog Widget Tests', () {
+    testWidgets('renders the algorithm selector as a full screen page', (
+      tester,
+    ) async {
+      final container = ProviderContainer();
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp(
+            theme: AppTheme.darkTheme,
+            home: const AlgorithmSelectionScreen(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(Dialog), findsNothing);
+      expect(find.text('Selecciona un algoritmo'), findsOneWidget);
+      expect(find.text('Modo Libre'), findsOneWidget);
+
+      await tester.pumpWidget(const SizedBox());
+      container.dispose();
+    });
+
     testWidgets(
       'renders Modo Libre at the top without any preselected checkmark',
       (tester) async {
@@ -33,7 +57,6 @@ void main() {
         expect(find.text('Modo Libre'), findsOneWidget);
         expect(find.text('Algoritmo de Asignación'), findsOneWidget);
         expect(find.text('Algoritmo de Johnson / CPM'), findsOneWidget);
-        expect(find.text('Próximamente'), findsNWidgets(2));
 
         // Verify no checkmark icons are preselected
         expect(find.byIcon(Icons.check_circle_rounded), findsNothing);
@@ -97,6 +120,8 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
+      await tester.drag(find.byType(GridView), const Offset(0, -600));
+      await tester.pumpAndSettle();
 
       final card = tester.widget<InkWell>(
         find
@@ -135,9 +160,9 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.drag(find.byType(GridView), const Offset(0, -600));
-      await tester.pumpAndSettle();
       final northwest = find.text('Algoritmo de Esquina Noroeste');
+      await tester.drag(find.byType(GridView), const Offset(0, -180));
+      await tester.pumpAndSettle();
       await tester.tap(northwest);
       await tester.pump();
 

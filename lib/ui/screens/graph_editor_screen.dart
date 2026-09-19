@@ -38,6 +38,7 @@ class GraphEditorScreen extends ConsumerStatefulWidget {
 
 class _GraphEditorScreenState extends ConsumerState<GraphEditorScreen> {
   final GlobalKey<GraphCanvasState> _canvasKey = GlobalKey<GraphCanvasState>();
+  bool _initialModeSelectionHandled = false;
 
   @override
   void initState() {
@@ -47,8 +48,12 @@ class _GraphEditorScreenState extends ConsumerState<GraphEditorScreen> {
       final activeAlgo = ref.read(activeAlgorithmProvider);
       final grafo = ref.read(grafoProvider);
       final loadedItem = ref.read(loadedGraphItemProvider);
-      if (activeAlgo == null && grafo.nodos.isEmpty && loadedItem == null) {
-        AlgorithmSelectionDialog.show(context, ref);
+      if (activeAlgo == null &&
+          grafo.nodos.isEmpty &&
+          loadedItem == null &&
+          !_initialModeSelectionHandled) {
+        _initialModeSelectionHandled = true;
+        _openAlgorithmSelection(initial: true);
       }
     });
   }
@@ -375,17 +380,28 @@ class _GraphEditorScreenState extends ConsumerState<GraphEditorScreen> {
     );
   }
 
-  Future<void> _handleGoBack() async {
+  Future<void> _openAlgorithmSelection({bool initial = false}) async {
+    if (!initial) {
+      final canProceed = await _promptUnsavedChanges(isNewGraph: true);
+      if (!canProceed || !mounted) return;
+    }
+
+    final didSelect = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(builder: (_) => const AlgorithmSelectionScreen()),
+    );
+    if (!initial && didSelect == true && mounted) {
+      _cleanAndUnloadAll(preserveAlgorithm: true);
+    }
+  }
+
+  Future<void> _goHome() async {
     final canProceed = await _promptUnsavedChanges();
     if (canProceed && mounted) {
       _cleanAndUnloadAll();
-      if (Navigator.of(context).canPop()) {
-        Navigator.of(context).pop();
-      } else {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const WelcomeExplanationScreen()),
-        );
-      }
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const WelcomeExplanationScreen()),
+        (route) => false,
+      );
     }
   }
 
@@ -414,17 +430,27 @@ class _GraphEditorScreenState extends ConsumerState<GraphEditorScreen> {
       canPop: false,
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
-        await _handleGoBack();
+        await _goHome();
       },
       child: Scaffold(
         backgroundColor: palette.canvasBg,
         appBar: AppBar(
           backgroundColor: colorScheme.surfaceContainerHigh,
           elevation: 1,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back_rounded),
-            tooltip: 'Volver al Inicio',
-            onPressed: _handleGoBack,
+          leadingWidth: 108,
+          leading: Row(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.arrow_back_rounded),
+                tooltip: 'Seleccionar algoritmo',
+                onPressed: _openAlgorithmSelection,
+              ),
+              IconButton(
+                icon: const Icon(Icons.home_outlined),
+                tooltip: 'Ir a la página principal',
+                onPressed: _goHome,
+              ),
+            ],
           ),
           title: Row(
             mainAxisSize: MainAxisSize.min,
