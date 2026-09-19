@@ -3,9 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../algorithms/core/algorithm_registry.dart';
+import '../dialogs/algorithm_selection_dialog.dart';
 import '../screens/assignment_algo_screen.dart';
 import '../screens/contact_screen.dart';
-import '../screens/graph_editor_screen.dart';
 import '../screens/johnson_algo_screen.dart';
 import '../screens/welcome_explanation_screen.dart';
 import '../screens/what_are_graphs_screen.dart';
@@ -64,7 +64,7 @@ class WebExplanationShell extends ConsumerWidget {
     }
 
     Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => const GraphEditorScreen()),
+      MaterialPageRoute(builder: (ctx) => const AlgorithmSelectionScreen()),
     );
   }
 

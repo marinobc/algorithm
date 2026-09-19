@@ -10,6 +10,8 @@ import '../../algorithms/johnson/providers/johnson_provider.dart';
 import '../../algorithms/northwest/domain/services/northwest_problem_extractor.dart';
 import '../../algorithms/northwest/providers/northwest_provider.dart';
 import '../../application/providers/grafo_provider.dart';
+import '../screens/graph_editor_screen.dart';
+import '../screens/welcome_explanation_screen.dart';
 import '../widgets/algorithm_catalog_illustration.dart';
 import '../widgets/app_toast.dart';
 
@@ -80,7 +82,7 @@ class AlgorithmSelectionDialog extends StatelessWidget {
                           crossAxisCount: columns,
                           crossAxisSpacing: 18,
                           mainAxisSpacing: 18,
-                          mainAxisExtent: columns == 1 ? 248 : 270,
+                          mainAxisExtent: columns == 1 ? 280 : 300,
                         ),
                         itemBuilder: (context, index) => _AlgorithmCatalogCard(
                           option: options[index],
@@ -117,7 +119,7 @@ class AlgorithmSelectionDialog extends StatelessWidget {
       if (assignment != null)
         _AlgorithmCatalogOption(
           id: assignment.id,
-          title: 'Algoritmo de Asignación',
+          title: 'Asignación',
           description:
               'Resuelve problemas de asignación mediante el Algoritmo Húngaro.',
           accentColor: const Color(0xFF258BFF),
@@ -127,7 +129,7 @@ class AlgorithmSelectionDialog extends StatelessWidget {
       if (johnson != null)
         _AlgorithmCatalogOption(
           id: johnson.id,
-          title: 'Algoritmo de Johnson / CPM',
+          title: 'Johnson',
           description: 'Analiza redes de actividades, identifica la ruta crítica y calcula las holguras.',
           accentColor: const Color(0xFF00C7A5),
           illustration: AlgorithmCatalogIllustration.johnson,
@@ -136,8 +138,8 @@ class AlgorithmSelectionDialog extends StatelessWidget {
       if (northwest != null)
         _AlgorithmCatalogOption(
           id: northwest.id,
-          title: 'Algoritmo de Esquina Noroeste',
-          description: 'Resuelve problemas de transporte mediante esquina noroeste y optimizacion MODI.',
+          title: 'Northwest',
+          description: 'Resuelve problemas de transporte mediante esquina noroeste y optimización MODI.',
           accentColor: const Color(0xFFE54872),
           illustration: AlgorithmCatalogIllustration.northwest,
           algorithm: northwest,
@@ -215,7 +217,17 @@ class AlgorithmSelectionScreen extends ConsumerWidget {
                 children: [
                   _CatalogHeader(
                     canDismiss: true,
-                    onClose: () => Navigator.of(context).pop(false),
+                    onClose: () {
+                      if (Navigator.of(context).canPop()) {
+                        Navigator.of(context).pop(false);
+                      } else {
+                        Navigator.of(context).pushReplacement(
+                          MaterialPageRoute(
+                            builder: (_) => const WelcomeExplanationScreen(),
+                          ),
+                        );
+                      }
+                    },
                   ),
                   const SizedBox(height: 26),
                   Expanded(
@@ -239,7 +251,7 @@ class AlgorithmSelectionScreen extends ConsumerWidget {
                                   crossAxisCount: columns,
                                   crossAxisSpacing: 18,
                                   mainAxisSpacing: 18,
-                                  mainAxisExtent: columns == 1 ? 248 : 270,
+                                  mainAxisExtent: columns == 1 ? 280 : 300,
                                 ),
                             itemBuilder: (context, index) =>
                                 _AlgorithmCatalogCard(
@@ -278,7 +290,13 @@ class AlgorithmSelectionScreen extends ConsumerWidget {
       if (algorithm == null) return;
       ref.read(activeAlgorithmProvider.notifier).selectById(algorithm.id);
     }
-    Navigator.of(context).pop(true);
+    if (Navigator.of(context).canPop()) {
+      Navigator.of(context).pop(true);
+    } else {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const GraphEditorScreen()),
+      );
+    }
   }
 }
 
