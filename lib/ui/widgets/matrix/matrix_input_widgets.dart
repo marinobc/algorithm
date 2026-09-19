@@ -287,107 +287,126 @@ class MatrixCellInput extends StatelessWidget {
 
     return SizedBox(
       width: width,
-      child: Focus(
-        onFocusChange: (hasFocus) {
-          if (!hasFocus) {
-            FocusManager.instance.primaryFocus?.unfocus();
-          }
-        },
-        child: ValueListenableBuilder<TextEditingValue>(
-          valueListenable: controller,
-          builder: (context, value, _) {
-            final raw = value.text.trim();
-            final parsed = double.tryParse(raw);
-            final isInvalid =
-                !readOnly &&
-                raw.isNotEmpty &&
-                (parsed == null || !parsed.isFinite || parsed < 0);
-
-            final hasFocus = Focus.of(context).hasFocus;
-            return TextField(
-              controller: controller,
-              readOnly: readOnly,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: isHighlight || isInvalid
-                    ? FontWeight.bold
-                    : FontWeight.w600,
-                color: isInvalid
-                    ? colors.error
-                    : (readOnly
-                          ? colors.onSurfaceVariant.withValues(alpha: 0.7)
-                          : (isHighlight ? colors.primary : colors.onSurface)),
-              ),
-              decoration: InputDecoration(
-                hintText: hasFocus ? '' : hint,
-                hintStyle: TextStyle(
-                  color: isInvalid
-                      ? colors.error.withValues(alpha: 0.5)
-                      : colors.onSurfaceVariant.withValues(alpha: 0.38),
-                  fontSize: 11,
-                  fontWeight: FontWeight.normal,
-                ),
-                isDense: true,
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 6,
-                  vertical: 8,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: BorderSide(
-                    color: isInvalid
-                        ? colors.error
-                        : colors.outlineVariant.withValues(alpha: 0.6),
-                  ),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: BorderSide(
-                    color: isInvalid
-                        ? colors.error
-                        : (readOnly
-                              ? colors.outlineVariant.withValues(alpha: 0.2)
-                              : (isHighlight
-                                    ? colors.primary.withValues(alpha: 0.5)
-                                    : colors.outlineVariant.withValues(
-                                        alpha: 0.4,
-                                      ))),
-                  ),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: BorderSide(
-                    color: isInvalid
-                        ? colors.error
-                        : (readOnly ? colors.outlineVariant : colors.primary),
-                    width: isInvalid || !readOnly ? 2 : 1,
-                  ),
-                ),
-                fillColor: isInvalid
-                    ? colors.errorContainer.withValues(alpha: 0.25)
-                    : (readOnly
-                          ? colors.surfaceContainerHighest.withValues(
-                              alpha: 0.5,
-                            )
-                          : (isHighlight
-                                ? colors.primaryContainer.withValues(alpha: 0.3)
-                                : colors.surface)),
-                filled: true,
-              ),
-              onTap: () {
-                if (!readOnly && controller.text.isNotEmpty) {
-                  controller.selection = TextSelection(
-                    baseOffset: 0,
-                    extentOffset: controller.text.length,
-                  );
-                }
-              },
-            );
+      child: MouseRegion(
+        cursor: readOnly
+            ? SystemMouseCursors.forbidden
+            : SystemMouseCursors.text,
+        child: Focus(
+          canRequestFocus: !readOnly,
+          onFocusChange: (hasFocus) {
+            if (!hasFocus) {
+              FocusManager.instance.primaryFocus?.unfocus();
+            }
           },
+          child: ValueListenableBuilder<TextEditingValue>(
+            valueListenable: controller,
+            builder: (context, value, _) {
+              final raw = value.text.trim();
+              final parsed = double.tryParse(raw);
+              final isInvalid =
+                  !readOnly &&
+                  raw.isNotEmpty &&
+                  (parsed == null || !parsed.isFinite || parsed < 0);
+
+              final hasFocus = Focus.of(context).hasFocus;
+              return TextField(
+                controller: controller,
+                readOnly: readOnly,
+                enabled: !readOnly,
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: isHighlight || isInvalid
+                      ? FontWeight.bold
+                      : FontWeight.w600,
+                  color: isInvalid
+                      ? colors.error
+                      : (readOnly
+                            ? colors.onSurfaceVariant.withValues(alpha: 0.45)
+                            : (isHighlight
+                                  ? colors.primary
+                                  : colors.onSurface)),
+                ),
+                decoration: InputDecoration(
+                  hintText: hasFocus ? '' : hint,
+                  hintStyle: TextStyle(
+                    color: isInvalid
+                        ? colors.error.withValues(alpha: 0.5)
+                        : colors.onSurfaceVariant.withValues(alpha: 0.38),
+                    fontSize: 11,
+                    fontWeight: FontWeight.normal,
+                  ),
+                  isDense: true,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 8,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide(
+                      color: isInvalid
+                          ? colors.error
+                          : colors.outlineVariant.withValues(alpha: 0.6),
+                    ),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide(
+                      color: isInvalid
+                          ? colors.error
+                          : (readOnly
+                                ? colors.outlineVariant.withValues(alpha: 0.2)
+                                : (isHighlight
+                                      ? colors.primary.withValues(alpha: 0.5)
+                                      : colors.outlineVariant.withValues(
+                                          alpha: 0.4,
+                                        ))),
+                    ),
+                  ),
+                  disabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide(
+                      color: colors.outlineVariant.withValues(alpha: 0.2),
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide(
+                      color: isInvalid
+                          ? colors.error
+                          : (readOnly
+                                ? colors.outlineVariant.withValues(alpha: 0.2)
+                                : colors.primary),
+                      width: isInvalid ? 2 : (readOnly ? 1 : 2),
+                    ),
+                  ),
+                  fillColor: isInvalid
+                      ? colors.errorContainer.withValues(alpha: 0.25)
+                      : (readOnly
+                            ? colors.surfaceContainerHighest.withValues(
+                                alpha: 0.75,
+                              )
+                            : (isHighlight
+                                  ? colors.primaryContainer.withValues(
+                                      alpha: 0.3,
+                                    )
+                                  : colors.surface)),
+                  filled: true,
+                ),
+                onTap: () {
+                  if (!readOnly && controller.text.isNotEmpty) {
+                    controller.selection = TextSelection(
+                      baseOffset: 0,
+                      extentOffset: controller.text.length,
+                    );
+                  }
+                },
+              );
+            },
+          ),
         ),
       ),
     );

@@ -808,61 +808,78 @@ class _NorthwestGraphMatrixScreenState
       ),
       ...List.generate(_destinationNames.length, (j) {
         final name = _destinationNames[j].text.trim();
-        final isFictitious = name == 'Ficticio' || name.startsWith('Ficticio ');
+        final destId = j < _destinationIds.length ? _destinationIds[j] : '';
+        final isFictitious =
+            destId == _dummyDestinationId ||
+            name == 'Ficticio' ||
+            name.startsWith('Ficticio ');
         return DataColumn(
           label: SizedBox(
             width: 80,
-            child: Focus(
-              child: Builder(
-                builder: (context) {
-                  final hasFocus = Focus.of(context).hasFocus;
-                  return TextField(
-                    controller: _destinationNames[j],
-                    readOnly: isFictitious,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
-                      color: isFictitious
-                          ? colors.onSurfaceVariant.withValues(alpha: 0.7)
-                          : colors.onSecondaryContainer,
-                    ),
-                    decoration: InputDecoration(
-                      isDense: true,
-                      hintText: hasFocus ? '' : 'Destino ${j + 1}',
-                      hintStyle: TextStyle(
-                        color: colors.onSecondaryContainer.withValues(
-                          alpha: 0.38,
+            child: MouseRegion(
+              cursor: isFictitious
+                  ? SystemMouseCursors.forbidden
+                  : SystemMouseCursors.text,
+              child: Focus(
+                canRequestFocus: !isFictitious,
+                child: Builder(
+                  builder: (context) {
+                    final hasFocus = Focus.of(context).hasFocus;
+                    return TextField(
+                      controller: _destinationNames[j],
+                      readOnly: isFictitious,
+                      enabled: !isFictitious,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                        color: isFictitious
+                            ? colors.onSurfaceVariant.withValues(alpha: 0.45)
+                            : colors.onSecondaryContainer,
+                      ),
+                      decoration: InputDecoration(
+                        isDense: true,
+                        hintText: hasFocus ? '' : 'Destino ${j + 1}',
+                        hintStyle: TextStyle(
+                          color: colors.onSecondaryContainer.withValues(
+                            alpha: 0.38,
+                          ),
+                          fontSize: 11,
+                          fontWeight: FontWeight.normal,
                         ),
-                        fontSize: 11,
-                        fontWeight: FontWeight.normal,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 4,
+                          vertical: 6,
+                        ),
+                        fillColor: isFictitious
+                            ? colors.surfaceContainerHighest.withValues(
+                                alpha: 0.75,
+                              )
+                            : colors.secondaryContainer.withValues(alpha: 0.5),
+                        filled: true,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        disabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: colors.outlineVariant.withValues(alpha: 0.2),
+                          ),
+                        ),
                       ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 4,
-                        vertical: 6,
-                      ),
-                      fillColor: isFictitious
-                          ? colors.surfaceContainerHighest.withValues(
-                              alpha: 0.6,
-                            )
-                          : colors.secondaryContainer.withValues(alpha: 0.5),
-                      filled: true,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
-                      ),
-                    ),
-                    onTap: () {
-                      if (!isFictitious &&
-                          _destinationNames[j].text.isNotEmpty) {
-                        _destinationNames[j].selection = TextSelection(
-                          baseOffset: 0,
-                          extentOffset: _destinationNames[j].text.length,
-                        );
-                      }
-                    },
-                  );
-                },
+                      onTap: () {
+                        if (!isFictitious &&
+                            _destinationNames[j].text.isNotEmpty) {
+                          _destinationNames[j].selection = TextSelection(
+                            baseOffset: 0,
+                            extentOffset: _destinationNames[j].text.length,
+                          );
+                        }
+                      },
+                    );
+                  },
+                ),
               ),
             ),
           ),
@@ -882,73 +899,103 @@ class _NorthwestGraphMatrixScreenState
     final rows = <DataRow>[
       ...List.generate(_originNames.length, (i) {
         final originName = _originNames[i].text.trim();
+        final originId = i < _originIds.length ? _originIds[i] : '';
         final isOriginFictitious =
-            originName == 'Ficticio' || originName.startsWith('Ficticio ');
+            originId == _dummyOriginId ||
+            originName == 'Ficticio' ||
+            originName.startsWith('Ficticio ');
         return DataRow(
+          color: isOriginFictitious
+              ? WidgetStatePropertyAll(
+                  colors.surfaceContainerHighest.withValues(alpha: 0.35),
+                )
+              : null,
           cells: [
             DataCell(
               SizedBox(
                 width: 90,
-                child: Focus(
-                  child: Builder(
-                    builder: (context) {
-                      final hasFocus = Focus.of(context).hasFocus;
-                      return TextField(
-                        controller: _originNames[i],
-                        readOnly: isOriginFictitious,
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12,
-                          color: isOriginFictitious
-                              ? colors.onSurfaceVariant.withValues(alpha: 0.7)
-                              : colors.onSurface,
-                        ),
-                        decoration: InputDecoration(
-                          isDense: true,
-                          hintText: hasFocus ? '' : 'Origen ${i + 1}',
-                          hintStyle: TextStyle(
-                            color: colors.onSurfaceVariant.withValues(
-                              alpha: 0.38,
+                child: MouseRegion(
+                  cursor: isOriginFictitious
+                      ? SystemMouseCursors.forbidden
+                      : SystemMouseCursors.text,
+                  child: Focus(
+                    canRequestFocus: !isOriginFictitious,
+                    child: Builder(
+                      builder: (context) {
+                        final hasFocus = Focus.of(context).hasFocus;
+                        return TextField(
+                          controller: _originNames[i],
+                          readOnly: isOriginFictitious,
+                          enabled: !isOriginFictitious,
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                            color: isOriginFictitious
+                                ? colors.onSurfaceVariant.withValues(
+                                    alpha: 0.45,
+                                  )
+                                : colors.onSurface,
+                          ),
+                          decoration: InputDecoration(
+                            isDense: true,
+                            hintText: hasFocus ? '' : 'Origen ${i + 1}',
+                            hintStyle: TextStyle(
+                              color: colors.onSurfaceVariant.withValues(
+                                alpha: 0.38,
+                              ),
+                              fontSize: 11,
+                              fontWeight: FontWeight.normal,
                             ),
-                            fontSize: 11,
-                            fontWeight: FontWeight.normal,
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 4,
-                            vertical: 6,
-                          ),
-                          fillColor: isOriginFictitious
-                              ? colors.surfaceContainerHighest.withValues(
-                                  alpha: 0.6,
-                                )
-                              : colors.secondaryContainer.withValues(
-                                  alpha: 0.3,
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 4,
+                              vertical: 6,
+                            ),
+                            fillColor: isOriginFictitious
+                                ? colors.surfaceContainerHighest.withValues(
+                                    alpha: 0.75,
+                                  )
+                                : colors.secondaryContainer.withValues(
+                                    alpha: 0.3,
+                                  ),
+                            filled: true,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide.none,
+                            ),
+                            disabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                color: colors.outlineVariant.withValues(
+                                  alpha: 0.2,
                                 ),
-                          filled: true,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide.none,
+                              ),
+                            ),
                           ),
-                        ),
-                        onTap: () {
-                          if (!isOriginFictitious &&
-                              _originNames[i].text.isNotEmpty) {
-                            _originNames[i].selection = TextSelection(
-                              baseOffset: 0,
-                              extentOffset: _originNames[i].text.length,
-                            );
-                          }
-                        },
-                      );
-                    },
+                          onTap: () {
+                            if (!isOriginFictitious &&
+                                _originNames[i].text.isNotEmpty) {
+                              _originNames[i].selection = TextSelection(
+                                baseOffset: 0,
+                                extentOffset: _originNames[i].text.length,
+                              );
+                            }
+                          },
+                        );
+                      },
+                    ),
                   ),
                 ),
               ),
             ),
             ...List.generate(_destinationNames.length, (j) {
               final destName = _destinationNames[j].text.trim();
+              final destId = j < _destinationIds.length
+                  ? _destinationIds[j]
+                  : '';
               final isDestFictitious =
-                  destName == 'Ficticio' || destName.startsWith('Ficticio ');
+                  destId == _dummyDestinationId ||
+                  destName == 'Ficticio' ||
+                  destName.startsWith('Ficticio ');
               final isCellFictitious = isOriginFictitious || isDestFictitious;
               return DataCell(
                 _buildCellInput(
