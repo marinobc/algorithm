@@ -192,7 +192,7 @@ class _TransportGrid extends StatelessWidget {
           (destination) =>
               DataColumn(label: Text(destination.nombre ?? destination.id)),
         ),
-        const DataColumn(label: Text('Oferta')),
+        const DataColumn(label: Text('Disponibilidad')),
       ],
       rows: rows,
     );

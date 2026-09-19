@@ -95,7 +95,7 @@ void main() {
     );
 
     expect(validation.isValid, isFalse);
-    expect(validation.errorMessage, contains('Oferta: 100'));
+    expect(validation.errorMessage, contains('Disponibilidad: 100'));
     expect(validation.errorMessage, contains('demanda: 90'));
     expect(validation.errorMessage, contains('diferencia: 10'));
   });

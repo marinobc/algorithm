@@ -314,11 +314,13 @@ class NorthwestModiSolver {
     }
     if (input.supplies.any((value) => value < 0) ||
         input.demands.any((value) => value < 0)) {
-      throw ArgumentError('Las ofertas y demandas no pueden ser negativas.');
+      throw ArgumentError(
+        'Las disponibilidades y demandas no pueden ser negativas.',
+      );
     }
     if ((input.totalSupply - input.totalDemand).abs() > tolerance) {
       throw ArgumentError(
-        'El problema no esta equilibrado: oferta ${input.totalSupply}, '
+        'El problema no esta equilibrado: disponibilidad ${input.totalSupply}, '
         'demanda ${input.totalDemand}.',
       );
     }

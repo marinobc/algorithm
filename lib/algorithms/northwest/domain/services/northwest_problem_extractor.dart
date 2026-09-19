@@ -79,7 +79,7 @@ class NorthwestProblemExtractor {
       final value = originById[id]!.cantidad;
       if (value == null || !value.isFinite || value < 0) {
         return const NorthwestValidationResult.invalid(
-          'Todas las ofertas deben ser numeros finitos no negativos.',
+          'Todas las disponibilidades deben ser numeros finitos no negativos.',
         );
       }
       supplies.add(value);
@@ -135,7 +135,7 @@ class NorthwestProblemExtractor {
     final totalDemand = demands.fold<double>(0, (sum, value) => sum + value);
     if ((totalSupply - totalDemand).abs() > tolerance) {
       return NorthwestValidationResult.invalid(
-        'Problema desequilibrado. Oferta: ${_format(totalSupply)}, '
+        'Problema desequilibrado. Disponibilidad: ${_format(totalSupply)}, '
         'demanda: ${_format(totalDemand)}, diferencia: '
         '${_format((totalSupply - totalDemand).abs())}.',
       );

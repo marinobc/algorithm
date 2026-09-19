@@ -28,6 +28,8 @@ class NorthwestMatrixScreen extends ConsumerStatefulWidget {
 
 class _NorthwestMatrixScreenState extends ConsumerState<NorthwestMatrixScreen> {
   static const int _maxDimension = 12;
+  static const _dummyOriginId = 'nw_dummy_origin';
+  static const _dummyDestinationId = 'nw_dummy_destination';
   final _originCount = TextEditingController(text: '3');
   final _destinationCount = TextEditingController(text: '4');
   final _matrixScrollController = ScrollController();
@@ -209,7 +211,11 @@ class _NorthwestMatrixScreenState extends ConsumerState<NorthwestMatrixScreen> {
       return null;
     }
 
-    final supplies = _parseVector(_supplies, 'ofertas', nonNegative: true);
+    final supplies = _parseVector(
+      _supplies,
+      'disponibilidades',
+      nonNegative: true,
+    );
     final demands = _parseVector(_demands, 'demandas', nonNegative: true);
     if (supplies == null || demands == null) return null;
     final costs = <List<double>>[];
@@ -220,17 +226,27 @@ class _NorthwestMatrixScreenState extends ConsumerState<NorthwestMatrixScreen> {
     }
     final supplyTotal = supplies.fold<double>(0, (sum, value) => sum + value);
     final demandTotal = demands.fold<double>(0, (sum, value) => sum + value);
-    if ((supplyTotal - demandTotal).abs() > 1e-9) {
-      _setError(
-        'Problema desequilibrado. Oferta: ${_format(supplyTotal)}, '
-        'demanda: ${_format(demandTotal)}, diferencia: '
-        '${_format((supplyTotal - demandTotal).abs())}.',
-      );
-      return null;
+    final originIds = List<String>.from(_originIds);
+    final destinationIds = List<String>.from(_destinationIds);
+    if (supplyTotal < demandTotal - 1e-9) {
+      final difference = demandTotal - supplyTotal;
+      originIds.add(_dummyOriginId);
+      originNames.add(_uniqueName('Origen ficticio', names));
+      supplies.add(difference);
+      costs.add(List<double>.filled(demands.length, 0));
+    } else if (supplyTotal > demandTotal + 1e-9) {
+      final difference = supplyTotal - demandTotal;
+      destinationIds.add(_dummyDestinationId);
+      final dummyName = _uniqueName('Destino ficticio', names);
+      destinationNames.add(dummyName);
+      demands.add(difference);
+      for (final row in costs) {
+        row.add(0);
+      }
     }
     return TransportationInput(
-      originIds: List.from(_originIds),
-      destinationIds: List.from(_destinationIds),
+      originIds: originIds,
+      destinationIds: destinationIds,
       originNames: originNames,
       destinationNames: destinationNames,
       costs: costs,
@@ -259,7 +275,53 @@ class _NorthwestMatrixScreenState extends ConsumerState<NorthwestMatrixScreen> {
     return result;
   }
 
+  String _uniqueName(String base, Iterable<String> existingNames) {
+    final names = existingNames.toSet();
+    if (!names.contains(base)) return base;
+    var suffix = 2;
+    while (names.contains('$base $suffix')) {
+      suffix++;
+    }
+    return '$base $suffix';
+  }
+
   void _setError(String message) => setState(() => _error = message);
+
+  Offset _positionForNewNode(
+    Grafo graph,
+    String role,
+    int index,
+    double fallbackX,
+  ) {
+    final roleNodes =
+        graph.nodos.values.where((node) => node.rol == role).toList()
+          ..sort((a, b) => a.y.compareTo(b.y));
+    if (roleNodes.isNotEmpty) {
+      final averageX =
+          roleNodes.map((node) => node.x).reduce((a, b) => a + b) /
+          roleNodes.length;
+      final nextY =
+          roleNodes.last.y +
+          110 +
+          (index - roleNodes.length).clamp(0, _maxDimension) * 110;
+      return Offset(averageX, nextY);
+    }
+
+    final graphNodes = graph.nodos.values.toList();
+    if (graphNodes.isEmpty) {
+      return Offset(fallbackX, 120 + index * 110);
+    }
+    final averageX =
+        graphNodes.map((node) => node.x).reduce((a, b) => a + b) /
+        graphNodes.length;
+    final averageY =
+        graphNodes.map((node) => node.y).reduce((a, b) => a + b) /
+        graphNodes.length;
+    return Offset(
+      averageX + (role == NorthwestRoles.origin ? -180 : 180),
+      averageY + index * 110,
+    );
+  }
 
   Future<void> _save({bool optimize = false}) async {
     final input = _readInput();
@@ -275,6 +337,12 @@ class _NorthwestMatrixScreenState extends ConsumerState<NorthwestMatrixScreen> {
     for (var i = 0; i < input.rowCount; i++) {
       final id = input.originIds[i];
       final existing = current.nodos[id];
+      final position = _positionForNewNode(
+        current,
+        NorthwestRoles.origin,
+        i,
+        180,
+      );
       nodes[id] = Nodo(
         id: id,
         nombre: input.originNames[i],
@@ -283,8 +351,8 @@ class _NorthwestMatrixScreenState extends ConsumerState<NorthwestMatrixScreen> {
             GraphColorGenerator.generateMaximallyDistinctColor(
               Grafo(nodos: nodes),
             ),
-        x: existing?.x ?? 180,
-        y: existing?.y ?? 120 + i * 110,
+        x: existing?.x ?? position.dx,
+        y: existing?.y ?? position.dy,
         radius: existing?.radius ?? Nodo.defaultRadius,
         rol: NorthwestRoles.origin,
         cantidad: input.supplies[i],
@@ -293,6 +361,12 @@ class _NorthwestMatrixScreenState extends ConsumerState<NorthwestMatrixScreen> {
     for (var j = 0; j < input.columnCount; j++) {
       final id = input.destinationIds[j];
       final existing = current.nodos[id];
+      final position = _positionForNewNode(
+        current,
+        NorthwestRoles.destination,
+        j,
+        760,
+      );
       nodes[id] = Nodo(
         id: id,
         nombre: input.destinationNames[j],
@@ -301,8 +375,8 @@ class _NorthwestMatrixScreenState extends ConsumerState<NorthwestMatrixScreen> {
             GraphColorGenerator.generateMaximallyDistinctColor(
               Grafo(nodos: nodes),
             ),
-        x: existing?.x ?? 760,
-        y: existing?.y ?? 120 + j * 110,
+        x: existing?.x ?? position.dx,
+        y: existing?.y ?? position.dy,
         radius: existing?.radius ?? Nodo.defaultRadius,
         rol: NorthwestRoles.destination,
         cantidad: input.demands[j],
@@ -480,7 +554,7 @@ class _NorthwestMatrixScreenState extends ConsumerState<NorthwestMatrixScreen> {
             ),
             const SizedBox(height: 8),
             const Text(
-              'Luego podras ingresar nombres, costos, ofertas y demandas.',
+              'Luego podras ingresar nombres, costos, disponibilidades y demandas.',
               textAlign: TextAlign.center,
             ),
           ],
@@ -492,6 +566,11 @@ class _NorthwestMatrixScreenState extends ConsumerState<NorthwestMatrixScreen> {
   Widget _buildMatrix(ColorScheme colors) {
     final totalSupply = _sumControllers(_supplies);
     final totalDemand = _sumControllers(_demands);
+    final balance = _balanceAdjustment(totalSupply, totalDemand);
+    final finalSupply =
+        totalSupply + (balance?.addsOrigin == true ? balance!.amount : 0);
+    final finalDemand =
+        totalDemand + (balance?.addsDestination == true ? balance!.amount : 0);
     return Scrollbar(
       controller: _matrixScrollController,
       thumbVisibility: true,
@@ -508,7 +587,9 @@ class _NorthwestMatrixScreenState extends ConsumerState<NorthwestMatrixScreen> {
                   _headerCell('Origen', 130, colors),
                   for (final controller in _destinationNames)
                     _nameCell(controller, 110, colors),
-                  _headerCell('Oferta', 110, colors),
+                  if (balance?.addsDestination == true)
+                    _readOnlyCell('Destino ficticio', 110, colors),
+                  _headerCell('Disponibilidad', 110, colors),
                 ],
               ),
               for (var i = 0; i < _originNames.length; i++)
@@ -517,7 +598,23 @@ class _NorthwestMatrixScreenState extends ConsumerState<NorthwestMatrixScreen> {
                     _nameCell(_originNames[i], 130, colors),
                     for (var j = 0; j < _destinationNames.length; j++)
                       _valueCell(_costs[i][j], 110, colors),
+                    if (balance?.addsDestination == true)
+                      _readOnlyCell('0', 110, colors),
                     _valueCell(_supplies[i], 110, colors, emphasized: true),
+                  ],
+                ),
+              if (balance?.addsOrigin == true)
+                Row(
+                  children: [
+                    _readOnlyCell('Origen ficticio', 130, colors),
+                    for (var j = 0; j < _destinationNames.length; j++)
+                      _readOnlyCell('0', 110, colors),
+                    _readOnlyCell(
+                      _format(balance!.amount),
+                      110,
+                      colors,
+                      emphasized: true,
+                    ),
                   ],
                 ),
               Row(
@@ -525,8 +622,15 @@ class _NorthwestMatrixScreenState extends ConsumerState<NorthwestMatrixScreen> {
                   _headerCell('Demanda', 130, colors),
                   for (final controller in _demands)
                     _valueCell(controller, 110, colors, emphasized: true),
+                  if (balance?.addsDestination == true)
+                    _readOnlyCell(
+                      _format(balance!.amount),
+                      110,
+                      colors,
+                      emphasized: true,
+                    ),
                   _headerCell(
-                    '${_format(totalSupply)} / ${_format(totalDemand)}',
+                    '${_format(finalSupply)} / ${_format(finalDemand)}',
                     110,
                     colors,
                   ),
@@ -534,12 +638,14 @@ class _NorthwestMatrixScreenState extends ConsumerState<NorthwestMatrixScreen> {
               ),
               const SizedBox(height: 12),
               Text(
-                'Total oferta: ${_format(totalSupply)}   '
-                'Total demanda: ${_format(totalDemand)}',
+                balance == null
+                    ? 'Total disponibilidad: ${_format(totalSupply)}   '
+                          'Total demanda: ${_format(totalDemand)}'
+                    : balance.addsOrigin
+                    ? 'Se agregó un origen ficticio con disponibilidad ${_format(balance.amount)} y costos 0.'
+                    : 'Se agregó un destino ficticio con demanda ${_format(balance.amount)} y costos 0.',
                 style: TextStyle(
-                  color: (totalSupply - totalDemand).abs() <= 1e-9
-                      ? colors.primary
-                      : colors.error,
+                  color: balance == null ? colors.primary : colors.tertiary,
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -594,7 +700,33 @@ class _NorthwestMatrixScreenState extends ConsumerState<NorthwestMatrixScreen> {
           ? colors.tertiaryContainer.withValues(alpha: .65)
           : colors.surfaceContainerHigh,
       const TextInputType.numberWithOptions(decimal: true, signed: true),
-      onChanged: (_) => setState(() {}),
+      onChanged: (_) => setState(() => _error = null),
+    );
+  }
+
+  Widget _readOnlyCell(
+    String text,
+    double width,
+    ColorScheme colors, {
+    bool emphasized = false,
+  }) {
+    return Container(
+      width: width,
+      height: 58,
+      margin: const EdgeInsets.all(2),
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: emphasized
+            ? colors.tertiaryContainer.withValues(alpha: .65)
+            : colors.primaryContainer.withValues(alpha: .5),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: colors.primary.withValues(alpha: .35)),
+      ),
+      child: Text(
+        text,
+        textAlign: TextAlign.center,
+        style: const TextStyle(fontWeight: FontWeight.w700),
+      ),
     );
   }
 
@@ -632,7 +764,22 @@ class _NorthwestMatrixScreenState extends ConsumerState<NorthwestMatrixScreen> {
       .map((controller) => double.tryParse(controller.text.trim()) ?? 0)
       .fold(0, (sum, value) => sum + value);
 
+  _BalanceAdjustment? _balanceAdjustment(double supply, double demand) {
+    final difference = (supply - demand).abs();
+    if (difference <= 1e-9) return null;
+    return _BalanceAdjustment(amount: difference, addsOrigin: supply < demand);
+  }
+
   static String _format(double value) => value == value.roundToDouble()
       ? value.toInt().toString()
       : value.toStringAsFixed(2);
+}
+
+class _BalanceAdjustment {
+  final double amount;
+  final bool addsOrigin;
+
+  const _BalanceAdjustment({required this.amount, required this.addsOrigin});
+
+  bool get addsDestination => !addsOrigin;
 }

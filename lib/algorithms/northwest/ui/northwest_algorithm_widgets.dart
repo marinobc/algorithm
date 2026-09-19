@@ -49,7 +49,7 @@ class NorthwestEmptyState extends StatelessWidget {
               ),
               const SizedBox(height: 10),
               Text(
-                'Define los origenes, destinos, costos, ofertas y demandas para generar automaticamente la red.',
+                'Define los origenes, destinos, costos, disponibilidades y demandas para generar automaticamente la red.',
                 textAlign: TextAlign.center,
                 style: TextStyle(color: colors.onSurfaceVariant),
               ),
@@ -189,7 +189,7 @@ class _NorthwestQuantityEditorState
         controller: _controller,
         keyboardType: const TextInputType.numberWithOptions(decimal: true),
         decoration: InputDecoration(
-          labelText: _isOrigin ? 'Oferta / disponibilidad' : 'Demanda',
+          labelText: _isOrigin ? 'Disponibilidad' : 'Demanda',
           errorText: _error,
           prefixIcon: Icon(
             _isOrigin ? Icons.inventory_2_outlined : Icons.flag_outlined,
