@@ -389,13 +389,13 @@ class _LoadGraphDialogState extends State<LoadGraphDialog> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
-              Icons.local_shipping_outlined,
+              Icons.local_shipping_rounded,
               size: 11,
               color: Color(0xFFE54872),
             ),
             SizedBox(width: 4),
             Text(
-              'Noroeste',
+              'Northwest',
               style: TextStyle(
                 fontSize: 10.5,
                 fontWeight: FontWeight.bold,
@@ -417,13 +417,13 @@ class _LoadGraphDialogState extends State<LoadGraphDialog> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
-              Icons.brush_outlined,
+              Icons.brush_rounded,
               size: 11,
               color: colorScheme.onSurfaceVariant,
             ),
             const SizedBox(width: 4),
             Text(
-              'Libre',
+              'Modo Libre',
               style: TextStyle(
                 fontSize: 10.5,
                 fontWeight: FontWeight.w600,

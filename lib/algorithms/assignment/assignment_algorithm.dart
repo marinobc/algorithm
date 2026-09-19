@@ -9,8 +9,8 @@ import '../core/graph_algorithm.dart';
 import 'domain/policy/assignment_graph_policy.dart';
 import 'providers/assignment_provider.dart';
 import 'ui/assignment_algorithm_card.dart';
+import 'ui/assignment_bipartite_matrix_screen.dart';
 import 'ui/assignment_canvas_controls.dart';
-import 'ui/assignment_graph_matrix_screen.dart';
 import 'ui/assignment_launch_button.dart';
 
 /// Pluggable GraphAlgorithm implementation for Assignment / Hungarian method.
@@ -23,7 +23,7 @@ class AssignmentAlgorithm implements GraphAlgorithm {
   String get id => algorithmId;
 
   @override
-  String get name => 'Algoritmo de Asignación';
+  String get name => 'Asignación';
 
   @override
   String get shortName => 'Asignación';
@@ -162,7 +162,7 @@ class AssignmentAlgorithm implements GraphAlgorithm {
 
   @override
   Widget? buildMatrixScreen(BuildContext context, WidgetRef ref) {
-    return const AssignmentGraphMatrixScreen();
+    return const AssignmentBipartiteMatrixScreen();
   }
 
   @override

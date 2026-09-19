@@ -22,17 +22,17 @@ class NorthwestAlgorithm implements GraphAlgorithm {
   String get id => algorithmId;
 
   @override
-  String get name => 'Algoritmo de Esquina Noroeste';
+  String get name => 'Northwest';
 
   @override
-  String get shortName => 'Esquina Noroeste';
+  String get shortName => 'Northwest';
 
   @override
   String get description =>
       'Resuelve problemas de transporte mediante esquina noroeste y optimizacion MODI.';
 
   @override
-  IconData get icon => Icons.local_shipping_outlined;
+  IconData get icon => Icons.local_shipping_rounded;
 
   @override
   Color get themeColor => const Color(0xFFE54872);

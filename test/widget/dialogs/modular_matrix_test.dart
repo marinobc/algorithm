@@ -109,6 +109,7 @@ void main() {
               x: 0,
               y: 0,
               nombre: 'Origen 1',
+              rol: 'origen',
               colorValue: 0xFF2196F3,
             ),
             'o2': const Nodo(
@@ -116,6 +117,7 @@ void main() {
               x: 0,
               y: 50,
               nombre: 'Origen 2',
+              rol: 'origen',
               colorValue: 0xFF2196F3,
             ),
             'd1': const Nodo(
@@ -123,6 +125,7 @@ void main() {
               x: 100,
               y: 0,
               nombre: 'Destino 1',
+              rol: 'destino',
               colorValue: 0xFF4CAF50,
             ),
             'd2': const Nodo(
@@ -130,6 +133,7 @@ void main() {
               x: 100,
               y: 50,
               nombre: 'Destino 2',
+              rol: 'destino',
               colorValue: 0xFF4CAF50,
             ),
           },
@@ -328,7 +332,9 @@ void main() {
 
         final fab = tester.widget<FloatingActionButton>(
           find.ancestor(
-            of: find.byTooltip('Conecte o corrija el grafo para ver la matriz'),
+            of: find.byTooltip(
+              'Agrega un origen y un destino para ver la matriz',
+            ),
             matching: find.byType(FloatingActionButton),
           ),
         );

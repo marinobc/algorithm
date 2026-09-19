@@ -22,7 +22,7 @@ class JohnsonAlgorithm implements GraphAlgorithm {
   String get id => algorithmId;
 
   @override
-  String get name => 'Algoritmo de Johnson / CPM';
+  String get name => 'Johnson';
 
   @override
   String get shortName => 'Johnson';

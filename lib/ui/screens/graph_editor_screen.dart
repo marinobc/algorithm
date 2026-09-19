@@ -336,7 +336,7 @@ class _GraphEditorScreenState extends ConsumerState<GraphEditorScreen> {
         ? activeAlgo.themeColor
         : colorScheme.outline;
     final badgeLabel = isAlgoActive ? activeAlgo.shortName : 'Modo Libre';
-    final badgeIcon = isAlgoActive ? activeAlgo.icon : Icons.brush_outlined;
+    final badgeIcon = isAlgoActive ? activeAlgo.icon : Icons.brush_rounded;
 
     return InkWell(
       onTap: () => _openAlgorithmSelection(),

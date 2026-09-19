@@ -34,6 +34,11 @@ void main() {
     testWidgets(
       'renders Modo Libre at the top without any preselected checkmark',
       (tester) async {
+        tester.view.physicalSize = const Size(1280, 900);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
         final container = ProviderContainer();
 
         await tester.pumpWidget(
@@ -41,8 +46,8 @@ void main() {
             container: container,
             child: MaterialApp(
               theme: AppTheme.darkTheme,
-              home: Scaffold(
-                body: Consumer(
+              home: Dialog(
+                child: Consumer(
                   builder: (context, ref, _) =>
                       AlgorithmSelectionDialog(ref: ref),
                 ),
@@ -55,8 +60,8 @@ void main() {
         // Check title and content
         expect(find.text('Selecciona un algoritmo'), findsOneWidget);
         expect(find.text('Modo Libre'), findsOneWidget);
-        expect(find.text('Algoritmo de Asignación'), findsOneWidget);
-        expect(find.text('Algoritmo de Johnson / CPM'), findsOneWidget);
+        expect(find.text('Asignación'), findsOneWidget);
+        expect(find.text('Johnson'), findsOneWidget);
 
         // Verify no checkmark icons are preselected
         expect(find.byIcon(Icons.check_circle_rounded), findsNothing);
@@ -68,6 +73,11 @@ void main() {
     );
 
     testWidgets('tapping Modo Libre clears active algorithm', (tester) async {
+      tester.view.physicalSize = const Size(1280, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
       final container = ProviderContainer();
       container.read(activeAlgorithmProvider.notifier).selectById('johnson');
       expect(container.read(activeAlgorithmProvider)?.id, equals('johnson'));
@@ -77,8 +87,8 @@ void main() {
           container: container,
           child: MaterialApp(
             theme: AppTheme.darkTheme,
-            home: Scaffold(
-              body: Consumer(
+            home: Dialog(
+              child: Consumer(
                 builder: (context, ref, _) =>
                     AlgorithmSelectionDialog(ref: ref),
               ),
@@ -102,6 +112,11 @@ void main() {
     testWidgets('Próximamente does not change the active algorithm', (
       tester,
     ) async {
+      tester.view.physicalSize = const Size(1280, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
       final container = ProviderContainer();
       container.read(activeAlgorithmProvider.notifier).selectById('johnson');
 
@@ -110,8 +125,8 @@ void main() {
           container: container,
           child: MaterialApp(
             theme: AppTheme.darkTheme,
-            home: Scaffold(
-              body: Consumer(
+            home: Dialog(
+              child: Consumer(
                 builder: (context, ref, _) =>
                     AlgorithmSelectionDialog(ref: ref),
               ),
@@ -120,15 +135,11 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      await tester.drag(find.byType(GridView), const Offset(0, -600));
-      await tester.pumpAndSettle();
 
+      final proximamenteText = find.text('Próximamente').first;
       final card = tester.widget<InkWell>(
         find
-            .ancestor(
-              of: find.text('Próximamente').first,
-              matching: find.byType(InkWell),
-            )
+            .ancestor(of: proximamenteText, matching: find.byType(InkWell))
             .first,
       );
 
@@ -139,9 +150,12 @@ void main() {
       container.dispose();
     });
 
-    testWidgets('selects Esquina Noroeste from the shared catalog', (
-      tester,
-    ) async {
+    testWidgets('selects Northwest from the shared catalog', (tester) async {
+      tester.view.physicalSize = const Size(1280, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
       final container = ProviderContainer();
 
       await tester.pumpWidget(
@@ -149,8 +163,8 @@ void main() {
           container: container,
           child: MaterialApp(
             theme: AppTheme.darkTheme,
-            home: Scaffold(
-              body: Consumer(
+            home: Dialog(
+              child: Consumer(
                 builder: (context, ref, _) =>
                     AlgorithmSelectionDialog(ref: ref),
               ),
@@ -160,9 +174,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      final northwest = find.text('Algoritmo de Esquina Noroeste');
-      await tester.drag(find.byType(GridView), const Offset(0, -180));
-      await tester.pumpAndSettle();
+      final northwest = find.text('Northwest');
       await tester.tap(northwest);
       await tester.pump();
 

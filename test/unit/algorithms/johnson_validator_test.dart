@@ -159,14 +159,43 @@ void main() {
       () {
         final grafo = Grafo(
           nodos: {
-            'n1': const Nodo(id: 'n1', nombre: 'A', colorValue: 0, x: 0, y: 0),
-            'n2': const Nodo(id: 'n2', nombre: 'B', colorValue: 0, x: 50, y: 0),
+            'n1': const Nodo(
+              id: 'n1',
+              nombre: 'A',
+              rol: 'actividad',
+              colorValue: 0,
+              x: 0,
+              y: 0,
+            ),
+            'n2': const Nodo(
+              id: 'n2',
+              nombre: 'B',
+              rol: 'actividad',
+              colorValue: 0,
+              x: 50,
+              y: 0,
+            ),
+            'n3': const Nodo(
+              id: 'n3',
+              nombre: 'C',
+              rol: 'actividad',
+              colorValue: 0,
+              x: 100,
+              y: 0,
+            ),
           },
           conexiones: {
             'c1': const Conexion(
               id: 'c1',
               nodoOrigenId: 'n1',
               nodoDestinoId: 'n2',
+              colorValue: 0,
+              direccion: Direccion.unidireccional,
+            ),
+            'c2': const Conexion(
+              id: 'c2',
+              nodoOrigenId: 'n2',
+              nodoDestinoId: 'n3',
               colorValue: 0,
               direccion: Direccion.unidireccional,
             ),
