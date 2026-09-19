@@ -56,8 +56,22 @@ class _NorthwestMatrixScreenState extends ConsumerState<NorthwestMatrixScreen> {
     _destinationCount.text = '${problem.columnCount}';
     _originIds = List.from(problem.originIds);
     _destinationIds = List.from(problem.destinationIds);
-    _originNames = problem.originNames.map(_controller).toList();
-    _destinationNames = problem.destinationNames.map(_controller).toList();
+    _originNames = List.generate(
+      problem.rowCount,
+      (index) => _controller(
+        problem.originIds[index] == _dummyOriginId
+            ? '0'
+            : problem.originNames[index],
+      ),
+    );
+    _destinationNames = List.generate(
+      problem.columnCount,
+      (index) => _controller(
+        problem.destinationIds[index] == _dummyDestinationId
+            ? '0'
+            : problem.destinationNames[index],
+      ),
+    );
     _supplies = problem.supplies
         .map((value) => _controller(_format(value)))
         .toList();
@@ -231,13 +245,13 @@ class _NorthwestMatrixScreenState extends ConsumerState<NorthwestMatrixScreen> {
     if (supplyTotal < demandTotal - 1e-9) {
       final difference = demandTotal - supplyTotal;
       originIds.add(_dummyOriginId);
-      originNames.add(_uniqueName('Origen ficticio', names));
+      originNames.add(_uniqueName('0', names));
       supplies.add(difference);
       costs.add(List<double>.filled(demands.length, 0));
     } else if (supplyTotal > demandTotal + 1e-9) {
       final difference = supplyTotal - demandTotal;
       destinationIds.add(_dummyDestinationId);
-      final dummyName = _uniqueName('Destino ficticio', names);
+      final dummyName = _uniqueName('0', names);
       destinationNames.add(dummyName);
       demands.add(difference);
       for (final row in costs) {
@@ -588,7 +602,7 @@ class _NorthwestMatrixScreenState extends ConsumerState<NorthwestMatrixScreen> {
                   for (final controller in _destinationNames)
                     _nameCell(controller, 110, colors),
                   if (balance?.addsDestination == true)
-                    _readOnlyCell('Destino ficticio', 110, colors),
+                    _readOnlyCell('0', 110, colors),
                   _headerCell('Disponibilidad', 110, colors),
                 ],
               ),
@@ -606,7 +620,7 @@ class _NorthwestMatrixScreenState extends ConsumerState<NorthwestMatrixScreen> {
               if (balance?.addsOrigin == true)
                 Row(
                   children: [
-                    _readOnlyCell('Origen ficticio', 130, colors),
+                    _readOnlyCell('0', 130, colors),
                     for (var j = 0; j < _destinationNames.length; j++)
                       _readOnlyCell('0', 110, colors),
                     _readOnlyCell(

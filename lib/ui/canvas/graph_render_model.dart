@@ -141,11 +141,12 @@ class GraphRenderModel {
       final minDiameter = n.diameter;
       final width = GraphGeometry.getNodeWidth(n);
       final isCapsule = width > minDiameter;
+      final displayName = GraphGeometry.getNodeDisplayName(n);
 
       rawNodes.add(
         RenderNode(
           id: n.id,
-          nombre: n.nombre ?? n.id,
+          nombre: displayName,
           position: Offset(n.x, n.y),
           width: width,
           height: minDiameter,

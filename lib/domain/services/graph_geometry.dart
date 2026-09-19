@@ -44,11 +44,18 @@ class BezierCurve2D {
 }
 
 class GraphGeometry {
+  static String getNodeDisplayName(Nodo nodo) {
+    if (nodo.id == 'nw_dummy_origin' || nodo.id == 'nw_dummy_destination') {
+      return '0';
+    }
+    return nodo.nombre ?? nodo.id;
+  }
+
   /// Calculates exact node width accounting for text length and padding.
   static double getNodeWidth(Nodo nodo) {
     final textPainter = TextPainter(
       text: TextSpan(
-        text: nodo.nombre ?? nodo.id,
+        text: getNodeDisplayName(nodo),
         style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
       ),
       textDirection: TextDirection.ltr,
