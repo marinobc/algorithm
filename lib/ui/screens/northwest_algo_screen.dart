@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../algorithms/northwest/ui/northwest_launch_button.dart';
+import '../widgets/math_rich_text.dart';
 import '../widgets/video_resource_card.dart';
 import '../widgets/web_explanation_navbar.dart';
 
@@ -54,6 +55,8 @@ class NorthwestAlgoScreen extends StatelessWidget {
                           'Si la oferta total no coincide exactamente con la demanda total (red desbalanceada), el algoritmo crea automáticamente un origen o destino ficticio con costo \$0 para garantizar la estabilidad matemática.',
                           Icons.balance_rounded,
                         ),
+                        const SizedBox(height: 36),
+                        _buildMathFormulationCard(context, colorScheme),
                         const SizedBox(height: 36),
                         const VideoResourceCard(
                           title: 'Video Recomendado: Método de la Esquina Noroeste Explicado',
@@ -659,7 +662,7 @@ class NorthwestAlgoScreen extends StatelessWidget {
       {
         'step': 'Paso 4',
         'title': 'Optimizar con MODI',
-        'desc': 'Calcula los valores u_i y v_j en celdas asignadas. Evalúa el índice c_ij - u_i - v_j en vacías y realiza bucles de ajuste.',
+        'desc': r'Calcula los valores $u_i$ y $v_j$ en celdas asignadas. Evalúa el índice $\Delta_{ij} = c_{ij} - u_i - v_j$ en vacías y realiza bucles de ajuste.',
       },
     ];
 
@@ -737,9 +740,9 @@ class NorthwestAlgoScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 6),
-                  Text(
-                    item['desc']!,
-                    style: TextStyle(
+                  MathRichText(
+                    text: item['desc']!,
+                    baseStyle: TextStyle(
                       fontSize: 13,
                       height: 1.4,
                       color: colorScheme.onSurfaceVariant,
@@ -802,12 +805,64 @@ class NorthwestAlgoScreen extends StatelessWidget {
     BuildContext context,
     ColorScheme colorScheme,
   ) {
-    return _buildLearningSection(
+    return _buildLearningSectionWithMath(
       context,
       colorScheme,
       'Complejidad y Solución Computacional',
-      'En código, la tabla se representa mediante vectores de oferta y demanda junto con una matriz de costos. La solución inicial requiere O(m + n) iteraciones, mientras que el análisis de optimalidad MODI evita evaluar arbitrariamente m^n combinaciones.',
+      r'En código, la tabla se representa mediante vectores de oferta y demanda junto con una matriz de costos. La solución inicial requiere $O(m + n)$ iteraciones, mientras que el análisis de optimalidad MODI evita evaluar arbitrariamente $m^n$ combinaciones.',
       Icons.code_rounded,
+    );
+  }
+
+  Widget _buildLearningSectionWithMath(
+    BuildContext context,
+    ColorScheme colorScheme,
+    String title,
+    String description,
+    IconData icon,
+  ) {
+    const accentColor = Color(0xFFE54872);
+
+    return Container(
+      padding: const EdgeInsets.all(26),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.4),
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: accentColor, size: 30),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 21,
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.onSurface,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                MathRichText(
+                  text: description,
+                  baseStyle: TextStyle(
+                    fontSize: 15,
+                    height: 1.5,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -862,6 +917,306 @@ class NorthwestAlgoScreen extends StatelessWidget {
           '© Guía Educativa - Algoritmo Northwest (Esquina Noroeste)',
           style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
         ),
+      ),
+    );
+  }
+
+  Widget _buildMathFormulationCard(
+    BuildContext context,
+    ColorScheme colorScheme,
+  ) {
+    const accentColor = Color(0xFFE54872);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(28.0),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.4),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: accentColor.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: const Icon(
+                  Icons.functions_rounded,
+                  color: accentColor,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'FORMULACIÓN MATEMÁTICA DEL PROBLEMA',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 1.2,
+                        color: accentColor,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Modelo General de Programación Lineal',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          const Divider(height: 1),
+          const SizedBox(height: 20),
+
+          // 1. Función Objetivo
+          Text(
+            '1. Función Objetivo (Minimizar Costo Total):',
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
+              color: colorScheme.onSurface,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            decoration: BoxDecoration(
+              color: colorScheme.primaryContainer.withValues(alpha: 0.3),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: colorScheme.primary.withValues(alpha: 0.3),
+              ),
+            ),
+            child: Center(
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: MathRichText(
+                  text: r'Min  Z  =  $\sum_{i=1}^{m} \sum_{j=1}^{n} c_{ij} \cdot x_{ij}$',
+                  baseStyle: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.onSurface,
+                  ),
+                  mathColor: colorScheme.primary,
+                  mathBgColor: Colors.transparent,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          // 2. Restricciones
+          Text(
+            '2. Restricciones de Disponibilidad y Demanda:',
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
+              color: colorScheme.onSurface,
+            ),
+          ),
+          const SizedBox(height: 10),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final isWide = constraints.maxWidth >= 600;
+              return Flex(
+                direction: isWide ? Axis.horizontal : Axis.vertical,
+                crossAxisAlignment: isWide
+                    ? CrossAxisAlignment.start
+                    : CrossAxisAlignment.stretch,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    flex: isWide ? 1 : 0,
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      margin: EdgeInsets.only(
+                        right: isWide ? 8 : 0,
+                        bottom: isWide ? 0 : 10,
+                      ),
+                      decoration: BoxDecoration(
+                        color: colorScheme.surface,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: colorScheme.outlineVariant.withValues(
+                            alpha: 0.5,
+                          ),
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.inventory_2_outlined,
+                                size: 18,
+                                color: accentColor,
+                              ),
+                              const SizedBox(width: 8),
+                              const Text(
+                                'Oferta (Filas):',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          MathRichText(
+                            text:
+                                r'$\sum_{j=1}^{n} x_{ij} = a_i$   (∀ i = 1..m)',
+                            baseStyle: TextStyle(
+                              fontSize: 14,
+                              color: colorScheme.onSurface,
+                            ),
+                            mathColor: colorScheme.onSurface,
+                            mathBgColor: Colors.transparent,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    flex: isWide ? 1 : 0,
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      margin: EdgeInsets.only(left: isWide ? 8 : 0),
+                      decoration: BoxDecoration(
+                        color: colorScheme.surface,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: colorScheme.outlineVariant.withValues(
+                            alpha: 0.5,
+                          ),
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.flag_outlined,
+                                size: 18,
+                                color: accentColor,
+                              ),
+                              const SizedBox(width: 8),
+                              const Text(
+                                'Demanda (Columnas):',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          MathRichText(
+                            text:
+                                r'$\sum_{i=1}^{m} x_{ij} = b_j$   (∀ j = 1..n)',
+                            baseStyle: TextStyle(
+                              fontSize: 14,
+                              color: colorScheme.onSurface,
+                            ),
+                            mathColor: colorScheme.onSurface,
+                            mathBgColor: Colors.transparent,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+          const SizedBox(height: 20),
+
+          // 3. Condición MODI u-v
+          Text(
+            '3. Condición de Optimalidad MODI (u-v):',
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
+              color: colorScheme.onSurface,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: colorScheme.surface,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+              ),
+            ),
+            child: Wrap(
+              spacing: 16,
+              runSpacing: 12,
+              alignment: WrapAlignment.spaceAround,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text(
+                      'Celdas Básicas:  ',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    MathRichText(
+                      text: r'$u_i + v_j = c_{ij}$',
+                      mathColor: accentColor,
+                      mathBgColor: accentColor.withValues(alpha: 0.12),
+                    ),
+                  ],
+                ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text(
+                      'Celdas No Básicas:  ',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    MathRichText(
+                      text: r'$\Delta_{ij} = c_{ij} - (u_i + v_j) \ge 0$',
+                      mathColor: colorScheme.primary,
+                      mathBgColor: colorScheme.primaryContainer.withValues(
+                        alpha: 0.4,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
