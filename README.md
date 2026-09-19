@@ -4,7 +4,7 @@ Aplicación web y móvil interactiva desarrollada en **Flutter** y **Riverpod** 
 
 ---
 
-## 🌟 Características Principales
+## Características Principales
 
 ### 1. Motor de Lienzo y Dibujo Avanzado
 - **Interacción Multitáctil y Fluida:**
@@ -52,7 +52,7 @@ El lienzo se adapta dinámicamente al algoritmo seleccionado a través de contra
 
 ---
 
-## 🏗️ Arquitectura del Software
+## Arquitectura del Software
 
 El proyecto implementa los principios de **Clean Architecture**, **SOLID** y programación reactiva con **Riverpod**:
 
@@ -84,7 +84,7 @@ lib/
 
 ---
 
-## 🛠️ Instalación y Desarrollo
+## Instalación y Desarrollo
 
 ### Prerrequisitos
 - **Flutter SDK**: `>= 3.19.0` (o versión estable reciente)
@@ -129,5 +129,5 @@ Las pruebas cubren:
 
 ---
 
-## 🤝 Cómo Contribuir
+## Cómo Contribuir
 Consulta el archivo [`AGENTS.md`](./AGENTS.md) para conocer las pautas de estilo de código, buenas prácticas de desarrollo, manejo de estado con Riverpod y la guía paso a paso para crear un nuevo algoritmo modular.
