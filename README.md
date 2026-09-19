@@ -33,10 +33,12 @@ El lienzo se adapta dinámicamente al algoritmo seleccionado a través de contra
   - Cálculo de tiempos tempranos, tiempos tardíos y holguras.
   - Resaltado automático de la Ruta Crítica sobre el lienzo con capa luminosa (*glow underlay*).
 
-### 3. Matrices Interactivas y Coordinador Modular
-- **Coordinador Central (`MatrixViewCoordinator`):** Resuelve dinámicamente la vista matricial correspondiente según el modo activo.
-- **Matriz de Adyacencia General:** Cálculo de conexiones, grados máximos y estado de conectividad.
-- **Matriz Bipartita de Asignación:** Visualización tabular orígenes vs destinos, totales, costos mínimos y edición de celdas.
+### 3. Matrices Interactivas y Suite de Edición Matricial (`lib/ui/widgets/matrix/`)
+- **Coordinador Central (`MatrixViewCoordinator`):** Resuelve dinámicamente la vista matricial correspondiente según el modo activo o deriva a la matriz general en modo libre.
+- **Barra de Dimensiones Dinámicas (`MatrixDimensionBar`):** Permite configurar dimensiones iniciales (`Filas × Columnas`) y modificar en caliente añadiendo o quitando filas y columnas mediante controles `+` / `-`.
+- **Celdas de Entrada Interactivas (`MatrixCellInput`):** Celdas matriciales modulares con validación en tiempo real, estilos de error en rojo para entradas numéricas inválidas, auto-selección de texto al pulsar y resaltado contextual de celdas.
+- **Configuración Declarativa Bipartita (`BipartiteMatrixConfig`):** Contrato para parametrizar matrices de asignación y transporte (filas de origen, columnas de destino, oferta/demanda y balanceo de filas/columnas ficticias).
+- **Matriz de Adyacencia General:** Inspección de conexiones, grados de nodos y estado de conectividad en tiempo real.
 
 ### 4. Plataforma Web Educativa y PWA
 - **Shell de Explicación Responsivo:**
@@ -45,7 +47,8 @@ El lienzo se adapta dinámicamente al algoritmo seleccionado a través de contra
   - Páginas dedicadas para cada algoritmo con teoría, ejemplos paso a paso y botón de lanzamiento directo al editor.
   - Instalable como Progressive Web App (PWA) con soporte offline y manifiesto web optimizado.
 
-### 5. Asistente IA y Herramientas
+### 5. Asistente IA y Componentes Modulares
+- **Tarjetas Flotantes de Algoritmo (`BaseAlgorithmCard`):** Shell estandarizado para tarjetas de resultados de algoritmos con cabecera, minimizado/expandido y banner de resultados.
 - **Chat Asistente con IA (`AIChatDialog`):** Asistencia en lenguaje natural para manipulación guiada de grafos y consultas teóricas.
 - **Gestión de Proyectos:** Guardado local, carga de proyectos guardados, renombramiento y exportación directa del grafo a imagen JPG.
 - **Retroalimentación Unificada:** Sistema centralizado de notificaciones flotantes tipo píldora (`AppToast`).
@@ -74,10 +77,11 @@ lib/
 │
 ├── ui/                         # Capa de presentación y widgets Flutter
 │   ├── canvas/                 # GraphCanvas, GraphPainter (renderizado de curvas y glow underlays)
-│   ├── dialogs/                # Diálogos modales, matrices, configuración, chat IA
+│   ├── dialogs/                # Diálogos modales, MatrixViewCoordinator, configuración, chat IA
 │   ├── screens/                # GraphEditorScreen, pantallas explicativas web
 │   ├── theme/                  # AppTheme (Neumorphic & Material 3, soporte claro/oscuro)
-│   └── widgets/                # AppToast, EditPanel, AppDrawer, CanvasControlsFabs
+│   └── widgets/                # AppToast, BaseAlgorithmCard, EditPanel, AppDrawer, CanvasControlsFabs, matrix/
+│       └── matrix/             # MatrixDimensionBar, MatrixCellInput, BipartiteMatrixConfig
 │
 └── main.dart                   # Punto de entrada de la aplicación
 ```

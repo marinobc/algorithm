@@ -39,7 +39,7 @@ lib/
 > **PROHIBIDO** invocar `ScaffoldMessenger.of(context).showSnackBar(...)` directamente en pantallas o widgets nuevos.
 
 ### Uso Obligatorio de `AppToast`
-Todo mensaje informativo, de error, confirmación o advertencia debe emitirse mediante [`AppToast`](file:///c:/Users/adm/Music/nodos/nodos/lib/ui/widgets/app_toast.dart):
+Todo mensaje informativo, de error, confirmación o advertencia debe emitirse mediante [`AppToast`](lib/ui/widgets/app_toast.dart):
 
 ```dart
 import 'package:flutter/material.dart';
@@ -70,8 +70,8 @@ AppToast.show(
 ## 3. Diálogos, Menús y Flujos de Navegación
 
 ### Menús y Paneles Flotantes
-1. **Acciones Contextuales en Lienzo:** Al presionar o hacer clic secundario en un elemento del lienzo, se dispara [`FloatingContextMenu`](file:///c:/Users/adm/Music/nodos/nodos/lib/ui/widgets/floating_context_menu.dart).
-2. **Resolución de Clics Superpuestos:** Cuando el usuario pulsa sobre una zona con varios nodos o aristas solapadas, se debe abrir [`OverlappingElementsDialog`](file:///c:/Users/adm/Music/nodos/nodos/lib/ui/dialogs/overlapping_elements_dialog.dart) para que el usuario elija explícitamente el elemento.
+1. **Acciones Contextuales en Lienzo:** Al presionar o hacer clic secundario en un elemento del lienzo, se dispara [`FloatingContextMenu`](lib/ui/widgets/floating_context_menu.dart).
+2. **Resolución de Clics Superpuestos:** Cuando el usuario pulsa sobre una zona con varios nodos o aristas solapadas, se debe abrir [`OverlappingElementsDialog`](lib/ui/dialogs/overlapping_elements_dialog.dart) para que el usuario elija explícitamente el elemento.
 3. **Panel de Edición Inferior (`EditPanel`):** Aparece al seleccionar un nodo o conexión. Ofrece edición de colores, nombre, curvatura de aristas y controles específicos inyectados por el algoritmo activo.
 4. **Navegación Web Educativa (`WebExplanationShell`):** Toda pantalla de contenido informativo o teórico debe embeberse dentro de `WebExplanationShell` para contar con la barra de navegación superior, drawer lateral responsivo y transición fluida entre la teoría y el editor.
 
@@ -90,7 +90,7 @@ Cuando el usuario presiona el botón de matriz en la barra superior o drawer, **
 MatrixViewCoordinator.openMatrix(context, ref);
 ```
 El flujo de decisión es:
-1. **Modo Libre:** Valida conectividad mediante `esGrafoInvalidoProvider`. Si hay nodos desconectados, muestra un `AppToast`. Si es conexo, navega a [`AdjacencyMatrixScreen`](file:///c:/Users/adm/Music/nodos/nodos/lib/ui/dialogs/adjacency_matrix_dialog.dart).
+1. **Modo Libre:** Valida conectividad mediante `esGrafoInvalidoProvider`. Si hay nodos desconectados, muestra un `AppToast`. Si es conexo, navega a [`AdjacencyMatrixScreen`](lib/ui/dialogs/adjacency_matrix_dialog.dart).
 2. **Modo Algoritmo sin Matriz (`supportsMatrix == false`):** Emite un `AppToast` explicativo con el motivo (`matrixUnavailableReason`), como en Johnson/CPM.
 3. **Modo Algoritmo con Matriz (`supportsMatrix == true`):** Llama polimórficamente a `algorithm.buildMatrixScreen(context, ref)` y realiza la navegación.
 
@@ -122,7 +122,28 @@ Para algoritmos que requieren vistas matriciales (por ejemplo: Asignación/Trans
        atributos: [AtributoValor(atributoId: 'attr_valor', valor: nuevoValor)],
      );
      ```
-   - **Edición por Lotes (Batch Dialog):** Si se permite editar la matriz completa en una sola vista (e.g. [`AssignmentMatrixInputDialog`](file:///c:/Users/adm/Music/nodos/nodos/lib/algorithms/assignment/ui/assignment_matrix_input_dialog.dart)), mantén controladores `TextEditingController` por celda, valida números válidos (> 0, no negativos, etc.), muestra micro-animaciones en rojo al ingresar datos inválidos, y usa `PopScope` para consultar al usuario antes de salir si hay cambios sin guardar.
+   - **Edición por Lotes (Batch Dialog):** Si se permite editar la matriz completa en una sola vista (e.g. [`AssignmentMatrixInputDialog`](lib/algorithms/assignment/ui/assignment_matrix_input_dialog.dart)), mantén controladores `TextEditingController` por celda, valida números válidos (> 0, no negativos, etc.), muestra micro-animaciones en rojo al ingresar datos inválidos, y usa `PopScope` para consultar al usuario antes de salir si hay cambios sin guardar.
+
+### 4.3 Componentes Extensibles de Interfaz Matricial (`lib/ui/widgets/matrix/`)
+
+Para la creación y edición fluida de matrices en cualquier algoritmo o diálogo, utiliza la suite modular de componentes matriciales:
+
+1. **`MatrixDimensionBar`** ([`lib/ui/widgets/matrix/matrix_input_widgets.dart`](lib/ui/widgets/matrix/matrix_input_widgets.dart)):
+   - Barra superior modular para controlar el tamaño de la matriz en tiempo real.
+   - Ofrece dos modos dinámicos:
+     - **Modo Inicial (Creación):** Inputs numéricos directos de `Filas × Columnas` con botón "Crear Matriz".
+     - **Modo Matriz Activa:** Botones integrados `+` / `-` para añadir o eliminar filas y columnas al final de la matriz en caliente sin perder los valores preexistentes.
+2. **`MatrixCellInput`** ([`lib/ui/widgets/matrix/matrix_input_widgets.dart`](lib/ui/widgets/matrix/matrix_input_widgets.dart)):
+   - Widget atómico reutilizable para celdas matriciales editables o de solo lectura.
+   - **Validaciones y Estilo:**
+     - Validación en tiempo real (formato numérico, deshabilitación de valores negativos cuando aplique) con indicación visual inmediata mediante bordes de color de error (`errorContainer` / `error`).
+     - Selección automática del contenido al hacer clic (`onTap`) para acelerar la reescritura.
+     - Ocultamiento de pistas (*hints*) al enfocar la celda.
+     - Resaltado visual configurable (`isHighlight`) para celdas seleccionadas, rutas óptimas o celdas de origen/destino.
+     - Cursor prohibido (`SystemMouseCursors.forbidden`) y estilo opaco para celdas deshabilitadas o celdas prohibidas (e.g., diagonales o asignaciones imposibles).
+3. **`BipartiteMatrixConfig`** ([`lib/ui/widgets/matrix/bipartite_matrix_config.dart`](lib/ui/widgets/matrix/bipartite_matrix_config.dart)):
+   - Contrato abstracto de configuración para pantallas matriciales bipartitas y de costos/transporte.
+   - Permite declarar de forma limpia: títulos de cabecera, etiquetas de roles (Origen/Destino), soporte para oferta/demanda ($a_i$ y $b_j$), columnas/filas de balanceo ficticio y atributos de costo asociados.
 
 ---
 
@@ -132,7 +153,7 @@ Diferentes algoritmos exigen semánticas distintas para los valores de sus arist
 
 ### 5.1 Personalización de Entradas de Conexión (Aristas)
 
-El contrato [`GraphAlgorithm`](file:///c:/Users/adm/Music/nodos/nodos/lib/algorithms/core/graph_algorithm.dart) expone dos hooks para controlar la captura de valores:
+El contrato [`GraphAlgorithm`](lib/algorithms/core/graph_algorithm.dart) expone dos hooks para controlar la captura de valores:
 
 ```dart
 /// Abre el diálogo al editar el valor de una conexión existente
@@ -151,7 +172,7 @@ Future<void> onConnectionCreated(
 ```
 
 #### Opción A: Configuración Rápida con `ConnectionValueInputDialog`
-Si el algoritmo solo necesita un valor numérico único (ej. costo o duración), reutiliza [`ConnectionValueInputDialog`](file:///c:/Users/adm/Music/nodos/nodos/lib/ui/dialogs/connection_value_input_dialog.dart) especificando el título y la etiqueta:
+Si el algoritmo solo necesita un valor numérico único (ej. costo o duración), reutiliza [`ConnectionValueInputDialog`](lib/ui/dialogs/connection_value_input_dialog.dart) especificando el título y la etiqueta:
 
 ```dart
 @override
@@ -291,7 +312,7 @@ lib/algorithms/<nombre_algoritmo>/
 ```
 
 ### Paso 1: Crear la Política de Dibujo (`GraphAlgorithmPolicy`)
-Crea `domain/policy/<nombre>_graph_policy.dart` heredando de [`GraphAlgorithmPolicy`](file:///c:/Users/adm/Music/nodos/nodos/lib/algorithms/core/graph_algorithm.dart):
+Crea `domain/policy/<nombre>_graph_policy.dart` heredando de [`GraphAlgorithmPolicy`](lib/algorithms/core/graph_algorithm.dart):
 
 ```dart
 import '../../../../domain/models/direccion.dart';
@@ -375,7 +396,7 @@ final miAlgoritmoHighlightProvider = Provider<AlgorithmHighlight>((ref) {
 });
 ```
 
-### Paso 4: Implementar el Contrato [`GraphAlgorithm`](file:///c:/Users/adm/Music/nodos/nodos/lib/algorithms/core/graph_algorithm.dart)
+### Paso 4: Implementar el Contrato [`GraphAlgorithm`](lib/algorithms/core/graph_algorithm.dart)
 Crea `<nombre>_algorithm.dart` integrando políticas, matriz y controles de entrada:
 
 ```dart
@@ -421,7 +442,7 @@ class MiAlgoritmo extends GraphAlgorithm {
 }
 ```
 
-### Paso 5: Registrar el Algoritmo en [`AlgorithmRegistry`](file:///c:/Users/adm/Music/nodos/nodos/lib/algorithms/core/algorithm_registry.dart)
+### Paso 5: Registrar el Algoritmo en [`AlgorithmRegistry`](lib/algorithms/core/algorithm_registry.dart)
 Añade la instancia en `lib/algorithms/core/algorithm_registry.dart`:
 
 ```dart
@@ -452,6 +473,9 @@ Y añade el reset del estado en `ActiveAlgorithmNotifier._syncAlgorithmNotifiers
 4. **Validación de Formularios e Inputs:**
    - Valida siempre valores numéricos de aristas (evitar valores negativos o NaN donde no correspondan).
    - Proporciona retroalimentación visual al usuario (bordes rojos, micro-animaciones) en vez de fallar silenciosamente.
+5. **Superposiciones y Tarjetas de Algoritmo (`BaseAlgorithmCard`):**
+   - Utiliza [`BaseAlgorithmCard`](lib/ui/widgets/base_algorithm_card.dart) para construir cualquier tarjeta flotante u overlay de resultados.
+   - Ofrece un encabezado estandarizado (icono, título, acciones personalizadas `headerActions`, botón opcional de minimizar/expandir y botón de cierre), además de slots dedicados para banner de resultados (`resultBanner`) y contenido principal (`body`).
 
 ---
 
@@ -523,7 +547,7 @@ Todo archivo Dart debe seguir el estilo oficial estándar de 80 columnas de Dart
   ```
 
 ### 9.2 Análisis Estático (`flutter analyze`)
-El proyecto se rige por las reglas oficiales de [`package:flutter_lints/flutter.yaml`](file:///c:/Users/adm/Music/nodos/nodos/analysis_options.yaml).
+El proyecto se rige por las reglas oficiales de [`package:flutter_lints/flutter.yaml`](analysis_options.yaml).
 
 - **Ejecutar análisis en local:**
   ```bash
