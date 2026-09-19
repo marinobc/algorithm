@@ -27,7 +27,7 @@ class _WelcomeExplanationScreenState extends State<WelcomeExplanationScreen> {
     final didSelect = await Navigator.of(context).push<bool>(
       MaterialPageRoute(builder: (_) => const AlgorithmSelectionScreen()),
     );
-    if (didSelect == true && context.mounted) {
+    if (didSelect != false && didSelect != null && context.mounted) {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => const GraphEditorScreen()),
       );

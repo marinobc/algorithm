@@ -68,19 +68,26 @@ class AlgorithmSelectionDialog extends StatelessWidget {
                         : constraints.maxWidth >= 620
                         ? 2
                         : 1;
-                    return GridView.builder(
-                      itemCount: options.length,
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: columns,
-                        crossAxisSpacing: 18,
-                        mainAxisSpacing: 18,
-                        mainAxisExtent: columns == 1 ? 248 : 270,
-                      ),
-                      itemBuilder: (context, index) => _AlgorithmCatalogCard(
-                        option: options[index],
-                        onSelect: options[index].available
-                            ? () => _select(context, options[index])
-                            : null,
+                    return ScrollConfiguration(
+                      behavior: ScrollConfiguration.of(context)
+                          .copyWith(scrollbars: false),
+                      child: GridView.builder(
+                        physics: columns == 1
+                            ? const BouncingScrollPhysics()
+                            : const NeverScrollableScrollPhysics(),
+                        itemCount: options.length,
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: columns,
+                          crossAxisSpacing: 18,
+                          mainAxisSpacing: 18,
+                          mainAxisExtent: columns == 1 ? 248 : 270,
+                        ),
+                        itemBuilder: (context, index) => _AlgorithmCatalogCard(
+                          option: options[index],
+                          onSelect: options[index].available
+                              ? () => _select(context, options[index])
+                              : null,
+                        ),
                       ),
                     );
                   },
@@ -219,23 +226,33 @@ class AlgorithmSelectionScreen extends ConsumerWidget {
                             : constraints.maxWidth >= 620
                             ? 2
                             : 1;
-                        return GridView.builder(
-                          itemCount: options.length,
-                          gridDelegate:
-                              SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: columns,
-                                crossAxisSpacing: 18,
-                                mainAxisSpacing: 18,
-                                mainAxisExtent: columns == 1 ? 248 : 270,
-                              ),
-                          itemBuilder: (context, index) =>
-                              _AlgorithmCatalogCard(
-                                option: options[index],
-                                onSelect: options[index].available
-                                    ? () =>
-                                          _select(context, ref, options[index])
-                                    : null,
-                              ),
+                        return ScrollConfiguration(
+                          behavior: ScrollConfiguration.of(context)
+                              .copyWith(scrollbars: false),
+                          child: GridView.builder(
+                            physics: columns == 1
+                                ? const BouncingScrollPhysics()
+                                : const NeverScrollableScrollPhysics(),
+                            itemCount: options.length,
+                            gridDelegate:
+                                SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: columns,
+                                  crossAxisSpacing: 18,
+                                  mainAxisSpacing: 18,
+                                  mainAxisExtent: columns == 1 ? 248 : 270,
+                                ),
+                            itemBuilder: (context, index) =>
+                                _AlgorithmCatalogCard(
+                                  option: options[index],
+                                  onSelect: options[index].available
+                                      ? () => _select(
+                                          context,
+                                          ref,
+                                          options[index],
+                                        )
+                                      : null,
+                                ),
+                          ),
                         );
                       },
                     ),
@@ -353,113 +370,126 @@ class _AlgorithmCatalogCardState extends State<_AlgorithmCatalogCard> {
         cursor: available ? SystemMouseCursors.click : SystemMouseCursors.basic,
         onEnter: (_) => setState(() => _hovered = true),
         onExit: (_) => setState(() => _hovered = false),
-        child: AnimatedScale(
-          scale: available && _hovered ? 1.015 : 1,
-          duration: const Duration(milliseconds: 160),
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: widget.onSelect,
-              borderRadius: BorderRadius.circular(14),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 160),
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: widget.option.accentColor.withValues(
-                    alpha: available ? (_hovered ? .27 : .18) : .09,
-                  ),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                    color: widget.option.accentColor.withValues(
-                      alpha: available ? (_hovered ? .9 : .55) : .25,
-                    ),
-                  ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: widget.onSelect,
+            borderRadius: BorderRadius.circular(16),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: available
+                    ? (_hovered
+                          ? widget.option.accentColor.withValues(alpha: 0.18)
+                          : colors.surfaceContainerLow)
+                    : colors.surfaceContainerLowest.withValues(alpha: 0.5),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: available
+                      ? (_hovered
+                            ? widget.option.accentColor
+                            : colors.outlineVariant.withValues(alpha: 0.5))
+                      : colors.outlineVariant.withValues(alpha: 0.2),
+                  width: available && _hovered ? 1.8 : 1.0,
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: Opacity(
-                        opacity: available ? 1 : .55,
-                        child: AlgorithmCatalogIllustrationWidget(
-                          illustration: widget.option.illustration,
-                          accentColor: widget.option.accentColor,
+                boxShadow: _hovered && available
+                    ? [
+                        BoxShadow(
+                          color: widget.option.accentColor.withValues(
+                            alpha: 0.15,
+                          ),
+                          blurRadius: 12,
+                          spreadRadius: 0,
+                          offset: const Offset(0, 4),
                         ),
+                      ]
+                    : [],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Opacity(
+                      opacity: available ? 1 : .55,
+                      child: AlgorithmCatalogIllustrationWidget(
+                        illustration: widget.option.illustration,
+                        accentColor: widget.option.accentColor,
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          widget.option.title,
+                          style: TextStyle(
+                            color: colors.onSurface,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      if (available)
+                        Container(
+                          width: 34,
+                          height: 34,
+                          decoration: BoxDecoration(
+                            color: widget.option.accentColor.withValues(
+                              alpha: .25,
+                            ),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.arrow_forward_rounded,
+                            size: 18,
+                          ),
+                        )
+                      else
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: colors.surface.withValues(alpha: .55),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
                           child: Text(
-                            widget.option.title,
+                            'Próximamente',
                             style: TextStyle(
-                              color: colors.onSurface,
-                              fontSize: 16,
+                              color: colors.onSurfaceVariant,
+                              fontSize: 10,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),
-                        if (available)
-                          Container(
-                            width: 34,
-                            height: 34,
-                            decoration: BoxDecoration(
-                              color: widget.option.accentColor.withValues(
-                                alpha: .25,
-                              ),
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.arrow_forward_rounded,
-                              size: 18,
-                            ),
-                          )
-                        else
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: colors.surface.withValues(alpha: .55),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              'Próximamente',
-                              style: TextStyle(
-                                color: colors.onSurfaceVariant,
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                      ],
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    widget.option.description,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: colors.onSurfaceVariant,
+                      fontSize: 12.5,
+                      height: 1.35,
                     ),
-                    const SizedBox(height: 6),
-                    Text(
-                      widget.option.description,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: colors.onSurfaceVariant,
-                        fontSize: 12.5,
-                        height: 1.35,
+                  ),
+                  const SizedBox(height: 10),
+                  Container(
+                    width: 34,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: widget.option.accentColor.withValues(
+                        alpha: available ? 1 : .45,
                       ),
+                      borderRadius: BorderRadius.circular(4),
                     ),
-                    const SizedBox(height: 10),
-                    Container(
-                      width: 34,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: widget.option.accentColor.withValues(
-                          alpha: available ? 1 : .45,
-                        ),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),

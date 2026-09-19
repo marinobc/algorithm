@@ -38,24 +38,10 @@ class GraphEditorScreen extends ConsumerStatefulWidget {
 
 class _GraphEditorScreenState extends ConsumerState<GraphEditorScreen> {
   final GlobalKey<GraphCanvasState> _canvasKey = GlobalKey<GraphCanvasState>();
-  bool _initialModeSelectionHandled = false;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      final activeAlgo = ref.read(activeAlgorithmProvider);
-      final grafo = ref.read(grafoProvider);
-      final loadedItem = ref.read(loadedGraphItemProvider);
-      if (activeAlgo == null &&
-          grafo.nodos.isEmpty &&
-          loadedItem == null &&
-          !_initialModeSelectionHandled) {
-        _initialModeSelectionHandled = true;
-        _openAlgorithmSelection(initial: true);
-      }
-    });
   }
 
   void _cleanAndUnloadAll({bool preserveAlgorithm = false}) {
@@ -352,30 +338,34 @@ class _GraphEditorScreenState extends ConsumerState<GraphEditorScreen> {
     final badgeLabel = isAlgoActive ? activeAlgo.shortName : 'Modo Libre';
     final badgeIcon = isAlgoActive ? activeAlgo.icon : Icons.brush_outlined;
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: badgeColor.withValues(alpha: isAlgoActive ? 0.16 : 0.08),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: badgeColor.withValues(alpha: isAlgoActive ? 0.6 : 0.25),
-          width: 1.2,
-        ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(badgeIcon, size: 16, color: badgeColor),
-          const SizedBox(width: 6),
-          Text(
-            badgeLabel,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-              color: isAlgoActive ? badgeColor : colorScheme.onSurfaceVariant,
-            ),
+    return InkWell(
+      onTap: () => _openAlgorithmSelection(),
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: badgeColor.withValues(alpha: isAlgoActive ? 0.16 : 0.08),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: badgeColor.withValues(alpha: isAlgoActive ? 0.6 : 0.25),
+            width: 1.2,
           ),
-        ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(badgeIcon, size: 16, color: badgeColor),
+            const SizedBox(width: 6),
+            Text(
+              badgeLabel,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: isAlgoActive ? badgeColor : colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -437,20 +427,11 @@ class _GraphEditorScreenState extends ConsumerState<GraphEditorScreen> {
         appBar: AppBar(
           backgroundColor: colorScheme.surfaceContainerHigh,
           elevation: 1,
-          leadingWidth: 108,
-          leading: Row(
-            children: [
-              IconButton(
-                icon: const Icon(Icons.arrow_back_rounded),
-                tooltip: 'Seleccionar algoritmo',
-                onPressed: _openAlgorithmSelection,
-              ),
-              IconButton(
-                icon: const Icon(Icons.home_outlined),
-                tooltip: 'Ir a la página principal',
-                onPressed: _goHome,
-              ),
-            ],
+          leadingWidth: 56,
+          leading: IconButton(
+            icon: const Icon(Icons.home_outlined),
+            tooltip: 'Ir a la página principal',
+            onPressed: _goHome,
           ),
           title: Row(
             mainAxisSize: MainAxisSize.min,
@@ -516,12 +497,19 @@ class _GraphEditorScreenState extends ConsumerState<GraphEditorScreen> {
               bottom:
                   (edicion.itemSeleccionadoId != null ? 240 : 16) +
                   bottomPadding,
-              right: 16,
-              child: CanvasControlsFabs(
+              left: 16,
+              child: UndoRedoCanvasFabs(
                 onResetView: () {
-                  _canvasKey.currentState?.centrarLienzo(preserveScale: false);
+                  _canvasKey.currentState?.centrarLienzo(preserveScale: true);
                 },
               ),
+            ),
+            Positioned(
+              bottom:
+                  (edicion.itemSeleccionadoId != null ? 240 : 16) +
+                  bottomPadding,
+              right: 16,
+              child: const CanvasControlsFabs(),
             ),
             const Align(alignment: Alignment.bottomCenter, child: EditPanel()),
           ],

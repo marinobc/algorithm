@@ -73,21 +73,21 @@ class _AlgorithmCatalogIllustrationPainter extends CustomPainter {
     Paint muted,
   ) {
     final points = [
-      Offset(size.width * .22, size.height * .58),
-      Offset(size.width * .48, size.height * .28),
-      Offset(size.width * .72, size.height * .56),
-      Offset(size.width * .47, size.height * .76),
-      Offset(size.width * .80, size.height * .82),
+      Offset(size.width * .24, size.height * .56),
+      Offset(size.width * .48, size.height * .30),
+      Offset(size.width * .70, size.height * .54),
+      Offset(size.width * .47, size.height * .72),
+      Offset(size.width * .76, size.height * .76),
     ];
     const edges = [(0, 1), (0, 3), (1, 2), (1, 3), (2, 3), (2, 4)];
     for (final edge in edges) {
       canvas.drawLine(points[edge.$1], points[edge.$2], line);
     }
     for (var i = 0; i < points.length; i++) {
-      canvas.drawCircle(points[i], i == 1 ? 13 : 11, i.isEven ? node : muted);
+      canvas.drawCircle(points[i], i == 1 ? 11 : 9.5, i.isEven ? node : muted);
       canvas.drawCircle(
         points[i],
-        i == 1 ? 13 : 11,
+        i == 1 ? 11 : 9.5,
         Paint()
           ..color = Colors.white.withValues(alpha: 0.8)
           ..style = PaintingStyle.stroke
@@ -104,13 +104,13 @@ class _AlgorithmCatalogIllustrationPainter extends CustomPainter {
     Paint muted,
   ) {
     final left = [
-      Offset(size.width * .26, size.height * .28),
-      Offset(size.width * .26, size.height * .72),
+      Offset(size.width * .28, size.height * .32),
+      Offset(size.width * .28, size.height * .68),
     ];
     final right = [
-      Offset(size.width * .74, size.height * .22),
-      Offset(size.width * .74, size.height * .50),
-      Offset(size.width * .74, size.height * .78),
+      Offset(size.width * .72, size.height * .26),
+      Offset(size.width * .72, size.height * .50),
+      Offset(size.width * .72, size.height * .74),
     ];
     for (final origin in left) {
       for (final destination in right) {
@@ -118,10 +118,10 @@ class _AlgorithmCatalogIllustrationPainter extends CustomPainter {
       }
     }
     for (final point in left) {
-      canvas.drawCircle(point, 12, muted);
+      canvas.drawCircle(point, 10.5, muted);
       canvas.drawCircle(
         point,
-        12,
+        10.5,
         Paint()
           ..color = Colors.white.withValues(alpha: .85)
           ..style = PaintingStyle.stroke
@@ -129,10 +129,10 @@ class _AlgorithmCatalogIllustrationPainter extends CustomPainter {
       );
     }
     for (final point in right) {
-      canvas.drawCircle(point, 12, node);
+      canvas.drawCircle(point, 10.5, node);
       canvas.drawCircle(
         point,
-        12,
+        10.5,
         Paint()
           ..color = Colors.white.withValues(alpha: .85)
           ..style = PaintingStyle.stroke
@@ -149,18 +149,18 @@ class _AlgorithmCatalogIllustrationPainter extends CustomPainter {
     Paint muted,
   ) {
     final points = [
-      Offset(size.width * .50, size.height * .20),
-      Offset(size.width * .25, size.height * .68),
-      Offset(size.width * .75, size.height * .68),
+      Offset(size.width * .50, size.height * .24),
+      Offset(size.width * .28, size.height * .66),
+      Offset(size.width * .72, size.height * .66),
     ];
     _drawArrow(canvas, points[0], points[1], line);
     _drawArrow(canvas, points[0], points[2], line);
     _drawArrow(canvas, points[2], points[1], line);
     for (var i = 0; i < points.length; i++) {
-      canvas.drawCircle(points[i], 13, i == 0 ? node : muted);
+      canvas.drawCircle(points[i], 11, i == 0 ? node : muted);
       canvas.drawCircle(
         points[i],
-        13,
+        11,
         Paint()
           ..color = Colors.white.withValues(alpha: .85)
           ..style = PaintingStyle.stroke
