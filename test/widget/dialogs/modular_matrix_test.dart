@@ -270,7 +270,7 @@ void main() {
             container: container,
             child: MaterialApp(
               theme: AppTheme.darkTheme,
-              home: Scaffold(body: CanvasControlsFabs(onResetView: () {})),
+              home: Scaffold(body: const CanvasControlsFabs()),
             ),
           ),
         );
@@ -319,7 +319,7 @@ void main() {
             container: container,
             child: MaterialApp(
               theme: AppTheme.darkTheme,
-              home: Scaffold(body: CanvasControlsFabs(onResetView: () {})),
+              home: Scaffold(body: const CanvasControlsFabs()),
             ),
           ),
         );

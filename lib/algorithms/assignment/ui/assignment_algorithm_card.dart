@@ -29,40 +29,6 @@ class AssignmentAlgorithmCard extends ConsumerWidget {
       onClose: () {
         ref.read(transportationNotifierProvider.notifier).setActive(false);
       },
-      headerActions: [
-        // Min / Max Segmented Choice
-        SegmentedButton<OptimizationGoal>(
-          showSelectedIcon: false,
-          style: SegmentedButton.styleFrom(
-            visualDensity: VisualDensity.compact,
-            padding: const EdgeInsets.symmetric(horizontal: 6),
-          ),
-          segments: const [
-            ButtonSegment<OptimizationGoal>(
-              value: OptimizationGoal.minimize,
-              label: Text(
-                'Min',
-                style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
-              ),
-              icon: Icon(Icons.trending_down, size: 14),
-            ),
-            ButtonSegment<OptimizationGoal>(
-              value: OptimizationGoal.maximize,
-              label: Text(
-                'Max',
-                style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
-              ),
-              icon: Icon(Icons.trending_up, size: 14),
-            ),
-          ],
-          selected: {currentGoal},
-          onSelectionChanged: (newSelection) {
-            ref
-                .read(transportationNotifierProvider.notifier)
-                .setGoal(newSelection.first);
-          },
-        ),
-      ],
       resultBanner: result != null
           ? Container(
               width: double.infinity,

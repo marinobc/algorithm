@@ -57,8 +57,13 @@ class AssignmentGraphPolicy implements GraphAlgorithmPolicy {
   }) {
     final randomName = generateRandomSingleWord();
     final nodeName = nombre ?? randomName;
-    final nodeColor =
-        colorValue ?? GraphColorGenerator.generateMaximallyDistinctColor(grafo);
+    final role = (params?['role'] ?? params?['rol']) as String?;
+    final defaultColor = role == AssignmentRoles.destination
+        ? AssignmentRoles.destinationColor
+        : (role == AssignmentRoles.origin
+              ? AssignmentRoles.originColor
+              : GraphColorGenerator.generateMaximallyDistinctColor(grafo));
+    final nodeColor = colorValue ?? defaultColor;
 
     final clamped = GraphGeometry.clampNodePosition(x, y);
     final nodeId =
@@ -70,7 +75,7 @@ class AssignmentGraphPolicy implements GraphAlgorithmPolicy {
       colorValue: nodeColor,
       x: clamped.x,
       y: clamped.y,
-      rol: params?['rol'] as String?,
+      rol: role,
     );
   }
 

@@ -9,8 +9,8 @@ import '../core/graph_algorithm.dart';
 import 'domain/policy/assignment_graph_policy.dart';
 import 'providers/assignment_provider.dart';
 import 'ui/assignment_algorithm_card.dart';
-import 'ui/assignment_bipartite_matrix_screen.dart';
 import 'ui/assignment_canvas_controls.dart';
+import 'ui/assignment_graph_matrix_screen.dart';
 import 'ui/assignment_launch_button.dart';
 
 /// Pluggable GraphAlgorithm implementation for Assignment / Hungarian method.
@@ -52,7 +52,10 @@ class AssignmentAlgorithm implements GraphAlgorithm {
   }
 
   @override
-  Map<String, dynamic>? newNodeParams(WidgetRef ref) => null;
+  Map<String, dynamic>? newNodeParams(WidgetRef ref) => {
+    'role': ref.read(assignmentActiveRoleProvider),
+    'rol': ref.read(assignmentActiveRoleProvider),
+  };
 
   @override
   Widget? buildEmptyState(BuildContext context, WidgetRef ref) => null;
@@ -159,7 +162,7 @@ class AssignmentAlgorithm implements GraphAlgorithm {
 
   @override
   Widget? buildMatrixScreen(BuildContext context, WidgetRef ref) {
-    return const AssignmentBipartiteMatrixScreen();
+    return const AssignmentGraphMatrixScreen();
   }
 
   @override
@@ -188,4 +191,8 @@ class AssignmentAlgorithm implements GraphAlgorithm {
     showConnectionValueInputDialog(context, ref, conexion);
     return Future.value();
   }
+
+  @override
+  Future<void> onNodeCreated(BuildContext context, WidgetRef ref, Nodo nodo) =>
+      Future.value();
 }

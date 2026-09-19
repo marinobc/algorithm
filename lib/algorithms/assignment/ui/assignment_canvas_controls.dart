@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../application/providers/grafo_provider.dart';
 import '../domain/policy/assignment_graph_policy.dart';
+import '../providers/assignment_provider.dart';
 
 /// Floating canvas status pill displayed when the Assignment Algorithm
 /// mode is active. Informs the user of the automatically detected Origins and
@@ -12,153 +13,86 @@ class AssignmentCanvasControls extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final grafo = ref.watch(grafoProvider);
+    final graph = ref.watch(grafoProvider);
+    final selectedRole = ref.watch(assignmentActiveRoleProvider);
 
     int originCount = 0;
     int destCount = 0;
-    for (final node in grafo.nodos.values) {
-      final outD = grafo.conexiones.values
-          .where((c) => c.nodoOrigenId == node.id)
-          .length;
-      final inD = grafo.conexiones.values
-          .where((c) => c.nodoDestinoId == node.id)
-          .length;
-
-      if (inD == 0 && outD > 0) {
+    for (final node in graph.nodos.values) {
+      if (node.rol == AssignmentRoles.origin) {
         originCount++;
-      } else if (outD == 0 && inD > 0) {
+      } else if (node.rol == AssignmentRoles.destination) {
         destCount++;
+      } else {
+        final outD = graph.conexiones.values
+            .where((c) => c.nodoOrigenId == node.id)
+            .length;
+        final inD = graph.conexiones.values
+            .where((c) => c.nodoDestinoId == node.id)
+            .length;
+
+        if (inD == 0 && outD > 0) {
+          originCount++;
+        } else if (outD == 0 && inD > 0) {
+          destCount++;
+        }
       }
     }
 
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+    final colors = Theme.of(context).colorScheme;
 
-    return Material(
-      color: Colors.transparent,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(
-          color: colorScheme.surfaceContainerHigh.withValues(alpha: 0.95),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: const Color(0xFF7C4DFF).withValues(alpha: 0.35),
-            width: 1.5,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.15),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
+    return Container(
+      decoration: BoxDecoration(
+        color: colors.surfaceContainerHigh.withValues(alpha: 0.96),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: colors.outlineVariant.withValues(alpha: 0.35),
+          width: 1,
         ),
-        child: Row(
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 10,
+            spreadRadius: 0,
+            offset: const Offset(0, 3),
+          ),
+          BoxShadow(
+            color: colors.shadow.withValues(alpha: 0.04),
+            blurRadius: 4,
+            spreadRadius: 0,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(10),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
-              Icons.assignment_turned_in_rounded,
-              color: Color(0xFF7C4DFF),
-              size: 18,
-            ),
-            const SizedBox(width: 8),
             const Text(
-              'Asignación:',
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+              'Nuevo nodo (Asignación)',
+              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
             ),
-            const SizedBox(width: 8),
-
-            // Detected Origins Pill
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: const Color(AssignmentRoles.originColor)
-                    .withValues(alpha: 0.18),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: const Color(AssignmentRoles.originColor)
-                      .withValues(alpha: 0.6),
+            const SizedBox(height: 7),
+            SegmentedButton<String>(
+              showSelectedIcon: false,
+              segments: [
+                ButtonSegment(
+                  value: AssignmentRoles.origin,
+                  icon: const Icon(Icons.outbox_rounded, size: 17),
+                  label: Text('Origen ($originCount)'),
                 ),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 7,
-                    height: 7,
-                    decoration: const BoxDecoration(
-                      color: Color(AssignmentRoles.originColor),
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                  const SizedBox(width: 5),
-                  Text(
-                    'Orígenes: $originCount',
-                    style: const TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                      color: Color(AssignmentRoles.originColor),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(width: 6),
-
-            // Detected Destinations Pill
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: const Color(AssignmentRoles.destinationColor)
-                    .withValues(alpha: 0.18),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: const Color(AssignmentRoles.destinationColor)
-                      .withValues(alpha: 0.6),
+                ButtonSegment(
+                  value: AssignmentRoles.destination,
+                  icon: const Icon(Icons.move_to_inbox_rounded, size: 17),
+                  label: Text('Destino ($destCount)'),
                 ),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 7,
-                    height: 7,
-                    decoration: const BoxDecoration(
-                      color: Color(AssignmentRoles.destinationColor),
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                  const SizedBox(width: 5),
-                  Text(
-                    'Destinos: $destCount',
-                    style: const TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                      color: Color(AssignmentRoles.destinationColor),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(width: 6),
-
-            // Help info tooltip
-            Tooltip(
-              message:
-                  'Detección automática:\n'
-                  '• Los nodos que emiten conexiones actúan como Orígenes.\n'
-                  '• Los nodos que reciben conexiones actúan como Destinos.\n'
-                  '• Se impiden conexiones inválidas entre nodos del mismo rol.',
-              padding: const EdgeInsets.all(12),
-              margin: const EdgeInsets.symmetric(horizontal: 20),
-              showDuration: const Duration(seconds: 4),
-              child: Icon(
-                Icons.info_outline_rounded,
-                size: 16,
-                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
-              ),
+              ],
+              selected: {selectedRole},
+              onSelectionChanged: (selection) => ref
+                  .read(assignmentActiveRoleProvider.notifier)
+                  .setRole(selection.first),
             ),
           ],
         ),

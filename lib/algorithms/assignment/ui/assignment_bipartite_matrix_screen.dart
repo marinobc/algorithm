@@ -7,6 +7,7 @@ import '../../../../domain/models/conexion.dart';
 import '../../../../domain/models/grafo.dart';
 import '../../../../domain/models/nodo.dart';
 import '../../../../ui/widgets/algorithm_optimize_action.dart';
+import '../../core/algorithm_registry.dart';
 import '../providers/assignment_provider.dart';
 
 /// Screen displaying the dedicated Bipartite Matrix (Origins x Destinations)
@@ -68,17 +69,26 @@ class _AssignmentBipartiteMatrixScreenState
     final origins = validation.origins;
     final destinations = validation.destinations;
 
+    final activeAlgo = ref.watch(activeAlgorithmProvider);
+    final isNorthwest = activeAlgo?.id == AlgorithmRegistry.northwestId;
+    final title = isNorthwest
+        ? 'Matriz de Esquina Noroeste'
+        : 'Matriz de Costos de Asignación';
+    final subtitle = isNorthwest
+        ? 'Bipartita: Orígenes (Filas) × Destinos (Columnas) con Oferta, Demanda y Pesos'
+        : 'Bipartita: Orígenes (Filas) × Destinos (Columnas)';
+
     return Scaffold(
       appBar: AppBar(
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Matriz de Costos de Asignación',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            Text(
+              title,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
             ),
             Text(
-              'Bipartita: Orígenes (Filas) × Destinos (Columnas)',
+              subtitle,
               style: TextStyle(
                 color: colorScheme.onSurfaceVariant,
                 fontSize: 12,
@@ -320,6 +330,25 @@ class _AssignmentBipartiteMatrixScreenState
               },
               colorScheme: colorScheme,
               isSum: false,
+              width: cellWidth,
+              height: cellHeight,
+            ),
+
+            // Summary Header 3: Oferta (Supply)
+            _buildHeaderCell(
+              context: context,
+              label: 'Oferta',
+              isSelected: _selectedColumnIndex == destinations.length + 2,
+              onTap: () {
+                setState(() {
+                  _selectedColumnIndex =
+                      _selectedColumnIndex == destinations.length + 2
+                      ? null
+                      : destinations.length + 2;
+                });
+              },
+              colorScheme: colorScheme,
+              isSum: true,
               width: cellWidth,
               height: cellHeight,
             ),
@@ -578,6 +607,19 @@ class _AssignmentBipartiteMatrixScreenState
                         width: cellWidth,
                         height: cellHeight,
                       ),
+                      // Oferta (Supply)
+                      _buildSummaryCell(
+                        context: context,
+                        text: _formatVal(origNode.cantidad ?? 0),
+                        tooltip: 'Oferta disponible en el origen $origLabel',
+                        isSum: true,
+                        isSelected:
+                            isRowSelected ||
+                            _selectedColumnIndex == destinations.length + 2,
+                        colorScheme: colorScheme,
+                        width: cellWidth,
+                        height: cellHeight,
+                      ),
                     ],
                   ),
                 );
@@ -677,6 +719,51 @@ class _AssignmentBipartiteMatrixScreenState
               );
             }),
             const SizedBox(width: bracketGap + bracketWidth + bracketGap),
+          ],
+        ),
+
+        // Row 3: Demanda (Demand)
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildHeaderCell(
+              context: context,
+              label: 'Demanda',
+              isSelected: _selectedRowIndex == origins.length + 2,
+              onTap: () {
+                setState(() {
+                  _selectedRowIndex = _selectedRowIndex == origins.length + 2
+                      ? null
+                      : origins.length + 2;
+                });
+              },
+              colorScheme: colorScheme,
+              isSum: true,
+              width: rowHeaderWidth,
+              height: cellHeight,
+              margin: const EdgeInsets.symmetric(vertical: 2),
+            ),
+            const SizedBox(width: bracketGap + bracketWidth + bracketGap),
+            ...List.generate(destinations.length, (j) {
+              final isColSelected = _selectedColumnIndex == j;
+              final destNode = destinations[j];
+              final destLabel = destNode.nombre ?? destNode.id;
+
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 2),
+                child: _buildSummaryCell(
+                  context: context,
+                  text: _formatVal(destNode.cantidad ?? 0),
+                  tooltip: 'Demanda requerida por el destino $destLabel',
+                  isSum: true,
+                  isSelected:
+                      isColSelected || _selectedRowIndex == origins.length + 2,
+                  colorScheme: colorScheme,
+                  width: cellWidth,
+                  height: cellHeight,
+                ),
+              );
+            }),
           ],
         ),
       ],

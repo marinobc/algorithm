@@ -1,6 +1,7 @@
 import '../../../../domain/models/direccion.dart';
 import '../../../../domain/models/grafo.dart';
 import '../../../../domain/models/nodo.dart';
+import '../policy/assignment_graph_policy.dart';
 
 class TransportationValidationResult {
   final bool isValid;
@@ -81,13 +82,17 @@ class TransportationValidator {
     final origins = <Nodo>[];
     final destinations = <Nodo>[];
 
-    // 3. Classify nodes
+    // 3. Classify nodes using explicit node.rol first, with topological degree fallback
     for (final node in grafo.nodos.values) {
       final inD = inDegree[node.id] ?? 0;
       final outD = outDegree[node.id] ?? 0;
       final nodeName = node.nombre ?? node.id;
 
-      if (inD == 0 && outD > 0) {
+      if (node.rol == AssignmentRoles.origin) {
+        origins.add(node);
+      } else if (node.rol == AssignmentRoles.destination) {
+        destinations.add(node);
+      } else if (inD == 0 && outD > 0) {
         origins.add(node);
       } else if (outD == 0 && inD > 0) {
         destinations.add(node);
@@ -118,13 +123,6 @@ class TransportationValidator {
       return const TransportationValidationResult(
         isValid: false,
         errorMessage: 'No se puede aplicar el algoritmo, modifique el grafo para incluir al menos un nodo de Destino (sin conexiones salientes).',
-      );
-    }
-
-    if (origins.length < 2 && destinations.length < 2) {
-      return const TransportationValidationResult(
-        isValid: false,
-        errorMessage: 'No se puede aplicar el algoritmo, modifique el grafo para incluir al menos dos orígenes o dos destinos.',
       );
     }
 
