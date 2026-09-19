@@ -12,6 +12,7 @@ import '../../application/providers/grafo_provider.dart';
 import '../../application/providers/modo_provider.dart';
 import '../../algorithms/assignment/providers/assignment_provider.dart';
 import '../../algorithms/core/algorithm_registry.dart';
+import '../../algorithms/northwest/providers/northwest_provider.dart';
 import '../../domain/models/conexion.dart';
 import '../../domain/models/direccion.dart';
 import '../../domain/models/grafo.dart';
@@ -492,7 +493,14 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
 
           final createdConns = ref
               .read(grafoProvider.notifier)
-              .agregarConexion(startId, targetNode.id);
+              .agregarConexion(
+                startId,
+                targetNode.id,
+                ref.read(activeAlgorithmProvider)?.id ==
+                        AlgorithmRegistry.northwestId
+                    ? Direccion.unidireccional
+                    : null,
+              );
           _singleTapEditTimer?.cancel();
           _lastTapNodeId = null;
           _lastTapTime = null;
@@ -580,6 +588,18 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
     final grafo = ref.read(grafoProvider);
     final modoActivo = ref.read(modoActivoProvider);
     final now = DateTime.now();
+
+    final activeAlgorithm = ref.read(activeAlgorithmProvider);
+    if (activeAlgorithm?.id == AlgorithmRegistry.northwestId) {
+      final quantityNode = GraphHitTester.hitTestQuantityLabel(
+        worldPos,
+        grafo.nodos.values,
+      );
+      if (quantityNode != null) {
+        _showQuantityEditor(quantityNode);
+        return;
+      }
+    }
 
     final hitNodes = GraphHitTester.hitTestAllNodes(
       worldPos,
@@ -738,12 +758,24 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
 
       final policy = ref.read(activePolicyProvider);
       if (policy != null) {
-        final nodeCheck = policy.canCreateNode(grafo, validPos.x, validPos.y);
+        final activeAlgorithm = ref.read(activeAlgorithmProvider);
+        final params = activeAlgorithm?.newNodeParams(ref);
+        final nodeCheck = policy.canCreateNode(
+          grafo,
+          validPos.x,
+          validPos.y,
+          params: params,
+        );
         if (!nodeCheck.allowed) {
           _showPolicyDeniedSnackBar(nodeCheck.message);
           return;
         }
-        final newNode = policy.prepareNewNode(grafo, validPos.x, validPos.y);
+        final newNode = policy.prepareNewNode(
+          grafo,
+          validPos.x,
+          validPos.y,
+          params: params,
+        );
         ref.read(grafoProvider.notifier).agregarNodoInstancia(newNode);
       } else {
         ref.read(grafoProvider.notifier).agregarNodo(validPos.x, validPos.y);
@@ -771,6 +803,85 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
   void _onConnectionTapped(Conexion conn) {
     ref.read(estadoEdicionProvider.notifier).seleccionarConexion(conn.id);
   }
+
+  Future<void> _showQuantityEditor(Nodo node) async {
+    final controller = TextEditingController(
+      text: _formatQuantity(node.cantidad ?? 0),
+    );
+    String? error;
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: Text(
+            node.rol == 'northwest_origin'
+                ? 'Editar oferta / disponibilidad'
+                : 'Editar demanda',
+          ),
+          content: TextField(
+            controller: controller,
+            autofocus: true,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            decoration: InputDecoration(
+              labelText: node.rol == 'northwest_origin'
+                  ? 'Oferta / disponibilidad'
+                  : 'Demanda',
+              errorText: error,
+            ),
+            onTap: () => controller.selection = TextSelection(
+              baseOffset: 0,
+              extentOffset: controller.text.length,
+            ),
+            onSubmitted: (_) => _saveQuantity(
+              dialogContext,
+              controller,
+              node,
+              setDialogState,
+              (message) => error = message,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Cancelar'),
+            ),
+            FilledButton(
+              onPressed: () => _saveQuantity(
+                dialogContext,
+                controller,
+                node,
+                setDialogState,
+                (message) => error = message,
+              ),
+              child: const Text('Guardar'),
+            ),
+          ],
+        ),
+      ),
+    );
+    controller.dispose();
+  }
+
+  void _saveQuantity(
+    BuildContext dialogContext,
+    TextEditingController controller,
+    Nodo node,
+    void Function(void Function()) setDialogState,
+    void Function(String?) setError,
+  ) {
+    final value = double.tryParse(controller.text.trim());
+    if (value == null || !value.isFinite || value < 0) {
+      setDialogState(() => setError('Ingresa un numero no negativo.'));
+      return;
+    }
+    ref.read(grafoProvider.notifier).actualizarNodo(node.id, cantidad: value);
+    ref.read(northwestNotifierProvider.notifier).setActive(false);
+    Navigator.pop(dialogContext);
+  }
+
+  String _formatQuantity(double value) => value == value.roundToDouble()
+      ? value.toInt().toString()
+      : value.toStringAsFixed(2);
 
   void _triggerContextMenu(Offset screenPos, String targetId, bool isNode) {
     setState(() {

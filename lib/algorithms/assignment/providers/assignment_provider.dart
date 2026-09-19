@@ -4,6 +4,7 @@ import '../../../../application/providers/grafo_provider.dart';
 import '../../../../domain/models/grafo.dart';
 import '../../../../domain/highlights/algorithm_highlight.dart';
 import '../../johnson/providers/johnson_provider.dart';
+import '../../northwest/providers/northwest_provider.dart';
 import '../domain/models/assignment_models.dart';
 import '../domain/services/assignment_matrix_extractor.dart';
 import '../domain/services/assignment_validator.dart';
@@ -244,6 +245,10 @@ final highlightedElementsProvider = Provider<AlgorithmHighlight>((ref) {
   final johnsonHighlight = ref.watch(johnsonHighlightProvider);
   if (johnsonHighlight.isNotEmpty) {
     return johnsonHighlight;
+  }
+  final northwestHighlight = ref.watch(northwestHighlightProvider);
+  if (northwestHighlight.isNotEmpty) {
+    return northwestHighlight;
   }
   return const AlgorithmHighlight();
 });

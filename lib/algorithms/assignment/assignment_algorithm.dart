@@ -52,6 +52,12 @@ class AssignmentAlgorithm implements GraphAlgorithm {
   }
 
   @override
+  Map<String, dynamic>? newNodeParams(WidgetRef ref) => null;
+
+  @override
+  Widget? buildEmptyState(BuildContext context, WidgetRef ref) => null;
+
+  @override
   Widget? buildAlgorithmCard(BuildContext context, WidgetRef ref) {
     final validation = ref.watch(transportationValidationProvider);
     final state = ref.watch(transportationNotifierProvider);

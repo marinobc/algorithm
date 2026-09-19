@@ -4,73 +4,23 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../algorithms/assignment/providers/assignment_provider.dart';
 import '../../algorithms/core/algorithm_registry.dart';
 import '../../algorithms/johnson/providers/johnson_provider.dart';
+import '../../algorithms/northwest/domain/services/northwest_problem_extractor.dart';
+import '../../algorithms/northwest/providers/northwest_provider.dart';
+import '../../algorithms/northwest/ui/northwest_matrix_screen.dart';
 import '../../application/providers/config_provider.dart';
 import '../../application/providers/grafo_invalido_provider.dart';
 import '../../application/providers/grafo_provider.dart';
 import '../../debug/graph_debug_fab.dart';
 import '../dialogs/matrix_view_coordinator.dart';
-import 'app_toast.dart';
+import 'algorithm_optimize_action.dart';
 
 class CanvasControlsFabs extends ConsumerWidget {
   final VoidCallback onResetView;
 
   const CanvasControlsFabs({super.key, required this.onResetView});
 
-  void _runOptimizar(BuildContext context, WidgetRef ref) {
-    final activeAlgo = ref.read(activeAlgorithmProvider);
-
-    if (activeAlgo == null) {
-      AppToast.show(
-        context,
-        'Seleccione un tipo de algoritmo en la barra superior para optimizar.',
-        icon: Icons.info_outline_rounded,
-      );
-      return;
-    }
-
-    if (activeAlgo.id == AlgorithmRegistry.assignmentId) {
-      final validation = ref.read(transportationValidationProvider);
-      if (!validation.isValid) {
-        AppToast.show(
-          context,
-          validation.errorMessage ??
-              'Grafo no válido para el algoritmo de Asignación.',
-          icon: Icons.warning_amber_rounded,
-        );
-        return;
-      }
-
-      ref.read(johnsonNotifierProvider.notifier).setActive(false);
-      ref.read(transportationNotifierProvider.notifier).setActive(true);
-
-      AppToast.show(
-        context,
-        'Optimizando con Algoritmo de Asignación...',
-        icon: Icons.play_arrow_rounded,
-        duration: const Duration(seconds: 2),
-      );
-    } else if (activeAlgo.id == AlgorithmRegistry.johnsonId) {
-      final validation = ref.read(johnsonValidationProvider);
-      if (!validation.isValid) {
-        AppToast.show(
-          context,
-          validation.errorMessage ??
-              'Grafo no válido para el algoritmo de Johnson.',
-          icon: Icons.warning_amber_rounded,
-        );
-        return;
-      }
-
-      ref.read(transportationNotifierProvider.notifier).setActive(false);
-      ref.read(johnsonNotifierProvider.notifier).setActive(true);
-
-      AppToast.show(
-        context,
-        'Optimizando con Algoritmo de Johnson...',
-        icon: Icons.play_arrow_rounded,
-        duration: const Duration(seconds: 2),
-      );
-    }
+  Future<void> _runOptimizar(BuildContext context, WidgetRef ref) async {
+    await runActiveAlgorithm(context, ref);
   }
 
   @override
@@ -89,6 +39,8 @@ class CanvasControlsFabs extends ConsumerWidget {
         isAlgoValid = ref.watch(transportationValidationProvider).isValid;
       } else if (activeAlgo.id == AlgorithmRegistry.johnsonId) {
         isAlgoValid = ref.watch(johnsonValidationProvider).isValid;
+      } else if (activeAlgo.id == AlgorithmRegistry.northwestId) {
+        isAlgoValid = ref.watch(northwestValidationProvider).isValid;
       }
     }
 
@@ -96,24 +48,69 @@ class CanvasControlsFabs extends ConsumerWidget {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
-        // When in Algorithm mode, show dedicated Matrix FAB if algorithm supports matrix
-        if (activeAlgo != null && activeAlgo.supportsMatrix) ...[
+        if (activeAlgo?.id == AlgorithmRegistry.northwestId) ...[
           FloatingActionButton.small(
-            heroTag: 'fab_algo_matrix_view',
-            tooltip: isAlgoValid
-                ? 'Ver Matriz de ${activeAlgo.shortName}'
-                : 'Conecte o corrija el grafo para ver la matriz',
-            elevation: isAlgoValid ? 2 : 0,
-            backgroundColor: isAlgoValid
-                ? colorScheme.secondaryContainer
-                : colorScheme.surfaceContainerLow,
-            foregroundColor: isAlgoValid
-                ? colorScheme.onSecondaryContainer
-                : colorScheme.onSurface.withValues(alpha: 0.38),
-            onPressed: isAlgoValid
-                ? () => MatrixViewCoordinator.openMatrix(context, ref)
-                : null,
-            child: const Icon(Icons.grid_on_rounded, size: 20),
+            heroTag: 'fab_northwest_data_entry',
+            tooltip: 'Ingresar datos de transporte',
+            elevation: 2,
+            backgroundColor: colorScheme.primaryContainer,
+            foregroundColor: colorScheme.onPrimaryContainer,
+            onPressed: () => NorthwestMatrixScreen.open(context),
+            child: const Icon(Icons.edit_note_rounded, size: 20),
+          ),
+          const SizedBox(height: 10),
+          Builder(
+            builder: (context) {
+              final graph = ref.watch(grafoProvider);
+              final canViewGraphMatrix =
+                  graph.nodos.values.any(
+                    (node) => node.rol == NorthwestRoles.origin,
+                  ) &&
+                  graph.nodos.values.any(
+                    (node) => node.rol == NorthwestRoles.destination,
+                  );
+              return FloatingActionButton.small(
+                heroTag: 'fab_northwest_graph_matrix',
+                tooltip: canViewGraphMatrix
+                    ? 'Ver matriz del grafo'
+                    : 'Agrega un origen y un destino para ver la matriz',
+                elevation: canViewGraphMatrix ? 2 : 0,
+                backgroundColor: canViewGraphMatrix
+                    ? colorScheme.secondaryContainer
+                    : colorScheme.surfaceContainerLow,
+                foregroundColor: canViewGraphMatrix
+                    ? colorScheme.onSecondaryContainer
+                    : colorScheme.onSurface.withValues(alpha: 0.38),
+                onPressed: canViewGraphMatrix
+                    ? () => MatrixViewCoordinator.openGraphMatrix(context, ref)
+                    : null,
+                child: const Icon(Icons.grid_on_rounded, size: 20),
+              );
+            },
+          ),
+          const SizedBox(height: 10),
+        ] else if (activeAlgo != null && activeAlgo.supportsMatrix) ...[
+          Builder(
+            builder: (context) {
+              final enabled = isAlgoValid;
+              return FloatingActionButton.small(
+                heroTag: 'fab_algo_matrix_view',
+                tooltip: isAlgoValid
+                    ? 'Ver Matriz de ${activeAlgo.shortName}'
+                    : 'Conecte o corrija el grafo para ver la matriz',
+                elevation: enabled ? 2 : 0,
+                backgroundColor: enabled
+                    ? colorScheme.secondaryContainer
+                    : colorScheme.surfaceContainerLow,
+                foregroundColor: enabled
+                    ? colorScheme.onSecondaryContainer
+                    : colorScheme.onSurface.withValues(alpha: 0.38),
+                onPressed: enabled
+                    ? () => MatrixViewCoordinator.openMatrix(context, ref)
+                    : null,
+                child: const Icon(Icons.grid_on_rounded, size: 20),
+              );
+            },
           ),
           const SizedBox(height: 10),
         ],
@@ -205,16 +202,31 @@ class CanvasControlsFabs extends ConsumerWidget {
         else
           FloatingActionButton.extended(
             heroTag: 'fab_optimizar',
-            tooltip: 'Ejecutar / Optimizar Algoritmo',
-            elevation: 4,
-            backgroundColor: activeAlgo.themeColor,
-            foregroundColor: Colors.white,
+            tooltip:
+                activeAlgo.id == AlgorithmRegistry.northwestId && !isAlgoValid
+                ? 'Configura una matriz de transporte valida para optimizar'
+                : 'Ejecutar / Optimizar Algoritmo',
+            elevation:
+                activeAlgo.id == AlgorithmRegistry.northwestId && !isAlgoValid
+                ? 0
+                : 4,
+            backgroundColor:
+                activeAlgo.id == AlgorithmRegistry.northwestId && !isAlgoValid
+                ? colorScheme.surfaceContainerLow
+                : activeAlgo.themeColor,
+            foregroundColor:
+                activeAlgo.id == AlgorithmRegistry.northwestId && !isAlgoValid
+                ? colorScheme.onSurface.withValues(alpha: 0.38)
+                : Colors.white,
             icon: const Icon(Icons.play_arrow_rounded),
             label: const Text(
               'Optimizar',
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
-            onPressed: () => _runOptimizar(context, ref),
+            onPressed:
+                activeAlgo.id == AlgorithmRegistry.northwestId && !isAlgoValid
+                ? null
+                : () => _runOptimizar(context, ref),
           ),
       ],
     );

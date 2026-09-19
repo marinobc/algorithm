@@ -64,6 +64,14 @@ abstract class GraphAlgorithmPolicy {
 
   /// Whether bidirectional connections are permitted.
   bool get allowBidirectional;
+
+  /// Checks structural deletion. Most algorithms keep the unrestricted default.
+  PolicyResult canDeleteNode(Grafo grafo, String nodeId) =>
+      const PolicyResult.allow();
+
+  /// Checks structural deletion. Most algorithms keep the unrestricted default.
+  PolicyResult canDeleteConnection(Grafo grafo, String connectionId) =>
+      const PolicyResult.allow();
 }
 
 /// Abstract contract for a pluggable graph algorithm.
@@ -98,6 +106,12 @@ abstract class GraphAlgorithm {
 
   /// Builds optional canvas overlay controls (e.g. role toggle pill).
   Widget? buildCanvasControls(BuildContext context, WidgetRef ref) => null;
+
+  /// Parameters passed to the policy when creating a node on the canvas.
+  Map<String, dynamic>? newNodeParams(WidgetRef ref) => null;
+
+  /// Builds an optional overlay when the active algorithm has no configured data.
+  Widget? buildEmptyState(BuildContext context, WidgetRef ref) => null;
 
   /// Builds the floating algorithm card rendered on top of the canvas
   /// when active and validated.

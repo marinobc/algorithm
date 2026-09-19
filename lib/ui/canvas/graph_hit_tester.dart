@@ -70,6 +70,30 @@ class GraphHitTester {
     return result;
   }
 
+  /// Identifies the editable supply or demand label beside a transport node.
+  static Nodo? hitTestQuantityLabel(Offset worldPos, Iterable<Nodo> nodes) {
+    for (final node in nodes) {
+      if (node.cantidad == null ||
+          (node.rol != 'northwest_origin' &&
+              node.rol != 'northwest_destination')) {
+        continue;
+      }
+      final label = _formatQuantity(node.cantidad!);
+      final labelWidth = max(20.0, label.length * 11.0);
+      final halfNodeWidth = GraphGeometry.getNodeWidth(node) / 2;
+      final left = node.rol == 'northwest_origin'
+          ? node.x - halfNodeWidth - labelWidth - 12
+          : node.x + halfNodeWidth + 12;
+      final hitArea = Rect.fromLTWH(left - 8, node.y - 18, labelWidth + 16, 36);
+      if (hitArea.contains(worldPos)) return node;
+    }
+    return null;
+  }
+
+  static String _formatQuantity(double value) => value == value.roundToDouble()
+      ? value.toInt().toString()
+      : value.toStringAsFixed(2);
+
   /// Evaluates connection line closest to worldPos. Returns touched connection or null.
   static Conexion? hitTestConnection(
     Offset worldPos,

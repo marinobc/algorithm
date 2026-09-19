@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../algorithms/core/algorithm_registry.dart';
+import '../../algorithms/northwest/providers/northwest_provider.dart';
 import '../../application/providers/atributos_provider.dart';
 import '../../application/providers/edicion_provider.dart';
 import '../../application/providers/grafo_provider.dart';
@@ -14,6 +15,7 @@ import '../text/app_text.dart';
 import '../text/connection_text.dart';
 import '../text/dialog_text.dart';
 import '../theme/app_theme.dart';
+import 'app_toast.dart';
 import 'edit_panel/connection_edit_section.dart';
 import 'edit_panel/custom_attributes_section.dart';
 import 'edit_panel/node_edit_section.dart';
@@ -540,6 +542,7 @@ class _EditPanelState extends ConsumerState<EditPanel> {
     if (itemId == null) return;
 
     final grafo = ref.read(grafoProvider);
+    final policy = ref.read(activePolicyProvider);
     final atributos = ref.read(atributosGlobalesProvider);
 
     final Map<String, String> attrNames = {
@@ -552,6 +555,15 @@ class _EditPanelState extends ConsumerState<EditPanel> {
     if (edicion.esNodo) {
       final nodo = grafo.nodos[itemId];
       if (nodo == null) return;
+      final deletion = policy?.canDeleteNode(grafo, nodo.id);
+      if (deletion != null && !deletion.allowed) {
+        AppToast.show(
+          context,
+          deletion.message ?? 'No puedes eliminar este nodo.',
+          icon: Icons.lock_outline_rounded,
+        );
+        return;
+      }
       final conexiones = grafo.obtenerConexionesDeNodo(nodo.id);
 
       final confirmed = await showDialog<bool>(
@@ -574,6 +586,15 @@ class _EditPanelState extends ConsumerState<EditPanel> {
     } else {
       final conn = grafo.conexiones[itemId];
       if (conn == null) return;
+      final deletion = policy?.canDeleteConnection(grafo, conn.id);
+      if (deletion != null && !deletion.allowed) {
+        AppToast.show(
+          context,
+          deletion.message ?? 'No puedes eliminar esta conexion.',
+          icon: Icons.lock_outline_rounded,
+        );
+        return;
+      }
 
       final confirmed = await showDialog<bool>(
         context: context,
@@ -614,9 +635,16 @@ class _EditPanelState extends ConsumerState<EditPanel> {
       final grafo = ref.read(grafoProvider);
       final conn = grafo.conexiones[itemId];
       if (conn == null) return;
+      final isNorthwest =
+          ref.read(activeAlgorithmProvider)?.id ==
+          AlgorithmRegistry.northwestId;
 
-      final targetOrigenId = _selectedOrigenId ?? conn.nodoOrigenId;
-      final targetDestinoId = _selectedDestinoId ?? conn.nodoDestinoId;
+      final targetOrigenId = isNorthwest
+          ? conn.nodoOrigenId
+          : (_selectedOrigenId ?? conn.nodoOrigenId);
+      final targetDestinoId = isNorthwest
+          ? conn.nodoDestinoId
+          : (_selectedDestinoId ?? conn.nodoDestinoId);
 
       final existingDuplicate = grafo.conexiones.values.firstWhere(
         (other) =>
@@ -659,7 +687,7 @@ class _EditPanelState extends ConsumerState<EditPanel> {
         String val = _attrValueControllers[a.id]?.text.trim() ?? '';
         if (val.isNotEmpty) {
           final parsed = double.tryParse(val);
-          if (parsed == null || parsed <= 0) {
+          if (parsed == null || (!isNorthwest && parsed <= 0)) {
             val = '1';
           }
           attrValues.add(AtributoValor(atributoId: a.id, valor: val));
@@ -673,9 +701,15 @@ class _EditPanelState extends ConsumerState<EditPanel> {
             nodoOrigenId: targetOrigenId,
             nodoDestinoId: targetDestinoId,
             colorValue: _selectedColor,
-            direccion: _selectedDireccion,
+            direccion: isNorthwest
+                ? Direccion.unidireccional
+                : _selectedDireccion,
             atributos: attrValues,
           );
+
+      if (isNorthwest) {
+        ref.read(northwestNotifierProvider.notifier).setActive(false);
+      }
 
       ref.read(estadoEdicionProvider.notifier).desmarcarCambiosSinGuardar();
       ref.read(estadoEdicionProvider.notifier).deseleccionar();
