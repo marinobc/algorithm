@@ -126,10 +126,14 @@ class CanvasControlsFabs extends ConsumerWidget {
               final graph = ref.watch(grafoProvider);
               final canViewGraphMatrix =
                   graph.nodos.values.any(
-                    (node) => node.rol == NorthwestRoles.origin,
+                    (node) =>
+                        node.rol == NorthwestRoles.origin ||
+                        node.rol == 'origen',
                   ) &&
                   graph.nodos.values.any(
-                    (node) => node.rol == NorthwestRoles.destination,
+                    (node) =>
+                        node.rol == NorthwestRoles.destination ||
+                        node.rol == 'destino',
                   );
               return FloatingActionButton.small(
                 heroTag: 'fab_northwest_graph_matrix',

@@ -29,10 +29,15 @@ class NorthwestProblemExtractor {
 
   static NorthwestValidationResult extract(Grafo graph) {
     final origins = graph.nodos.values
-        .where((node) => node.rol == NorthwestRoles.origin)
+        .where(
+          (node) => node.rol == NorthwestRoles.origin || node.rol == 'origen',
+        )
         .toList();
     final destinations = graph.nodos.values
-        .where((node) => node.rol == NorthwestRoles.destination)
+        .where(
+          (node) =>
+              node.rol == NorthwestRoles.destination || node.rol == 'destino',
+        )
         .toList();
     if (origins.isEmpty || destinations.isEmpty) {
       return const NorthwestValidationResult.invalid(
@@ -131,14 +136,33 @@ class NorthwestProblemExtractor {
       );
     }
 
+    var originIds = List<String>.from(originOrder);
+    var destinationIds = List<String>.from(destinationOrder);
+    var originNames = originOrder.map((id) => originById[id]!.nombre!).toList();
+    var destinationNames = destinationOrder
+        .map((id) => destinationById[id]!.nombre!)
+        .toList();
+    var finalSupplies = List<double>.from(supplies);
+    var finalDemands = List<double>.from(demands);
+    var finalCosts = costs.map((row) => List<double>.from(row)).toList();
+
     final totalSupply = supplies.fold<double>(0, (sum, value) => sum + value);
     final totalDemand = demands.fold<double>(0, (sum, value) => sum + value);
-    if ((totalSupply - totalDemand).abs() > tolerance) {
-      return NorthwestValidationResult.invalid(
-        'Problema desequilibrado. Disponibilidad: ${_format(totalSupply)}, '
-        'demanda: ${_format(totalDemand)}, diferencia: '
-        '${_format((totalSupply - totalDemand).abs())}.',
-      );
+
+    if (totalSupply < totalDemand - tolerance) {
+      final difference = totalDemand - totalSupply;
+      originIds.add('nw_dummy_origin');
+      originNames.add('Ficticio');
+      finalSupplies.add(difference);
+      finalCosts.add(List<double>.filled(destinationOrder.length, 0));
+    } else if (totalSupply > totalDemand + tolerance) {
+      final difference = totalSupply - totalDemand;
+      destinationIds.add('nw_dummy_destination');
+      destinationNames.add('Ficticio');
+      finalDemands.add(difference);
+      for (final row in finalCosts) {
+        row.add(0);
+      }
     }
 
     final objective =
@@ -148,15 +172,13 @@ class NorthwestProblemExtractor {
         : TransportationObjective.minimize;
     return NorthwestValidationResult.valid(
       TransportationInput(
-        originIds: originOrder,
-        destinationIds: destinationOrder,
-        originNames: originOrder.map((id) => originById[id]!.nombre!).toList(),
-        destinationNames: destinationOrder
-            .map((id) => destinationById[id]!.nombre!)
-            .toList(),
-        costs: costs,
-        supplies: supplies,
-        demands: demands,
+        originIds: originIds,
+        destinationIds: destinationIds,
+        originNames: originNames,
+        destinationNames: destinationNames,
+        costs: finalCosts,
+        supplies: finalSupplies,
+        demands: finalDemands,
         objective: objective,
       ),
     );
@@ -165,17 +187,12 @@ class NorthwestProblemExtractor {
   static List<String>? _orderedIds(String? rawOrder, Iterable<String> ids) {
     final actual = ids.toSet();
     if (rawOrder == null || rawOrder.isEmpty) {
-      final fallback = actual.toList()..sort();
-      return fallback;
+      return actual.toList();
     }
     final ordered = rawOrder.split(',');
     return ordered.length == actual.length &&
             ordered.toSet().containsAll(actual)
         ? ordered
-        : (actual.toList()..sort());
+        : actual.toList();
   }
-
-  static String _format(double value) => value == value.roundToDouble()
-      ? value.toInt().toString()
-      : value.toStringAsFixed(2);
 }

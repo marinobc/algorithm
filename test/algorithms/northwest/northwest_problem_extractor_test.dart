@@ -89,16 +89,19 @@ void main() {
     );
   });
 
-  test('explica el desbalance sin habilitar el problema', () {
-    final validation = NorthwestProblemExtractor.extract(
-      buildGraph(demands: const [10, 30, 40, 10]),
-    );
+  test(
+    'equilibra automáticamente agregando fila o columna ficticia con costo 0',
+    () {
+      final validation = NorthwestProblemExtractor.extract(
+        buildGraph(demands: const [10, 30, 40, 10]),
+      );
 
-    expect(validation.isValid, isFalse);
-    expect(validation.errorMessage, contains('Disponibilidad: 100'));
-    expect(validation.errorMessage, contains('demanda: 90'));
-    expect(validation.errorMessage, contains('diferencia: 10'));
-  });
+      expect(validation.isValid, isTrue);
+      expect(validation.problem!.destinationNames.last, 'Ficticio');
+      expect(validation.problem!.demands.last, 10);
+      expect(validation.problem!.costs[0].last, 0);
+    },
+  );
 
   test('recupera el orden si la metadata quedo desactualizada', () {
     final graph = buildGraph();

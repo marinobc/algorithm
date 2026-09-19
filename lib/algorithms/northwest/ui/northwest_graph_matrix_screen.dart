@@ -95,10 +95,15 @@ class _NorthwestGraphMatrixScreenState
 
   void _initFromGraphOrDefaults(Grafo graph) {
     final origins = graph.nodos.values
-        .where((node) => node.rol == NorthwestRoles.origin)
+        .where(
+          (node) => node.rol == NorthwestRoles.origin || node.rol == 'origen',
+        )
         .toList();
     final destinations = graph.nodos.values
-        .where((node) => node.rol == NorthwestRoles.destination)
+        .where(
+          (node) =>
+              node.rol == NorthwestRoles.destination || node.rol == 'destino',
+        )
         .toList();
 
     if (origins.isNotEmpty && destinations.isNotEmpty) {
