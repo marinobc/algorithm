@@ -59,6 +59,9 @@ class GraphHitTester {
     final nodeDistances = <Nodo, double>{};
 
     for (final node in nodes) {
+      if (node.id == 'nw_dummy_origin' || node.id == 'nw_dummy_destination') {
+        continue;
+      }
       final dist = distanceToNodeBoundary(worldPos, node);
       if (dist <= margin) {
         nodeDistances[node] = dist;
@@ -73,6 +76,9 @@ class GraphHitTester {
   /// Identifies the editable supply or demand label beside a transport node.
   static Nodo? hitTestQuantityLabel(Offset worldPos, Iterable<Nodo> nodes) {
     for (final node in nodes) {
+      if (node.id == 'nw_dummy_origin' || node.id == 'nw_dummy_destination') {
+        continue;
+      }
       if (node.cantidad == null ||
           (node.rol != 'northwest_origin' &&
               node.rol != 'northwest_destination')) {
@@ -118,6 +124,12 @@ class GraphHitTester {
 
     final pairCounts = <String, int>{};
     for (final c in grafo.conexiones.values) {
+      if (c.nodoOrigenId == 'nw_dummy_origin' ||
+          c.nodoOrigenId == 'nw_dummy_destination' ||
+          c.nodoDestinoId == 'nw_dummy_origin' ||
+          c.nodoDestinoId == 'nw_dummy_destination') {
+        continue;
+      }
       final key = c.nodoOrigenId.compareTo(c.nodoDestinoId) < 0
           ? '${c.nodoOrigenId}_${c.nodoDestinoId}'
           : '${c.nodoDestinoId}_${c.nodoOrigenId}';
@@ -130,6 +142,12 @@ class GraphHitTester {
       ..sort((a, b) => a.id.compareTo(b.id));
 
     for (final conn in sortedConns) {
+      if (conn.nodoOrigenId == 'nw_dummy_origin' ||
+          conn.nodoOrigenId == 'nw_dummy_destination' ||
+          conn.nodoDestinoId == 'nw_dummy_origin' ||
+          conn.nodoDestinoId == 'nw_dummy_destination') {
+        continue;
+      }
       final origen = grafo.nodos[conn.nodoOrigenId];
       final destino = grafo.nodos[conn.nodoDestinoId];
       if (origen == null || destino == null) continue;

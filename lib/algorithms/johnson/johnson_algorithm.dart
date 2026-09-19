@@ -110,4 +110,8 @@ class JohnsonAlgorithm implements GraphAlgorithm {
     showConnectionValueInputDialog(context, ref, conexion);
     return Future.value();
   }
+
+  @override
+  Future<void> onNodeCreated(BuildContext context, WidgetRef ref, Nodo nodo) =>
+      Future.value();
 }

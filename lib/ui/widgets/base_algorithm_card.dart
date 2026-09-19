@@ -11,6 +11,7 @@ class BaseAlgorithmCard extends StatefulWidget {
   final VoidCallback onClose;
   final Widget? resultBanner;
   final Widget? body;
+  final bool showMinimizeButton;
 
   const BaseAlgorithmCard({
     super.key,
@@ -20,6 +21,7 @@ class BaseAlgorithmCard extends StatefulWidget {
     this.headerActions,
     this.resultBanner,
     this.body,
+    this.showMinimizeButton = false,
   });
 
   @override
@@ -64,26 +66,27 @@ class _BaseAlgorithmCardState extends State<BaseAlgorithmCard> {
                   ...widget.headerActions!,
                   const SizedBox(width: 4),
                 ],
-                // Minimize / Expand Toggle Button
-                IconButton(
-                  icon: Icon(
-                    _isMinimized
-                        ? Icons.keyboard_arrow_down_rounded
-                        : Icons.keyboard_arrow_up_rounded,
-                    size: 20,
+                // Minimize / Expand Toggle Button (hidden by default)
+                if (widget.showMinimizeButton)
+                  IconButton(
+                    icon: Icon(
+                      _isMinimized
+                          ? Icons.keyboard_arrow_down_rounded
+                          : Icons.keyboard_arrow_up_rounded,
+                      size: 20,
+                    ),
+                    tooltip: _isMinimized ? 'Expandir' : 'Minimizar',
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(
+                      minWidth: 28,
+                      minHeight: 28,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _isMinimized = !_isMinimized;
+                      });
+                    },
                   ),
-                  tooltip: _isMinimized ? 'Expandir' : 'Minimizar',
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(
-                    minWidth: 28,
-                    minHeight: 28,
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      _isMinimized = !_isMinimized;
-                    });
-                  },
-                ),
                 // Close / Deactivate Button
                 IconButton(
                   icon: const Icon(Icons.close_rounded, size: 18),

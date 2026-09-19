@@ -138,6 +138,9 @@ class GraphRenderModel {
   }) {
     final rawNodes = <RenderNode>[];
     for (final n in grafo.nodos.values) {
+      if (n.id == 'nw_dummy_origin' || n.id == 'nw_dummy_destination') {
+        continue;
+      }
       final minDiameter = n.diameter;
       final width = GraphGeometry.getNodeWidth(n);
       final isCapsule = width > minDiameter;
@@ -211,6 +214,12 @@ class GraphRenderModel {
     final renderConns = <RenderConnectionLine>[];
     final pairCounts = <String, int>{};
     for (final c in grafo.conexiones.values) {
+      if (c.nodoOrigenId == 'nw_dummy_origin' ||
+          c.nodoOrigenId == 'nw_dummy_destination' ||
+          c.nodoDestinoId == 'nw_dummy_origin' ||
+          c.nodoDestinoId == 'nw_dummy_destination') {
+        continue;
+      }
       final key = c.nodoOrigenId.compareTo(c.nodoDestinoId) < 0
           ? '${c.nodoOrigenId}_${c.nodoDestinoId}'
           : '${c.nodoDestinoId}_${c.nodoOrigenId}';
@@ -223,6 +232,12 @@ class GraphRenderModel {
       ..sort((a, b) => a.id.compareTo(b.id));
 
     for (final c in sortedConns) {
+      if (c.nodoOrigenId == 'nw_dummy_origin' ||
+          c.nodoOrigenId == 'nw_dummy_destination' ||
+          c.nodoDestinoId == 'nw_dummy_origin' ||
+          c.nodoDestinoId == 'nw_dummy_destination') {
+        continue;
+      }
       final origen = grafo.nodos[c.nodoOrigenId];
       final destino = grafo.nodos[c.nodoDestinoId];
       if (origen == null || destino == null) continue;

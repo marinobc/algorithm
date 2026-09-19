@@ -777,6 +777,9 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
           params: params,
         );
         ref.read(grafoProvider.notifier).agregarNodoInstancia(newNode);
+        if (activeAlgorithm != null) {
+          activeAlgorithm.onNodeCreated(context, ref, newNode);
+        }
       } else {
         ref.read(grafoProvider.notifier).agregarNodo(validPos.x, validPos.y);
       }

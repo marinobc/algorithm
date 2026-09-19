@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../algorithms/assignment/domain/models/assignment_models.dart';
 import '../../algorithms/assignment/providers/assignment_provider.dart';
 import '../../algorithms/core/algorithm_registry.dart';
 import '../../algorithms/johnson/providers/johnson_provider.dart';
@@ -31,7 +32,32 @@ Future<bool> runActiveAlgorithm(BuildContext context, WidgetRef ref) async {
       );
       return false;
     }
+    final goal = await showDialog<OptimizationGoal>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Objetivo de optimización'),
+        content: const Text('Selecciona cómo evaluar la asignación.'),
+        actions: [
+          TextButton.icon(
+            onPressed: () =>
+                Navigator.pop(dialogContext, OptimizationGoal.minimize),
+            icon: const Icon(Icons.trending_down_rounded),
+            label: const Text('Minimizar costo'),
+          ),
+          FilledButton.icon(
+            onPressed: () =>
+                Navigator.pop(dialogContext, OptimizationGoal.maximize),
+            icon: const Icon(Icons.trending_up_rounded),
+            label: const Text('Maximizar beneficio'),
+          ),
+        ],
+      ),
+    );
+    if (goal == null || !context.mounted) return false;
+
+    ref.read(transportationNotifierProvider.notifier).setGoal(goal);
     ref.read(johnsonNotifierProvider.notifier).setActive(false);
+    ref.read(northwestNotifierProvider.notifier).setActive(false);
     ref.read(transportationNotifierProvider.notifier).setActive(true);
     AppToast.show(
       context,

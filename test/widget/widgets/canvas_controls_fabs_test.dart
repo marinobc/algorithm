@@ -17,7 +17,7 @@ void main() {
           child: MaterialApp(
             theme: AppTheme.darkTheme,
             home: Scaffold(
-              body: CanvasControlsFabs(
+              body: UndoRedoCanvasFabs(
                 onResetView: () {
                   centerClicked = true;
                 },

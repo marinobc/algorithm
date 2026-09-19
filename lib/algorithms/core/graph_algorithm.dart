@@ -160,4 +160,9 @@ abstract class GraphAlgorithm {
     showConnectionValueInputDialog(context, ref, conexion);
     return Future.value();
   }
+
+  /// Triggered when a new node is created on the canvas while this algorithm is active.
+  Future<void> onNodeCreated(BuildContext context, WidgetRef ref, Nodo nodo) {
+    return Future.value();
+  }
 }
