@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../algorithms/assignment/domain/policy/assignment_graph_policy.dart';
 import '../../algorithms/assignment/providers/assignment_provider.dart';
 import '../../algorithms/assignment/ui/assignment_matrix_screen.dart';
 import '../../algorithms/core/algorithm_registry.dart';
 import '../../algorithms/johnson/providers/johnson_provider.dart';
-import '../../algorithms/northwest/domain/services/northwest_problem_extractor.dart';
 import '../../algorithms/northwest/providers/northwest_provider.dart';
 import '../../algorithms/northwest/ui/northwest_matrix_screen.dart';
 import '../../application/providers/config_provider.dart';
@@ -123,23 +121,15 @@ class CanvasControlsFabs extends ConsumerWidget {
           const SizedBox(height: 10),
           Builder(
             builder: (context) {
-              final graph = ref.watch(grafoProvider);
-              final canViewGraphMatrix =
-                  graph.nodos.values.any(
-                    (node) =>
-                        node.rol == NorthwestRoles.origin ||
-                        node.rol == 'origen',
-                  ) &&
-                  graph.nodos.values.any(
-                    (node) =>
-                        node.rol == NorthwestRoles.destination ||
-                        node.rol == 'destino',
-                  );
+              final validation = ref.watch(northwestValidationProvider);
+              final canViewGraphMatrix = validation.isValid;
+              final tooltipMsg = canViewGraphMatrix
+                  ? 'Ver matriz del grafo'
+                  : (validation.errorMessage ??
+                      'Conecte y configure el grafo para ver la matriz');
               return FloatingActionButton.small(
                 heroTag: 'fab_northwest_graph_matrix',
-                tooltip: canViewGraphMatrix
-                    ? 'Ver matriz del grafo'
-                    : 'Agrega un origen y un destino para ver la matriz',
+                tooltip: tooltipMsg,
                 elevation: canViewGraphMatrix ? 2 : 0,
                 backgroundColor: canViewGraphMatrix
                     ? colorScheme.secondaryContainer
@@ -168,19 +158,16 @@ class CanvasControlsFabs extends ConsumerWidget {
           const SizedBox(height: 10),
           Builder(
             builder: (context) {
-              final graph = ref.watch(grafoProvider);
-              final canViewGraphMatrix =
-                  graph.nodos.values.any(
-                    (node) => node.rol == AssignmentRoles.origin,
-                  ) &&
-                  graph.nodos.values.any(
-                    (node) => node.rol == AssignmentRoles.destination,
-                  );
+              final validation = ref.watch(transportationValidationProvider);
+              final canViewGraphMatrix = validation.isValid;
+              final tooltipMsg = canViewGraphMatrix
+                  ? 'Ver matriz del grafo'
+                  : (validation.errorMessage ??
+                      'Conecte y configure el grafo para ver la matriz');
               return FloatingActionButton.small(
+                key: const ValueKey('fab_assignment_graph_matrix_key'),
                 heroTag: 'fab_assignment_graph_matrix',
-                tooltip: canViewGraphMatrix
-                    ? 'Ver matriz del grafo'
-                    : 'Agrega un origen y un destino para ver la matriz',
+                tooltip: tooltipMsg,
                 elevation: canViewGraphMatrix ? 2 : 0,
                 backgroundColor: canViewGraphMatrix
                     ? colorScheme.secondaryContainer

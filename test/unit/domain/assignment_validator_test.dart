@@ -248,5 +248,93 @@ void main() {
       expect(result.origins.length, equals(1));
       expect(result.destinations.length, equals(2));
     });
+
+    test('Fails validation when explicit origin node is unconnected (outDegree == 0)', () {
+      final o1 = const Nodo(
+        id: 'O1',
+        nombre: 'Origen 1',
+        rol: 'assignment_origin',
+        colorValue: 0,
+        x: 0,
+        y: 0,
+      );
+      final d1 = const Nodo(
+        id: 'D1',
+        nombre: 'Destino 1',
+        rol: 'assignment_destination',
+        colorValue: 0,
+        x: 100,
+        y: 0,
+      );
+      final o2 = const Nodo(
+        id: 'O2',
+        nombre: 'Origen Desconectado',
+        rol: 'assignment_origin',
+        colorValue: 0,
+        x: 0,
+        y: 100,
+      );
+
+      final c1 = const Conexion(
+        id: 'c1',
+        nodoOrigenId: 'O1',
+        nodoDestinoId: 'D1',
+        colorValue: 0,
+        direccion: Direccion.unidireccional,
+      );
+
+      final grafo = Grafo(
+        nodos: {'O1': o1, 'D1': d1, 'O2': o2},
+        conexiones: {'c1': c1},
+      );
+
+      final result = TransportationValidator.validate(grafo);
+      expect(result.isValid, isFalse);
+      expect(result.errorMessage, contains('Origen Desconectado'));
+    });
+
+    test('Fails validation when explicit destination node is unconnected (inDegree == 0)', () {
+      final o1 = const Nodo(
+        id: 'O1',
+        nombre: 'Origen 1',
+        rol: 'assignment_origin',
+        colorValue: 0,
+        x: 0,
+        y: 0,
+      );
+      final d1 = const Nodo(
+        id: 'D1',
+        nombre: 'Destino 1',
+        rol: 'assignment_destination',
+        colorValue: 0,
+        x: 100,
+        y: 0,
+      );
+      final d2 = const Nodo(
+        id: 'D2',
+        nombre: 'Destino Desconectado',
+        rol: 'assignment_destination',
+        colorValue: 0,
+        x: 100,
+        y: 100,
+      );
+
+      final c1 = const Conexion(
+        id: 'c1',
+        nodoOrigenId: 'O1',
+        nodoDestinoId: 'D1',
+        colorValue: 0,
+        direccion: Direccion.unidireccional,
+      );
+
+      final grafo = Grafo(
+        nodos: {'O1': o1, 'D1': d1, 'D2': d2},
+        conexiones: {'c1': c1},
+      );
+
+      final result = TransportationValidator.validate(grafo);
+      expect(result.isValid, isFalse);
+      expect(result.errorMessage, contains('Destino Desconectado'));
+    });
   });
 }

@@ -332,12 +332,7 @@ void main() {
         await tester.pumpAndSettle();
 
         final fab = tester.widget<FloatingActionButton>(
-          find.ancestor(
-            of: find.byTooltip(
-              'Agrega un origen y un destino para ver la matriz',
-            ),
-            matching: find.byType(FloatingActionButton),
-          ),
+          find.byKey(const ValueKey('fab_assignment_graph_matrix_key')),
         );
         expect(fab.onPressed, isNull);
       },

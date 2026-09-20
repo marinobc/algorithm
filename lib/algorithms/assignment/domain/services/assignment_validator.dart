@@ -88,20 +88,50 @@ class TransportationValidator {
       final outD = outDegree[node.id] ?? 0;
       final nodeName = node.nombre ?? node.id;
 
-      if (node.rol == AssignmentRoles.origin) {
-        origins.add(node);
-      } else if (node.rol == AssignmentRoles.destination) {
-        destinations.add(node);
-      } else if (inD == 0 && outD > 0) {
-        origins.add(node);
-      } else if (outD == 0 && inD > 0) {
-        destinations.add(node);
-      } else if (inD == 0 && outD == 0) {
+      if (inD == 0 && outD == 0) {
         return TransportationValidationResult(
           isValid: false,
           errorMessage:
               'No se puede aplicar el algoritmo, modifique el nodo aislado "$nodeName" conectándolo a la red.',
         );
+      }
+
+      if (node.rol == AssignmentRoles.origin) {
+        if (inD > 0) {
+          return TransportationValidationResult(
+            isValid: false,
+            errorMessage:
+                'No se puede aplicar el algoritmo, modifique el nodo de Origen "$nodeName" (no debe tener conexiones entrantes).',
+          );
+        }
+        if (outD == 0) {
+          return TransportationValidationResult(
+            isValid: false,
+            errorMessage:
+                'No se puede aplicar el algoritmo, modifique el nodo de Origen "$nodeName" conectándolo hacia al menos un Destino.',
+          );
+        }
+        origins.add(node);
+      } else if (node.rol == AssignmentRoles.destination) {
+        if (outD > 0) {
+          return TransportationValidationResult(
+            isValid: false,
+            errorMessage:
+                'No se puede aplicar el algoritmo, modifique el nodo de Destino "$nodeName" (no debe tener conexiones salientes).',
+          );
+        }
+        if (inD == 0) {
+          return TransportationValidationResult(
+            isValid: false,
+            errorMessage:
+                'No se puede aplicar el algoritmo, modifique el nodo de Destino "$nodeName" conectándole al menos un Origen.',
+          );
+        }
+        destinations.add(node);
+      } else if (inD == 0 && outD > 0) {
+        origins.add(node);
+      } else if (outD == 0 && inD > 0) {
+        destinations.add(node);
       } else {
         // Node has both in > 0 and out > 0 (Intermediate / Transshipment node)
         return TransportationValidationResult(
