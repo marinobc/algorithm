@@ -67,6 +67,34 @@ AppToast.show(
 
 ---
 
+## 2.1 Sistema de Logging y Consola (`AppLogger`)
+
+> [!CAUTION]
+> **PROHIBIDO** utilizar declaraciones directas de `print(...)` o `debugPrint(...)` en el código de producción.
+
+### Uso Obligatorio de `AppLogger`
+Todo registro de depuración, información, advertencia o error en la consola debe realizarse utilizando la clase [`AppLogger`](lib/core/utils/app_logger.dart):
+
+```dart
+import 'package:nodos/core/utils/app_logger.dart';
+
+// Logs de información y eventos de flujo
+AppLogger.i('NombreModulo', 'Descripción clara del evento ejecutado.');
+
+// Logs de depuración detallados
+AppLogger.d('NombreModulo', 'Estado del objeto: $objeto');
+
+// Logs de advertencia o errores
+AppLogger.w('NombreModulo', 'El cálculo superó el umbral esperado.');
+AppLogger.e('NombreModulo', 'Error al procesar la matriz', error, stackTrace);
+```
+
+### Reglas para Agentes y Desarrolladores al Agregar Logs:
+1. **Instrucciones del Usuario sobre Prints/Logs:** Cuando un usuario solicite agregar un log o `print` de prueba (ej. *"agrega un print aquí"*), el agente o desarrollador **DEBE utilizar siempre `AppLogger`** (`AppLogger.d` o `AppLogger.i`) en lugar de `print(...)`.
+2. **Comunicación Transparente al Usuario:** Tras responder o aplicar el cambio, el agente **debe informar explícitamente al usuario** que se utilizó `AppLogger` en lugar de un `print` crudo debido a la política del proyecto en `AGENTS.md`, explicando la razón para evitar malentendidos sobre el cumplimiento del requerimiento.
+
+---
+
 ## 3. Diálogos, Menús y Flujos de Navegación
 
 ### Menús y Paneles Flotantes
