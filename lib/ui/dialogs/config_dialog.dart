@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../application/providers/config_provider.dart';
@@ -17,7 +16,6 @@ class ConfigScreen extends ConsumerStatefulWidget {
 }
 
 class _ConfigScreenState extends ConsumerState<ConfigScreen> {
-  late TextEditingController _valController;
   late ThemeMode _selectedTheme;
   late Direccion _selectedConnType;
   late bool _mostrarDebug;
@@ -26,28 +24,13 @@ class _ConfigScreenState extends ConsumerState<ConfigScreen> {
   void initState() {
     super.initState();
     final currentConfig = ref.read(configProvider);
-    _valController = TextEditingController(
-      text: currentConfig.valorConexionPorDefecto,
-    );
     _selectedTheme = currentConfig.themeMode;
     _selectedConnType = currentConfig.tipoConexionPorDefecto;
     _mostrarDebug = currentConfig.mostrarBotonesDebug;
   }
 
-  @override
-  void dispose() {
-    _valController.dispose();
-    super.dispose();
-  }
-
   void _autoSaveConfig() {
-    String val = _valController.text.trim();
-    final parsed = double.tryParse(val);
-    if (val.isEmpty || parsed == null || parsed <= 0) {
-      val = '1';
-    }
     final notifier = ref.read(configProvider.notifier);
-    notifier.setValorConexionPorDefecto(val);
     notifier.setTipoConexionPorDefecto(_selectedConnType);
     notifier.setThemeMode(_selectedTheme);
   }
@@ -140,70 +123,6 @@ class _ConfigScreenState extends ConsumerState<ConfigScreen> {
                               setState(() => _selectedConnType = val);
                               _autoSaveConfig();
                             },
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Section 2: Default Connection Weight Card (User Input Only)
-                  Card(
-                    elevation: 1,
-                    color: colorScheme.surfaceContainerLow,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(20.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.numbers,
-                                color: colorScheme.primary,
-                                size: 22,
-                              ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: Text(
-                                  'Valor Inicial para Conexiones',
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                    color: colorScheme.onSurface,
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                          TextField(
-                            controller: _valController,
-                            keyboardType: const TextInputType.numberWithOptions(
-                              decimal: true,
-                            ),
-                            inputFormatters: [
-                              FilteringTextInputFormatter.allow(
-                                RegExp(r'^\d*\.?\d*'),
-                              ),
-                            ],
-                            onChanged: (_) => _autoSaveConfig(),
-                            decoration: InputDecoration(
-                              filled: true,
-                              fillColor: colorScheme.surfaceContainerHighest,
-                              labelText: 'Valor numérico inicial de la arista',
-                              hintText: 'Ej: 1, 10, 50',
-                              prefixIcon: const Icon(Icons.edit_note_rounded),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(14),
-                                borderSide: BorderSide.none,
-                              ),
-                            ),
                           ),
                         ],
                       ),

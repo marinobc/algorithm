@@ -5,27 +5,22 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../domain/models/direccion.dart';
 
 class ConfigEstado {
-  final String valorConexionPorDefecto;
   final ThemeMode themeMode;
   final Direccion tipoConexionPorDefecto;
   final bool mostrarBotonesDebug;
 
   const ConfigEstado({
-    this.valorConexionPorDefecto = '1',
     this.themeMode = ThemeMode.light,
     this.tipoConexionPorDefecto = Direccion.unidireccional,
     this.mostrarBotonesDebug = false,
   });
 
   ConfigEstado copyWith({
-    String? valorConexionPorDefecto,
     ThemeMode? themeMode,
     Direccion? tipoConexionPorDefecto,
     bool? mostrarBotonesDebug,
   }) {
     return ConfigEstado(
-      valorConexionPorDefecto:
-          valorConexionPorDefecto ?? this.valorConexionPorDefecto,
       themeMode: themeMode ?? this.themeMode,
       tipoConexionPorDefecto:
           tipoConexionPorDefecto ?? this.tipoConexionPorDefecto,
@@ -94,10 +89,6 @@ class ConfigNotifier extends Notifier<ConfigEstado> {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_prefConnTypeKey, type.name);
     } catch (_) {}
-  }
-
-  void setValorConexionPorDefecto(String val) {
-    state = state.copyWith(valorConexionPorDefecto: val);
   }
 
   void setTipoConexionPorDefecto(Direccion type) {

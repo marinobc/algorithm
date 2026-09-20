@@ -243,14 +243,7 @@ class GrafoNotifier extends Notifier<Grafo> {
       }
     }
 
-    _recordUndoState();
-    final defaultConfigVal = ref.read(configProvider).valorConexionPorDefecto;
-    final validDefaultVal =
-        (defaultConfigVal.isEmpty ||
-            double.tryParse(defaultConfigVal) == null ||
-            (double.tryParse(defaultConfigVal) ?? 0) <= 0)
-        ? '1'
-        : defaultConfigVal;
+    const validDefaultVal = '1';
 
     final defaultAttrs = <AtributoValor>[];
     if (atributos != null && atributos.isNotEmpty) {
@@ -408,13 +401,7 @@ class GrafoNotifier extends Notifier<Grafo> {
 
     final now = DateTime.now().microsecondsSinceEpoch;
 
-    final defaultConfigVal = ref.read(configProvider).valorConexionPorDefecto;
-    final validDefaultVal =
-        (defaultConfigVal.isEmpty ||
-            double.tryParse(defaultConfigVal) == null ||
-            (double.tryParse(defaultConfigVal) ?? 0) <= 0)
-        ? '1'
-        : defaultConfigVal;
+    const validDefaultVal = '1';
     final fallbackAttrs = [
       AtributoValor(atributoId: 'attr_valor', valor: validDefaultVal),
     ];
