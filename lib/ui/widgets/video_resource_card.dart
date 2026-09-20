@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 
+import '../../core/utils/app_logger.dart';
+
 class VideoResourceCard extends StatelessWidget {
   final String title;
   final String description;
@@ -32,6 +34,10 @@ class VideoResourceCard extends StatelessWidget {
   }
 
   void _openVideo(BuildContext context) {
+    AppLogger.i(
+      'VideoResourceCard',
+      'Opening YouTube video modal: $title ($videoUrl)',
+    );
     showDialog(
       context: context,
       builder: (_) => _InlineVideoModal(title: title, videoUrl: videoUrl),

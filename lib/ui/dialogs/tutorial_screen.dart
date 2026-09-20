@@ -10,7 +10,6 @@ class TutorialScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint('[TutorialScreen] Building TutorialScreen widget...');
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
