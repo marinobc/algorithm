@@ -172,20 +172,25 @@ class _AssignmentBipartiteMatrixScreenState
                       ),
                     ),
                     const SizedBox(height: 12),
-                    SizedBox(
-                      width: double.infinity,
-                      child: FilledButton.icon(
-                        onPressed: () async {
-                          final didOptimize = await runActiveAlgorithm(
-                            context,
-                            ref,
-                          );
-                          if (didOptimize && context.mounted) {
-                            Navigator.of(context).pop();
-                          }
-                        },
-                        icon: const Icon(Icons.play_arrow_rounded),
-                        label: const Text('Optimizar asignación'),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: SizedBox(
+                        width: MediaQuery.sizeOf(context).width > 600
+                            ? 240
+                            : double.infinity,
+                        child: FilledButton.icon(
+                          onPressed: () async {
+                            final didOptimize = await runActiveAlgorithm(
+                              context,
+                              ref,
+                            );
+                            if (didOptimize && context.mounted) {
+                              Navigator.of(context).pop();
+                            }
+                          },
+                          icon: const Icon(Icons.play_arrow_rounded),
+                          label: const Text('Optimizar asignación'),
+                        ),
                       ),
                     ),
                   ],
@@ -202,6 +207,8 @@ class _AssignmentBipartiteMatrixScreenState
     required List<Nodo> destinations,
     required ColorScheme colorScheme,
   }) {
+    final activeAlgo = ref.read(activeAlgorithmProvider);
+    final isNorthwest = activeAlgo?.id == AlgorithmRegistry.northwestId;
     // 1. Calculate row sums and degrees (Origins)
     final rowSums = <double>[];
     final rowDegrees = <int>[];
@@ -334,24 +341,26 @@ class _AssignmentBipartiteMatrixScreenState
               height: cellHeight,
             ),
 
-            // Summary Header 3: Oferta (Supply)
-            _buildHeaderCell(
-              context: context,
-              label: 'Oferta',
-              isSelected: _selectedColumnIndex == destinations.length + 2,
-              onTap: () {
-                setState(() {
-                  _selectedColumnIndex =
-                      _selectedColumnIndex == destinations.length + 2
-                      ? null
-                      : destinations.length + 2;
-                });
-              },
-              colorScheme: colorScheme,
-              isSum: true,
-              width: cellWidth,
-              height: cellHeight,
-            ),
+            // Summary Header 3: Oferta (Supply) - only for Northwest / Transportation
+            if (isNorthwest)
+              _buildHeaderCell(
+                context: context,
+                label: 'Oferta',
+                isSelected: _selectedColumnIndex == destinations.length + 2,
+                onTap: () {
+                  setState(() {
+                    _selectedColumnIndex =
+                        _selectedColumnIndex == destinations.length + 2
+                        ? null
+                        : destinations.length + 2;
+                  });
+                },
+                colorScheme: colorScheme,
+                isSum: true,
+                customColor: colorScheme.error,
+                width: cellWidth,
+                height: cellHeight,
+              ),
           ],
         ),
         const SizedBox(height: 10),
@@ -607,19 +616,21 @@ class _AssignmentBipartiteMatrixScreenState
                         width: cellWidth,
                         height: cellHeight,
                       ),
-                      // Oferta (Supply)
-                      _buildSummaryCell(
-                        context: context,
-                        text: _formatVal(origNode.cantidad ?? 0),
-                        tooltip: 'Oferta disponible en el origen $origLabel',
-                        isSum: true,
-                        isSelected:
-                            isRowSelected ||
-                            _selectedColumnIndex == destinations.length + 2,
-                        colorScheme: colorScheme,
-                        width: cellWidth,
-                        height: cellHeight,
-                      ),
+                      // Oferta (Supply) - only for Northwest / Transportation
+                      if (isNorthwest)
+                        _buildSummaryCell(
+                          context: context,
+                          text: _formatVal(origNode.cantidad ?? 0),
+                          tooltip: 'Oferta disponible en el origen $origLabel',
+                          isSum: true,
+                          customColor: colorScheme.error,
+                          isSelected:
+                              isRowSelected ||
+                              _selectedColumnIndex == destinations.length + 2,
+                          colorScheme: colorScheme,
+                          width: cellWidth,
+                          height: cellHeight,
+                        ),
                     ],
                   ),
                 );
@@ -722,50 +733,54 @@ class _AssignmentBipartiteMatrixScreenState
           ],
         ),
 
-        // Row 3: Demanda (Demand)
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _buildHeaderCell(
-              context: context,
-              label: 'Demanda',
-              isSelected: _selectedRowIndex == origins.length + 2,
-              onTap: () {
-                setState(() {
-                  _selectedRowIndex = _selectedRowIndex == origins.length + 2
-                      ? null
-                      : origins.length + 2;
-                });
-              },
-              colorScheme: colorScheme,
-              isSum: true,
-              width: rowHeaderWidth,
-              height: cellHeight,
-              margin: const EdgeInsets.symmetric(vertical: 2),
-            ),
-            const SizedBox(width: bracketGap + bracketWidth + bracketGap),
-            ...List.generate(destinations.length, (j) {
-              final isColSelected = _selectedColumnIndex == j;
-              final destNode = destinations[j];
-              final destLabel = destNode.nombre ?? destNode.id;
+        // Row 3: Demanda (Demand) - only for Northwest / Transportation
+        if (isNorthwest)
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildHeaderCell(
+                context: context,
+                label: 'Demanda',
+                isSelected: _selectedRowIndex == origins.length + 2,
+                onTap: () {
+                  setState(() {
+                    _selectedRowIndex = _selectedRowIndex == origins.length + 2
+                        ? null
+                        : origins.length + 2;
+                  });
+                },
+                colorScheme: colorScheme,
+                isSum: true,
+                customColor: colorScheme.error,
+                width: rowHeaderWidth,
+                height: cellHeight,
+                margin: const EdgeInsets.symmetric(vertical: 2),
+              ),
+              const SizedBox(width: bracketGap + bracketWidth + bracketGap),
+              ...List.generate(destinations.length, (j) {
+                final isColSelected = _selectedColumnIndex == j;
+                final destNode = destinations[j];
+                final destLabel = destNode.nombre ?? destNode.id;
 
-              return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 2),
-                child: _buildSummaryCell(
-                  context: context,
-                  text: _formatVal(destNode.cantidad ?? 0),
-                  tooltip: 'Demanda requerida por el destino $destLabel',
-                  isSum: true,
-                  isSelected:
-                      isColSelected || _selectedRowIndex == origins.length + 2,
-                  colorScheme: colorScheme,
-                  width: cellWidth,
-                  height: cellHeight,
-                ),
-              );
-            }),
-          ],
-        ),
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 2),
+                  child: _buildSummaryCell(
+                    context: context,
+                    text: _formatVal(destNode.cantidad ?? 0),
+                    tooltip: 'Demanda requerida por el destino $destLabel',
+                    isSum: true,
+                    customColor: colorScheme.error,
+                    isSelected:
+                        isColSelected ||
+                        _selectedRowIndex == origins.length + 2,
+                    colorScheme: colorScheme,
+                    width: cellWidth,
+                    height: cellHeight,
+                  ),
+                );
+              }),
+            ],
+          ),
       ],
     );
   }
@@ -787,11 +802,15 @@ class _AssignmentBipartiteMatrixScreenState
     required double width,
     required double height,
     EdgeInsetsGeometry? margin,
+    Color? customColor,
   }) {
-    final baseColor = isSum ? colorScheme.primary : colorScheme.secondary;
-    final baseContainer = isSum
-        ? colorScheme.primaryContainer
-        : colorScheme.secondaryContainer;
+    final baseColor =
+        customColor ?? (isSum ? colorScheme.primary : colorScheme.secondary);
+    final baseContainer = customColor != null
+        ? colorScheme.errorContainer
+        : (isSum
+              ? colorScheme.primaryContainer
+              : colorScheme.secondaryContainer);
 
     final bgColor = isSelected
         ? baseContainer
@@ -800,9 +819,11 @@ class _AssignmentBipartiteMatrixScreenState
         ? baseColor
         : baseColor.withValues(alpha: 0.4);
     final textColor = isSelected
-        ? (isSum
-              ? colorScheme.onPrimaryContainer
-              : colorScheme.onSecondaryContainer)
+        ? (customColor != null
+              ? colorScheme.onErrorContainer
+              : (isSum
+                    ? colorScheme.onPrimaryContainer
+                    : colorScheme.onSecondaryContainer))
         : baseColor;
 
     return GestureDetector(
@@ -842,19 +863,25 @@ class _AssignmentBipartiteMatrixScreenState
     required ColorScheme colorScheme,
     required double width,
     required double height,
+    Color? customColor,
   }) {
-    final baseColor = isSum ? colorScheme.primary : colorScheme.secondary;
-    final baseContainer = isSum
-        ? colorScheme.primaryContainer
-        : colorScheme.secondaryContainer;
+    final baseColor =
+        customColor ?? (isSum ? colorScheme.primary : colorScheme.secondary);
+    final baseContainer = customColor != null
+        ? colorScheme.errorContainer
+        : (isSum
+              ? colorScheme.primaryContainer
+              : colorScheme.secondaryContainer);
 
     final bg = isSelected
         ? baseContainer
         : baseContainer.withValues(alpha: 0.2);
     final textColor = isSelected
-        ? (isSum
-              ? colorScheme.onPrimaryContainer
-              : colorScheme.onSecondaryContainer)
+        ? (customColor != null
+              ? colorScheme.onErrorContainer
+              : (isSum
+                    ? colorScheme.onPrimaryContainer
+                    : colorScheme.onSecondaryContainer))
         : baseColor;
 
     return Tooltip(
