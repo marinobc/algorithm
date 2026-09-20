@@ -522,7 +522,14 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
         if (distWorld > 15.0 &&
             targetNode != null &&
             targetNode.id != startId) {
-          // Instant drag to connect DIFFERENT target node!
+          final isSolutionActive = ref.read(isSolutionActiveProvider);
+          if (isSolutionActive) {
+            _showPolicyDeniedSnackBar(
+              'Cierra la solución activa para trazar nuevas conexiones.',
+            );
+            return;
+          }
+
           final policy = ref.read(activePolicyProvider);
           if (policy != null) {
             final check = policy.canCreateConnection(
@@ -801,6 +808,14 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
         worldPos.dx,
         worldPos.dy,
       );
+
+      final isSolutionActive = ref.read(isSolutionActiveProvider);
+      if (isSolutionActive) {
+        _showPolicyDeniedSnackBar(
+          'Cierra la solución activa para agregar nuevos nodos.',
+        );
+        return;
+      }
 
       final policy = ref.read(activePolicyProvider);
       if (policy != null) {

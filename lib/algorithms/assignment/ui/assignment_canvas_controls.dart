@@ -13,6 +13,13 @@ class AssignmentCanvasControls extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final isSolutionActive = ref.watch(
+      transportationNotifierProvider.select((s) => s.isActive),
+    );
+    if (isSolutionActive) {
+      return const SizedBox.shrink();
+    }
+
     final graph = ref.watch(grafoProvider);
     final selectedRole = ref.watch(assignmentActiveRoleProvider);
 

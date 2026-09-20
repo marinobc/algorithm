@@ -84,3 +84,18 @@ final activePolicyProvider = Provider<GraphAlgorithmPolicy?>((ref) {
 
   return activeAlgo.policy;
 });
+
+/// Convenience provider returning whether a solution calculation card is active for the current algorithm mode.
+final isSolutionActiveProvider = Provider<bool>((ref) {
+  final activeAlgo = ref.watch(activeAlgorithmProvider);
+  if (activeAlgo == null) return false;
+
+  if (activeAlgo.id == AlgorithmRegistry.assignmentId) {
+    return ref.watch(transportationNotifierProvider).isActive;
+  } else if (activeAlgo.id == AlgorithmRegistry.johnsonId) {
+    return ref.watch(johnsonNotifierProvider).isActive;
+  } else if (activeAlgo.id == AlgorithmRegistry.northwestId) {
+    return ref.watch(northwestNotifierProvider).isActive;
+  }
+  return false;
+});
