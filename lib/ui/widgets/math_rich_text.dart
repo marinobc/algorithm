@@ -34,7 +34,7 @@ class MathRichText extends StatelessWidget {
         theme.colorScheme.primaryContainer.withValues(alpha: 0.35);
 
     final spans = <InlineSpan>[];
-    final regex = RegExp(r'\$([^\$]+)\$');
+    final regex = RegExp(r'\$\$?([^\$]+)\$\$?');
     int lastEnd = 0;
 
     for (final match in regex.allMatches(text)) {
@@ -59,6 +59,10 @@ class MathRichText extends StatelessWidget {
   }
 
   static final List<MapEntry<String, String>> _symbolReplacements = [
+    MapEntry(r'\min', 'min'),
+    MapEntry(r'\max', 'max'),
+    MapEntry(r'\quad', '  '),
+    MapEntry(r'\forall', '∀'),
     MapEntry(r'\Delta', 'Δ'),
     MapEntry(r'\delta', 'δ'),
     MapEntry(r'\alpha', 'α'),
