@@ -24,6 +24,7 @@ import '../theme/app_theme.dart';
 import '../widgets/app_toast.dart';
 import '../widgets/floating_context_menu.dart';
 import 'canvas_camera.dart';
+import 'canvas_gesture_state.dart';
 import 'graph_canvas_dialogs.dart';
 import 'graph_hit_tester.dart';
 import 'graph_painter.dart';
@@ -49,16 +50,83 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
   final CanvasCamera _camera = CanvasCamera();
 
   // Gesture state tracking
-  Offset? _pointerDownScreenPosition;
-  Timer? _longPressTimer;
-  bool _isDraggingNode = false;
-  String? _draggedNodeId;
-  bool _isDraggingConn = false;
-  String? _draggedConnId;
-  double _lastScale = 1.0;
-  Offset? _lastFocalPoint;
-  bool _isInitialCentered = false;
-  int _maxPointerCountDuringGesture = 0;
+  final CanvasGestureState _gesture = CanvasGestureState();
+
+  Offset? get _pointerDownScreenPosition => _gesture.pointerDownScreenPosition;
+  set _pointerDownScreenPosition(Offset? val) =>
+      _gesture.pointerDownScreenPosition = val;
+
+  Timer? get _longPressTimer => _gesture.longPressTimer;
+  set _longPressTimer(Timer? val) => _gesture.longPressTimer = val;
+
+  bool get _isDraggingNode => _gesture.isDraggingNode;
+  set _isDraggingNode(bool val) => _gesture.isDraggingNode = val;
+
+  String? get _draggedNodeId => _gesture.draggedNodeId;
+  set _draggedNodeId(String? val) => _gesture.draggedNodeId = val;
+
+  bool get _isDraggingConn => _gesture.isDraggingConn;
+  set _isDraggingConn(bool val) => _gesture.isDraggingConn = val;
+
+  String? get _draggedConnId => _gesture.draggedConnId;
+  set _draggedConnId(String? val) => _gesture.draggedConnId = val;
+
+  double get _lastScale => _gesture.lastScale;
+  set _lastScale(double val) => _gesture.lastScale = val;
+
+  Offset? get _lastFocalPoint => _gesture.lastFocalPoint;
+  set _lastFocalPoint(Offset? val) => _gesture.lastFocalPoint = val;
+
+  bool get _isInitialCentered => _gesture.isInitialCentered;
+  set _isInitialCentered(bool val) => _gesture.isInitialCentered = val;
+
+  int get _maxPointerCountDuringGesture =>
+      _gesture.maxPointerCountDuringGesture;
+  set _maxPointerCountDuringGesture(int val) =>
+      _gesture.maxPointerCountDuringGesture = val;
+
+  String? get _dragConnectingStartNodeId => _gesture.dragConnectingStartNodeId;
+  set _dragConnectingStartNodeId(String? val) =>
+      _gesture.dragConnectingStartNodeId = val;
+
+  Offset? get _dragConnectingCurrentPos => _gesture.dragConnectingCurrentPos;
+  set _dragConnectingCurrentPos(Offset? val) =>
+      _gesture.dragConnectingCurrentPos = val;
+
+  String? get _dragConnectingTargetNodeId =>
+      _gesture.dragConnectingTargetNodeId;
+  set _dragConnectingTargetNodeId(String? val) =>
+      _gesture.dragConnectingTargetNodeId = val;
+
+  Timer? get _nodeHoldTimer => _gesture.nodeHoldTimer;
+  set _nodeHoldTimer(Timer? val) => _gesture.nodeHoldTimer = val;
+
+  bool get _isNodeMoveUnlocked => _gesture.isNodeMoveUnlocked;
+  set _isNodeMoveUnlocked(bool val) => _gesture.isNodeMoveUnlocked = val;
+
+  Timer? get _singleTapEditTimer => _gesture.singleTapEditTimer;
+  set _singleTapEditTimer(Timer? val) => _gesture.singleTapEditTimer = val;
+
+  bool get _hasPannedCanvas => _gesture.hasPannedCanvas;
+  set _hasPannedCanvas(bool val) => _gesture.hasPannedCanvas = val;
+
+  DateTime? get _lastTapTime => _gesture.lastTapTime;
+  set _lastTapTime(DateTime? val) => _gesture.lastTapTime = val;
+
+  String? get _lastTapNodeId => _gesture.lastTapNodeId;
+  set _lastTapNodeId(String? val) => _gesture.lastTapNodeId = val;
+
+  DateTime? get _lastZoomGestureEndTime => _gesture.lastZoomGestureEndTime;
+  set _lastZoomGestureEndTime(DateTime? val) =>
+      _gesture.lastZoomGestureEndTime = val;
+
+  Set<int> get _activePointerIds => _gesture.activePointerIds;
+
+  bool get _isZoomLockoutActive => _gesture.isZoomLockoutActive;
+  set _isZoomLockoutActive(bool val) => _gesture.isZoomLockoutActive = val;
+
+  Timer? get _zoomLockoutTimer => _gesture.zoomLockoutTimer;
+  set _zoomLockoutTimer(Timer? val) => _gesture.zoomLockoutTimer = val;
 
   // Snap-back animation controller for invalid node positioning
   late AnimationController _snapBackController;
@@ -69,21 +137,6 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
   Offset? _contextMenuScreenPosition;
   String? _contextMenuTargetId;
   bool _contextMenuIsNode = true;
-
-  // Live drag-to-connect state tracking
-  String? _dragConnectingStartNodeId;
-  Offset? _dragConnectingCurrentPos;
-  String? _dragConnectingTargetNodeId;
-
-  // Node Move Hold timer & unlock state
-  Timer? _nodeHoldTimer;
-  bool _isNodeMoveUnlocked = false;
-
-  // Single-tap edit debounce timer (prevents edit modal popping on double-tap self loop)
-  Timer? _singleTapEditTimer;
-
-  // Track if current gesture panned or moved canvas
-  bool _hasPannedCanvas = false;
 
   @override
   void initState() {
@@ -130,14 +183,6 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
     if (!mounted) return screenPos;
     return _camera.screenToWorld(screenPos, MediaQuery.of(context).size);
   }
-
-  DateTime? _lastTapTime;
-  String? _lastTapNodeId;
-  DateTime? _lastZoomGestureEndTime;
-
-  final Set<int> _activePointerIds = {};
-  bool _isZoomLockoutActive = false;
-  Timer? _zoomLockoutTimer;
 
   void _handlePointerDown(PointerDownEvent event) {
     _activePointerIds.add(event.pointer);
@@ -322,6 +367,7 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
 
         _transform = update..multiply(_transform);
         _ensureValidTransform();
+        _lastZoomGestureEndTime = DateTime.now();
       });
       return;
     }
