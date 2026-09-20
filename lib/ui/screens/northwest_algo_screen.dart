@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../algorithms/northwest/ui/northwest_launch_button.dart';
 import '../../algorithms/northwest/ui/widgets/northwest_theory_sections.dart';
+import '../widgets/math_rich_text.dart';
 import '../widgets/video_resource_card.dart';
 import '../widgets/web_explanation_navbar.dart';
 
@@ -410,6 +411,17 @@ class NorthwestAlgoScreen extends StatelessWidget {
                       fontSize: 17,
                       fontWeight: FontWeight.bold,
                       color: colorScheme.onSurface,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Expanded(
+                    child: MathRichText(
+                      text: item['desc']!,
+                      baseStyle: TextStyle(
+                        fontSize: 13,
+                        height: 1.35,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
                     ),
                   ),
                 ],
