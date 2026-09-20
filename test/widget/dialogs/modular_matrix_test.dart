@@ -233,6 +233,7 @@ void main() {
 
         await tester.tap(find.text('Open Matrix'));
         await tester.pump();
+        await tester.pump(const Duration(seconds: 4));
 
         // No matrix screens should be pushed
         expect(find.byType(AdjacencyMatrixScreen), findsNothing);
