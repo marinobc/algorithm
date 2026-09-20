@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../application/providers/edicion_provider.dart';
 import '../../../application/providers/grafo_provider.dart';
 import '../../../domain/models/nodo.dart';
 import '../../../ui/widgets/base_algorithm_card.dart';
@@ -59,6 +60,13 @@ class NorthwestCanvasControls extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final isSolutionActive = ref.watch(
+      northwestNotifierProvider.select((s) => s.isActive),
+    );
+    if (isSolutionActive) {
+      return const SizedBox.shrink();
+    }
+
     final graph = ref.watch(grafoProvider);
     final selectedRole = ref.watch(northwestActiveRoleProvider);
     final originCount = graph.nodos.values
@@ -156,10 +164,14 @@ class _NorthwestQuantityEditorState
   @override
   void didUpdateWidget(covariant NorthwestQuantityEditor oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.node.id != widget.node.id ||
-        oldWidget.node.cantidad != widget.node.cantidad) {
+    if (oldWidget.node.id != widget.node.id) {
       _controller.text = _formatNumber(widget.node.cantidad ?? 0);
       _error = null;
+    } else if (widget.node.cantidad != oldWidget.node.cantidad) {
+      final currentParsed = double.tryParse(_controller.text.trim());
+      if (currentParsed != widget.node.cantidad) {
+        _controller.text = _formatNumber(widget.node.cantidad ?? 0);
+      }
     }
   }
 
@@ -169,23 +181,21 @@ class _NorthwestQuantityEditorState
     super.dispose();
   }
 
-  void _save() {
-    final value = double.tryParse(_controller.text.trim());
+  void _onChanged(String val) {
+    final value = double.tryParse(val.trim());
     if (value == null || !value.isFinite || value < 0) {
-      setState(() => _error = 'Ingresa un numero no negativo.');
+      if (_error != 'Ingresa un número no negativo.') {
+        setState(() => _error = 'Ingresa un número no negativo.');
+      }
       return;
+    }
+    if (_error != null) {
+      setState(() => _error = null);
     }
     ref
         .read(grafoProvider.notifier)
         .actualizarNodo(widget.node.id, cantidad: value);
-    ref.read(northwestNotifierProvider.notifier).setActive(false);
-    setState(() {
-      _controller.text = _formatNumber(value);
-      _controller.selection = TextSelection.collapsed(
-        offset: _controller.text.length,
-      );
-      _error = null;
-    });
+    ref.read(estadoEdicionProvider.notifier).marcarCambioSinGuardar();
   }
 
   @override
@@ -201,17 +211,12 @@ class _NorthwestQuantityEditorState
           prefixIcon: Icon(
             _isOrigin ? Icons.inventory_2_outlined : Icons.flag_outlined,
           ),
-          suffixIcon: IconButton(
-            tooltip: 'Guardar cantidad',
-            onPressed: _save,
-            icon: const Icon(Icons.check_rounded),
-          ),
         ),
+        onChanged: _onChanged,
         onTap: () => _controller.selection = TextSelection(
           baseOffset: 0,
           extentOffset: _controller.text.length,
         ),
-        onSubmitted: (_) => _save(),
       ),
     );
   }
