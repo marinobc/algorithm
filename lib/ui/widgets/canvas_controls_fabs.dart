@@ -126,7 +126,7 @@ class CanvasControlsFabs extends ConsumerWidget {
               final tooltipMsg = canViewGraphMatrix
                   ? 'Ver matriz del grafo'
                   : (validation.errorMessage ??
-                      'Conecte y configure el grafo para ver la matriz');
+                        'Conecte y configure el grafo para ver la matriz');
               return FloatingActionButton.small(
                 heroTag: 'fab_northwest_graph_matrix',
                 tooltip: tooltipMsg,
@@ -163,7 +163,7 @@ class CanvasControlsFabs extends ConsumerWidget {
               final tooltipMsg = canViewGraphMatrix
                   ? 'Ver matriz del grafo'
                   : (validation.errorMessage ??
-                      'Conecte y configure el grafo para ver la matriz');
+                        'Conecte y configure el grafo para ver la matriz');
               return FloatingActionButton.small(
                 key: const ValueKey('fab_assignment_graph_matrix_key'),
                 heroTag: 'fab_assignment_graph_matrix',
