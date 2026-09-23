@@ -74,9 +74,7 @@ class AlgorithmSelectionDialog extends StatelessWidget {
                       behavior: ScrollConfiguration.of(context)
                           .copyWith(scrollbars: false),
                       child: GridView.builder(
-                        physics: columns == 1
-                            ? const BouncingScrollPhysics()
-                            : const NeverScrollableScrollPhysics(),
+                        physics: const BouncingScrollPhysics(),
                         itemCount: options.length,
                         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: columns,
@@ -242,9 +240,7 @@ class AlgorithmSelectionScreen extends ConsumerWidget {
                           behavior: ScrollConfiguration.of(context)
                               .copyWith(scrollbars: false),
                           child: GridView.builder(
-                            physics: columns == 1
-                                ? const BouncingScrollPhysics()
-                                : const NeverScrollableScrollPhysics(),
+                            physics: const BouncingScrollPhysics(),
                             itemCount: options.length,
                             gridDelegate:
                                 SliverGridDelegateWithFixedCrossAxisCount(
