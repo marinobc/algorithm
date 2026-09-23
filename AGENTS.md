@@ -266,20 +266,20 @@ ref.read(grafoProvider.notifier).actualizarConexion(
 
 Para algoritmos donde los nodos tienen pesos, demandas, ofertas o roles específicos:
 
-1. **Inicialización y Rol en la Política:**
-   En `GraphAlgorithmPolicy.prepareNewNode`, asigna los atributos por defecto o roles del nodo recién creado:
+1. **Inicialización y Rol en la Política (`ModoTipoNodo`):**
+   En `GraphAlgorithmPolicy.prepareNewNode`, considera si la configuración activa utiliza `ModoTipoNodo.declarado` o `ModoTipoNodo.detectado`:
+   - **`declarado`:** Asigna el rol recibido en `params['role']` (`origen` o `destino`).
+   - **`detectado`:** Deja el rol en `null` (o sin asignar) para que el lienzo posicione la etiqueta de valor debajo del nodo. El rol se detectará y asignará reactivamente al trazar una conexión en `GrafoNotifier.agregarConexion`. Si se desconectan todas las aristas de un nodo, `GrafoNotifier.eliminarConexion` restablecerá automáticamente su rol a `null`.
    ```dart
    @override
    Nodo prepareNewNode(Grafo grafo, double x, double y, {String? nombre, int? colorValue, Map<String, dynamic>? params}) {
+     final role = params?['role'] as String?;
      return Nodo(
        id: 'node_${DateTime.now().millisecondsSinceEpoch}',
        x: x,
        y: y,
        nombre: nombre ?? 'Nodo',
-       rol: 'oferta', // o rol asignado
-       atributos: const [
-         AtributoValor(atributoId: 'capacidad_produccion', valor: '100'),
-       ],
+       rol: role, // null si es en ModoTipoNodo.detectado
      );
    }
    ```

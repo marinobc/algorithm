@@ -14,6 +14,9 @@ Aplicación web y móvil interactiva desarrollada en **Flutter** y **Riverpod** 
   - Diálogo inteligente para resolución de selección de elementos superpuestos (`OverlappingElementsDialog`).
 - **Nodos y Conexiones Personalizables:**
   - Nodos con nombres dinámicos, colores personalizados y roles contextuales.
+  - **Modo de Asignación de Roles (`ModoTipoNodo`):** Configurable en la pantalla de ajustes (`ConfigScreen`):
+    - *Tipo Declarado:* El usuario selecciona explícitamente el rol (`Origen` / `Destino`) antes de insertar un nodo.
+    - *Tipo Detectado:* Los nodos se insertan sin rol previo y la aplicación detecta y asigna el rol automáticamente al trazar una conexión. Los valores/ofertas de nodos sin conectar se presentan directamente debajo del nodo, moviéndose lateralmente (izquierda/derecha) tras determinar su rol. Si se eliminan todas las conexiones, el nodo retorna automáticamente a estado sin rol.
   - Conexiones no dirigidas, unidireccionales y bidireccionales con curvaturas Bézier 2D independientes por sentido.
   - Auto-conexiones orbitales (*self-loops*) de 360°.
   - Edición de valores numéricos, costos y atributos dinámicos mediante diálogos contextuales.
@@ -67,11 +70,11 @@ lib/
 │   └── johnson/                # Algoritmo de Johnson (CPM/PERT: modelos, validación DAG y UI)
 │
 ├── application/                # Gestión de estado (Riverpod StateNotifiers / Notifiers)
-│   ├── providers/              # grafoProvider, edicionProvider, modoActivoProvider, etc.
+│   ├── providers/              # grafoProvider, edicionProvider, configProvider, modoActivoProvider, etc.
 │   └── state/                  # Modelos inmutables de estado de aplicación
 │
 ├── domain/                     # Lógica de negocio pura (Dart puro, sin dependencias de Flutter)
-│   ├── models/                 # Grafo, Nodo, Conexion, Atributo, Direccion
+│   ├── models/                 # Grafo, Nodo, Conexion, Atributo, Direccion, ModoTipoNodo
 │   ├── highlights/             # AlgorithmHighlight (contrato visual de resaltado)
 │   └── services/               # Geometría, validación de conectividad, exportación
 │
