@@ -272,6 +272,8 @@ class JohnsonAlgoScreen extends StatelessWidget {
                     ),
                   ),
                 ),
+                const SizedBox(height: 24),
+                const JohnsonLaunchButton(),
               ],
             ),
           ),

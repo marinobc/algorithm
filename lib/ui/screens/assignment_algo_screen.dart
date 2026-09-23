@@ -299,6 +299,8 @@ class AssignmentAlgoScreen extends StatelessWidget {
                     ),
                   ),
                 ),
+                const SizedBox(height: 24),
+                const AssignmentLaunchButton(),
               ],
             ),
           ),

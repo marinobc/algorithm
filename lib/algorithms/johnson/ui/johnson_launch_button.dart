@@ -12,7 +12,7 @@ class JohnsonLaunchButton extends ConsumerWidget {
 
   const JohnsonLaunchButton({
     super.key,
-    this.label = 'Dibujar Grafo de Johnson / CPM',
+    this.label = 'Dibujar Grafo de Johnson',
     this.icon = Icons.alt_route_rounded,
   });
 
