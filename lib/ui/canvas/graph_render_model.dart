@@ -31,6 +31,7 @@ class RenderNode {
   final bool isOverlapping; // Opacity visual indicator when stacked
   final String? quantityLabel;
   final bool quantityLabelOnLeft;
+  final bool quantityLabelBelow;
 
   const RenderNode({
     required this.id,
@@ -47,6 +48,7 @@ class RenderNode {
     this.isOverlapping = false,
     this.quantityLabel,
     this.quantityLabelOnLeft = false,
+    this.quantityLabelBelow = false,
   });
 }
 
@@ -135,6 +137,7 @@ class GraphRenderModel {
     String? dragConnectingStartNodeId,
     Offset? dragConnectingCurrentPos,
     String? dragConnectingTargetNodeId,
+    bool isDetectadoMode = false,
   }) {
     final rawNodes = <RenderNode>[];
     for (final n in grafo.nodos.values) {
@@ -160,7 +163,9 @@ class GraphRenderModel {
           isDisconnected: disconnectedNodeIds.contains(n.id),
           isPendingConnectTarget: pendingConnectNodeId == n.id,
           quantityLabel: n.cantidad == null ? null : _formatNumber(n.cantidad!),
-          quantityLabelOnLeft: n.rol == 'northwest_origin',
+          quantityLabelOnLeft: n.rol == 'northwest_origin' || n.rol == 'origen',
+          quantityLabelBelow:
+              isDetectadoMode && (n.rol == null || n.rol!.isEmpty),
         ),
       );
     }
@@ -202,6 +207,7 @@ class GraphRenderModel {
           isOverlapping: true,
           quantityLabel: rn.quantityLabel,
           quantityLabelOnLeft: rn.quantityLabelOnLeft,
+          quantityLabelBelow: rn.quantityLabelBelow,
         );
       }
       return rn;

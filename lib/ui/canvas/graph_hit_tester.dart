@@ -73,24 +73,45 @@ class GraphHitTester {
     return result;
   }
 
-  /// Identifies the editable supply or demand label beside a transport node.
-  static Nodo? hitTestQuantityLabel(Offset worldPos, Iterable<Nodo> nodes) {
+  /// Identifies the editable supply or demand label beside/below a transport node.
+  static Nodo? hitTestQuantityLabel(
+    Offset worldPos,
+    Iterable<Nodo> nodes, {
+    bool isDetectadoMode = false,
+  }) {
     for (final node in nodes) {
       if (node.id == 'nw_dummy_origin' || node.id == 'nw_dummy_destination') {
         continue;
       }
+      final isOrigin = node.rol == 'northwest_origin' || node.rol == 'origen';
+      final isDestination =
+          node.rol == 'northwest_destination' || node.rol == 'destino';
+      final isUnassigned = node.rol == null || node.rol!.isEmpty;
+
       if (node.cantidad == null ||
-          (node.rol != 'northwest_origin' &&
-              node.rol != 'northwest_destination')) {
+          (!isOrigin && !isDestination && !isUnassigned)) {
         continue;
       }
+
       final label = _formatQuantity(node.cantidad!);
       final labelWidth = max(20.0, label.length * 11.0);
       final halfNodeWidth = GraphGeometry.getNodeWidth(node) / 2;
-      final left = node.rol == 'northwest_origin'
-          ? node.x - halfNodeWidth - labelWidth - 12
-          : node.x + halfNodeWidth + 12;
-      final hitArea = Rect.fromLTWH(left - 8, node.y - 18, labelWidth + 16, 36);
+      final halfNodeHeight = node.radius;
+
+      Rect hitArea;
+      if (isDetectadoMode && isUnassigned) {
+        hitArea = Rect.fromCenter(
+          center: Offset(node.x, node.y + halfNodeHeight + 16),
+          width: labelWidth + 16,
+          height: 32,
+        );
+      } else {
+        final left = isOrigin
+            ? node.x - halfNodeWidth - labelWidth - 12
+            : node.x + halfNodeWidth + 12;
+        hitArea = Rect.fromLTWH(left - 8, node.y - 18, labelWidth + 16, 36);
+      }
+
       if (hitArea.contains(worldPos)) return node;
     }
     return null;

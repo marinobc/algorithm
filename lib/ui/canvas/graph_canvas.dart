@@ -5,11 +5,13 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../application/providers/config_provider.dart';
 import '../../application/providers/creacion_provider.dart';
 import '../../application/providers/edicion_provider.dart';
 import '../../application/providers/grafo_invalido_provider.dart';
 import '../../application/providers/grafo_provider.dart';
 import '../../application/providers/modo_provider.dart';
+import '../../domain/models/modo_tipo_nodo.dart';
 import '../../algorithms/assignment/providers/assignment_provider.dart';
 import '../../algorithms/core/algorithm_registry.dart';
 import '../../algorithms/northwest/providers/northwest_provider.dart';
@@ -644,9 +646,12 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
 
     final activeAlgorithm = ref.read(activeAlgorithmProvider);
     if (activeAlgorithm?.id == AlgorithmRegistry.northwestId) {
+      final isDetectadoMode =
+          ref.read(configProvider).modoTipoNodo == ModoTipoNodo.detectado;
       final quantityNode = GraphHitTester.hitTestQuantityLabel(
         worldPos,
         grafo.nodos.values,
+        isDetectadoMode: isDetectadoMode,
       );
       if (quantityNode != null) {
         _showQuantityEditor(quantityNode);
@@ -989,6 +994,8 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
     final desconectados = ref.watch(nodosDesconectadosProvider);
     final edicion = ref.watch(estadoEdicionProvider);
     final creacion = ref.watch(estadoCreacionProvider);
+    final isDetectadoMode =
+        ref.watch(configProvider).modoTipoNodo == ModoTipoNodo.detectado;
 
     final highlights = ref.watch(highlightedElementsProvider);
 
@@ -1004,6 +1011,7 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
       dragConnectingStartNodeId: _dragConnectingStartNodeId,
       dragConnectingCurrentPos: _dragConnectingCurrentPos,
       dragConnectingTargetNodeId: _dragConnectingTargetNodeId,
+      isDetectadoMode: isDetectadoMode,
     );
   }
 

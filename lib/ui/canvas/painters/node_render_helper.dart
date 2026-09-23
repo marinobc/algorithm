@@ -100,13 +100,21 @@ class NodeRenderHelper {
         ),
         textDirection: TextDirection.ltr,
       )..layout();
-      final labelX = node.quantityLabelOnLeft
-          ? node.position.dx - node.width / 2 - quantityPainter.width - 12
-          : node.position.dx + node.width / 2 + 12;
-      quantityPainter.paint(
-        canvas,
-        Offset(labelX, node.position.dy - quantityPainter.height / 2),
-      );
+
+      double labelX;
+      double labelY;
+
+      if (node.quantityLabelBelow) {
+        labelX = node.position.dx - quantityPainter.width / 2;
+        labelY = node.position.dy + node.height / 2 + 6;
+      } else {
+        labelX = node.quantityLabelOnLeft
+            ? node.position.dx - node.width / 2 - quantityPainter.width - 12
+            : node.position.dx + node.width / 2 + 12;
+        labelY = node.position.dy - quantityPainter.height / 2;
+      }
+
+      quantityPainter.paint(canvas, Offset(labelX, labelY));
     }
 
     if (node.isOverlapping) {
