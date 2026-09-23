@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../application/providers/config_provider.dart';
 import '../../../application/providers/grafo_provider.dart';
+import '../../../domain/models/modo_tipo_nodo.dart';
 import '../domain/policy/assignment_graph_policy.dart';
 import '../providers/assignment_provider.dart';
 
@@ -13,6 +15,11 @@ class AssignmentCanvasControls extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final modoTipoNodo = ref.watch(configProvider).modoTipoNodo;
+    if (modoTipoNodo == ModoTipoNodo.detectado) {
+      return const SizedBox.shrink();
+    }
+
     final isSolutionActive = ref.watch(
       transportationNotifierProvider.select((s) => s.isActive),
     );

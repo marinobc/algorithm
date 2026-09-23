@@ -8,6 +8,7 @@ import '../../domain/models/conexion.dart';
 import '../../domain/models/direccion.dart';
 import '../../domain/models/grafo.dart';
 import '../../domain/models/nodo.dart';
+import '../../domain/models/modo_tipo_nodo.dart';
 import '../../domain/services/graph_geometry.dart';
 import 'config_provider.dart';
 import 'grafo_undo_tracker.dart';
@@ -322,7 +323,37 @@ class GrafoNotifier extends Notifier<Grafo> {
 
       final updatedConexiones = Map<String, Conexion>.from(state.conexiones)
         ..[conexionId] = nuevaConexion;
-      state = state.copyWith(conexiones: updatedConexiones);
+
+      final config = ref.read(configProvider);
+      var updatedNodos = state.nodos;
+      if (config.modoTipoNodo == ModoTipoNodo.detectado &&
+          origNode != null &&
+          destNode != null) {
+        var newOrig = origNode;
+        var newDest = destNode;
+        bool nodeChanged = false;
+
+        if (newOrig.rol == null) {
+          newOrig = newOrig.copyWith(rol: 'origen');
+          nodeChanged = true;
+        }
+        if (newDest.rol == null) {
+          newDest = newDest.copyWith(rol: 'destino');
+          nodeChanged = true;
+        }
+
+        if (nodeChanged) {
+          final mutableNodos = Map<String, Nodo>.from(state.nodos);
+          mutableNodos[newOrig.id] = newOrig;
+          mutableNodos[newDest.id] = newDest;
+          updatedNodos = mutableNodos;
+        }
+      }
+
+      state = state.copyWith(
+        nodos: updatedNodos,
+        conexiones: updatedConexiones,
+      );
       return [nuevaConexion];
     }
   }
@@ -512,7 +543,32 @@ class GrafoNotifier extends Notifier<Grafo> {
       updatedConexiones.remove(id);
     }
 
-    state = state.copyWith(conexiones: updatedConexiones);
+    final config = ref.read(configProvider);
+    var updatedNodos = state.nodos;
+
+    if (config.modoTipoNodo == ModoTipoNodo.detectado) {
+      final mutableNodos = Map<String, Nodo>.from(state.nodos);
+      bool changed = false;
+
+      for (final node in state.nodos.values) {
+        if (node.rol == null) continue;
+
+        final hasRemainingConns = updatedConexiones.values.any(
+          (c) => c.nodoOrigenId == node.id || c.nodoDestinoId == node.id,
+        );
+
+        if (!hasRemainingConns) {
+          mutableNodos[node.id] = node.copyWith(clearRol: true);
+          changed = true;
+        }
+      }
+
+      if (changed) {
+        updatedNodos = mutableNodos;
+      }
+    }
+
+    state = state.copyWith(nodos: updatedNodos, conexiones: updatedConexiones);
   }
 
   /// Removes an attribute from all connections in the graph.

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../application/providers/config_provider.dart';
 import '../../../application/providers/edicion_provider.dart';
 import '../../../application/providers/grafo_provider.dart';
+import '../../../domain/models/modo_tipo_nodo.dart';
 import '../../../domain/models/nodo.dart';
 import '../../../ui/widgets/base_algorithm_card.dart';
 import '../domain/models/northwest_models.dart';
@@ -60,6 +62,11 @@ class NorthwestCanvasControls extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final modoTipoNodo = ref.watch(configProvider).modoTipoNodo;
+    if (modoTipoNodo == ModoTipoNodo.detectado) {
+      return const SizedBox.shrink();
+    }
+
     final isSolutionActive = ref.watch(
       northwestNotifierProvider.select((s) => s.isActive),
     );

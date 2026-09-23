@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../application/providers/config_provider.dart';
 import '../../application/providers/grafo_provider.dart';
 import '../../domain/models/conexion.dart';
+import '../../domain/models/modo_tipo_nodo.dart';
 import '../../domain/models/nodo.dart';
 import '../../ui/dialogs/connection_value_input_dialog.dart';
 import '../core/graph_algorithm.dart';
@@ -52,10 +54,14 @@ class AssignmentAlgorithm implements GraphAlgorithm {
   }
 
   @override
-  Map<String, dynamic>? newNodeParams(WidgetRef ref) => {
-    'role': ref.read(assignmentActiveRoleProvider),
-    'rol': ref.read(assignmentActiveRoleProvider),
-  };
+  Map<String, dynamic>? newNodeParams(WidgetRef ref) {
+    final modo = ref.read(configProvider).modoTipoNodo;
+    if (modo == ModoTipoNodo.detectado) {
+      return null;
+    }
+    final role = ref.read(assignmentActiveRoleProvider);
+    return {'role': role, 'rol': role};
+  }
 
   @override
   Widget? buildEmptyState(BuildContext context, WidgetRef ref) => null;
@@ -90,7 +96,22 @@ class AssignmentAlgorithm implements GraphAlgorithm {
     Color roleColor;
     IconData roleIcon;
 
-    if (inD == 0 && outD > 0) {
+    final isExplicitOrigin =
+        nodo.rol == AssignmentRoles.origin || nodo.rol == 'origen';
+    final isExplicitDest =
+        nodo.rol == AssignmentRoles.destination || nodo.rol == 'destino';
+
+    if (isExplicitOrigin) {
+      roleTitle = 'Origen (declarado)';
+      roleDesc = 'Este nodo está configurado explícitamente como Origen.';
+      roleColor = const Color(AssignmentRoles.originColor);
+      roleIcon = Icons.outbox_rounded;
+    } else if (isExplicitDest) {
+      roleTitle = 'Destino (declarado)';
+      roleDesc = 'Este nodo está configurado explícitamente como Destino.';
+      roleColor = const Color(AssignmentRoles.destinationColor);
+      roleIcon = Icons.move_to_inbox_rounded;
+    } else if (inD == 0 && outD > 0) {
       roleTitle = 'Origen (detectado)';
       roleDesc =
           'Este nodo emite $outD ${outD == 1 ? "conexión" : "conexiones"}.';

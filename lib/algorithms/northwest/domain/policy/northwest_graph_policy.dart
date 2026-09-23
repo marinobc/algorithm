@@ -28,14 +28,19 @@ class NorthwestGraphPolicy implements GraphAlgorithmPolicy {
     int? colorValue,
     Map<String, dynamic>? params,
   }) {
-    final role = params?['role'] as String? ?? NorthwestRoles.origin;
-    final sameRoleCount = grafo.nodos.values
-        .where((node) => node.rol == role)
-        .length;
-    final isOrigin = role == NorthwestRoles.origin;
-    final defaultName = isOrigin
-        ? _originName(sameRoleCount)
-        : 'D${sameRoleCount + 1}';
+    final role = params?['role'] as String?;
+    String defaultName;
+    if (role == null) {
+      defaultName = 'Nodo ${grafo.nodos.length + 1}';
+    } else {
+      final sameRoleCount = grafo.nodos.values
+          .where((node) => node.rol == role)
+          .length;
+      final isOrigin = role == NorthwestRoles.origin;
+      defaultName = isOrigin
+          ? _originName(sameRoleCount)
+          : 'D${sameRoleCount + 1}';
+    }
     final clamped = GraphGeometry.clampNodePosition(x, y);
     return Nodo(
       id: 'nw_node_${DateTime.now().microsecondsSinceEpoch}_${Random().nextInt(1000)}',
@@ -62,8 +67,12 @@ class NorthwestGraphPolicy implements GraphAlgorithmPolicy {
     if (origin == null || destination == null) {
       return const PolicyResult.deny('No se encontraron ambos nodos.');
     }
-    if (origin.rol != NorthwestRoles.origin ||
-        destination.rol != NorthwestRoles.destination) {
+    final isOrigDest =
+        origin.rol == NorthwestRoles.destination || origin.rol == 'destino';
+    final isDestOrig =
+        destination.rol == NorthwestRoles.origin || destination.rol == 'origen';
+
+    if (isOrigDest || isDestOrig) {
       return const PolicyResult.deny(
         'Solo puedes conectar un origen con un destino, en ese orden.',
       );

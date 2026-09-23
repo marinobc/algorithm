@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../application/providers/config_provider.dart';
 import '../../domain/models/conexion.dart';
+import '../../domain/models/modo_tipo_nodo.dart';
 import '../../domain/models/nodo.dart';
 import '../../ui/dialogs/connection_value_input_dialog.dart';
 import '../../ui/screens/graph_editor_screen.dart';
@@ -59,9 +61,13 @@ class NorthwestAlgorithm implements GraphAlgorithm {
       const NorthwestCanvasControls();
 
   @override
-  Map<String, dynamic>? newNodeParams(WidgetRef ref) => {
-    'role': ref.read(northwestActiveRoleProvider),
-  };
+  Map<String, dynamic>? newNodeParams(WidgetRef ref) {
+    final modo = ref.read(configProvider).modoTipoNodo;
+    if (modo == ModoTipoNodo.detectado) {
+      return null;
+    }
+    return {'role': ref.read(northwestActiveRoleProvider)};
+  }
 
   @override
   Widget? buildEmptyState(BuildContext context, WidgetRef ref) => null;
