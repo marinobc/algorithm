@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../application/providers/config_provider.dart';
 import '../../domain/models/direccion.dart';
+import '../../domain/models/modo_tipo_nodo.dart';
 import '../theme/app_theme.dart';
 import '../widgets/radio_option_card.dart';
 
@@ -122,6 +123,68 @@ class _ConfigScreenState extends ConsumerState<ConfigScreen> {
                             onSelected: (val) {
                               setState(() => _selectedConnType = val);
                               _autoSaveConfig();
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Section: Modo de Tipo de Nodo
+                  Card(
+                    elevation: 1,
+                    color: colorScheme.surfaceContainerLow,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.ads_click_rounded,
+                                color: colorScheme.primary,
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  'Modo de Asignación de Roles de Nodo',
+                                  style: TextStyle(
+                                    color: colorScheme.onSurface,
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          RadioOptionCard<ModoTipoNodo>(
+                            value: ModoTipoNodo.declarado,
+                            groupValue: ref.watch(configProvider).modoTipoNodo,
+                            title: 'Tipo Declarado',
+                            subtitle: 'Seleccionas explícitamente si el nodo es Origen o Destino al crearlo.',
+                            icon: Icons.touch_app_rounded,
+                            onSelected: (val) {
+                              ref
+                                  .read(configProvider.notifier)
+                                  .setModoTipoNodo(val);
+                            },
+                          ),
+                          RadioOptionCard<ModoTipoNodo>(
+                            value: ModoTipoNodo.detectado,
+                            groupValue: ref.watch(configProvider).modoTipoNodo,
+                            title: 'Tipo Detectado',
+                            subtitle: 'Insertas nodos sin rol previo; se asigna Origen/Destino automáticamente al conectarlos.',
+                            icon: Icons.auto_awesome_rounded,
+                            onSelected: (val) {
+                              ref
+                                  .read(configProvider.notifier)
+                                  .setModoTipoNodo(val);
                             },
                           ),
                         ],
