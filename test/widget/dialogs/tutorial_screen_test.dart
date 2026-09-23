@@ -38,9 +38,11 @@ void main() {
     testWidgets('shows section headers from the guide', (tester) async {
       const content = UserGuideText.markdownContent;
       expect(content, contains('Interacción Directa'));
-      expect(content, contains('Control del Lienzo'));
-      expect(content, contains('Modelo de Direcciones'));
-      expect(content, contains('Historial y Menú'));
+      expect(content, contains('Modos de Asignación de Roles'));
+      expect(content, contains('Algoritmos Disponibles'));
+      expect(content, contains('Navegación Web Educativa'));
+      expect(content, contains('Matrices Interactivas'));
+      expect(content, contains('Historial, Guardado y Asistente IA'));
     });
 
     testWidgets('shows the close button', (tester) async {
