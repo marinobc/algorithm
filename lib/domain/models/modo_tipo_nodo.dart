@@ -1,0 +1,1 @@
+enum ModoTipoNodo { declarado, detectado }
