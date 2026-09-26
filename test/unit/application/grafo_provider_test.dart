@@ -232,7 +232,7 @@ void main() {
     });
 
     test(
-      'vaciarGrafo clears nodes and connections while preserving undo history',
+      'vaciarGrafo clears nodes and connections and resets undo history (new graph)',
       () {
         final container = ProviderContainer();
         addTearDown(container.dispose);
@@ -245,17 +245,12 @@ void main() {
         expect(notifier.state.nodos.length, equals(2));
         expect(notifier.state.conexiones.length, equals(1));
 
-        // Vaciar grafo
+        // Vaciar grafo resets graph as a clean new canvas
         notifier.vaciarGrafo();
 
         expect(notifier.state.nodos, isEmpty);
         expect(notifier.state.conexiones, isEmpty);
-        expect(notifier.puedeDeshacer, isTrue);
-
-        // Undo restores the graph before vaciarGrafo
-        notifier.deshacer();
-        expect(notifier.state.nodos.length, equals(2));
-        expect(notifier.state.conexiones.length, equals(1));
+        expect(notifier.puedeDeshacer, isFalse);
       },
     );
   });
