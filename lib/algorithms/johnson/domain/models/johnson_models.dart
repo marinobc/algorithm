@@ -21,6 +21,8 @@ class JohnsonEdgeResult {
   final String sourceId;
   final String targetId;
   final double duration;
+  final double totalSlack;
+  final double freeSlack;
   final bool isCritical;
 
   const JohnsonEdgeResult({
@@ -28,6 +30,8 @@ class JohnsonEdgeResult {
     required this.sourceId,
     required this.targetId,
     required this.duration,
+    required this.totalSlack,
+    required this.freeSlack,
     required this.isCritical,
   });
 }

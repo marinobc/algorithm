@@ -6,6 +6,7 @@ import '../../domain/models/direccion.dart';
 import '../../domain/models/grafo.dart';
 import '../../domain/models/nodo.dart';
 import '../../ui/dialogs/connection_value_input_dialog.dart';
+import 'models/algorithm_step.dart';
 
 /// Result returned when evaluating whether a graph mutation is permitted
 /// under the active algorithm's policy.
@@ -135,6 +136,19 @@ abstract class GraphAlgorithm {
   /// Builds the dedicated matrix view/screen for this algorithm.
   /// Returns null if not supported.
   Widget? buildMatrixScreen(BuildContext context, WidgetRef ref) => null;
+
+  /// Whether this algorithm supports step-by-step mathematical breakdown.
+  bool get supportsStepByStep => false;
+
+  /// Reason why step-by-step explanation is unavailable for this algorithm.
+  String? get stepByStepUnavailableReason => null;
+
+  /// Retrieves the list of mathematical steps computed for the current state.
+  List<AlgorithmStep> getStepByStepList(WidgetRef ref) => const [];
+
+  /// Builds a dedicated custom step-by-step screen/view for this algorithm.
+  /// Returns null if default [StepByStepViewerDialog] should be used.
+  Widget? buildStepByStepScreen(BuildContext context, WidgetRef ref) => null;
 
   /// Opens the connection value input dialog/widget for editing a connection's numeric value.
   Future<bool?> showConnectionValueInputDialog(

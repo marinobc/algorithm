@@ -150,11 +150,13 @@ class JohnsonSolver {
       final isTargetCritical = criticalNodeIds.contains(v);
       final eSource = earlyTimes[u] ?? 0.0;
       final eTarget = earlyTimes[v] ?? 0.0;
+      final lTarget = lateTimes[v] ?? maxEarlyTime;
+
+      final totalSlack = max(0.0, lTarget - eSource - dur);
+      final freeSlack = max(0.0, eTarget - eSource - dur);
 
       final isCriticalEdge =
-          isSourceCritical &&
-          isTargetCritical &&
-          ((eSource + dur) - eTarget).abs() < 1e-5;
+          isSourceCritical && isTargetCritical && totalSlack.abs() < 1e-5;
 
       if (isCriticalEdge) {
         criticalConnectionIds.add(conn.id);
@@ -166,6 +168,8 @@ class JohnsonSolver {
           sourceId: u,
           targetId: v,
           duration: dur,
+          totalSlack: totalSlack,
+          freeSlack: freeSlack,
           isCritical: isCriticalEdge,
         ),
       );
