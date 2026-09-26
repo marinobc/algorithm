@@ -171,7 +171,10 @@ Para la creación y edición fluida de matrices en cualquier algoritmo o diálog
      - Cursor prohibido (`SystemMouseCursors.forbidden`) y estilo opaco para celdas deshabilitadas o celdas prohibidas (e.g., diagonales o asignaciones imposibles).
 3. **`BipartiteMatrixConfig`** ([`lib/ui/widgets/matrix/bipartite_matrix_config.dart`](lib/ui/widgets/matrix/bipartite_matrix_config.dart)):
    - Contrato abstracto de configuración para pantallas matriciales bipartitas y de costos/transporte.
-   - Permite declarar de forma limpia: títulos de cabecera, etiquetas de roles (Origen/Destino), soporte para oferta/demanda ($a_i$ y $b_j$), columnas/filas de balanceo ficticio y atributos de costo asociados.
+   - Permite declarar de forma limpia: títulos de cabecera, etiquetas de roles (Origen/Destino), soporte para oferta/demanda ($a_i$ y $b_j$), columnas/filas de balanceo ficticio (`hasFictitiousBalancing`) y atributos de costo asociados.
+4. **Reglas de Balanceo Ficticio e Interacción Matricial:**
+   - **Elementos Ficticios (Solo Lectura y Desconectados de Canvas):** Las filas/columnas ficticias generadas cuando `hasFictitiousBalancing == true` son puramente auxiliares para la resolución matricial en memoria. Se renderizan como celdas deshabilitadas (`readOnly`) con valor por defecto `0`. **No deben instanciar nodos ni conexiones físicas en el lienzo del grafo (Canvas).**
+   - **Navegación Teclado Universal (Flechas Direcciónales):** La navegación por teclado (Arriba/Abajo/Izquierda/Derecha y Tab/Shift+Tab) entre celdas de matriz se maneja de forma centralizada. Cuando se editan celdas, dejar una celda en blanco equivale a eliminar o omitir la conexión en el lienzo, asegurando sincronización entre vista matricial y grafo.
 
 ---
 
