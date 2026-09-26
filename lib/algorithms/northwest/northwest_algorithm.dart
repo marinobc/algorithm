@@ -9,9 +9,11 @@ import '../../ui/dialogs/connection_value_input_dialog.dart';
 import '../../ui/screens/graph_editor_screen.dart';
 import '../core/algorithm_registry.dart';
 import '../core/graph_algorithm.dart';
+import '../core/models/algorithm_step.dart';
 import 'domain/policy/northwest_graph_policy.dart';
 import 'providers/northwest_provider.dart';
 import 'ui/northwest_algorithm_widgets.dart';
+import 'ui/northwest_details_screen.dart';
 import 'ui/northwest_matrix_screen.dart';
 import 'ui/northwest_node_input_dialog.dart';
 
@@ -97,6 +99,71 @@ class NorthwestAlgorithm implements GraphAlgorithm {
   @override
   Widget? buildMatrixScreen(BuildContext context, WidgetRef ref) =>
       const NorthwestMatrixScreen();
+
+  @override
+  bool get supportsStepByStep => true;
+
+  @override
+  String? get stepByStepUnavailableReason => null;
+
+  @override
+  Widget? buildStepByStepScreen(BuildContext context, WidgetRef ref) =>
+      const NorthwestDetailsScreen();
+
+  @override
+  List<AlgorithmStep> getStepByStepList(WidgetRef ref) {
+    final result = ref.read(northwestResultProvider);
+    final problem = ref.read(northwestProblemProvider);
+    if (result == null || problem == null) return const [];
+
+    final steps = <AlgorithmStep>[];
+
+    // Step 1: Initial Solution via Northwest Corner Rule
+    steps.add(
+      AlgorithmStep(
+        stepNumber: 1,
+        title: 'Asignación Inicial Esquina Noroeste',
+        description: 'Se asigna la máxima cantidad posible min(oferta, demanda) comenzando desde la celda superior izquierda hasta agotar todas las ofertas y demandas.',
+        formulaLatex: r'x_{ij} = \min(S_i, D_j)',
+        metrics: {
+          'Costo Inicial Z': result.initialObjectiveValue.toStringAsFixed(2),
+          'Origen(es)': problem.originNames.join(', '),
+          'Destino(s)': problem.destinationNames.join(', '),
+        },
+      ),
+    );
+
+    // Iterative steps (MODI method)
+    for (var i = 0; i < result.iterations.length; i++) {
+      final iter = result.iterations[i];
+      final isLast = i == result.iterations.length - 1;
+      steps.add(
+        AlgorithmStep(
+          stepNumber: i + 2,
+          title: isLast
+              ? 'Iteración MODI ${iter.number} (Solución Óptima Alcanzada)'
+              : 'Iteración MODI ${iter.number} (Ajuste de Circuito y Alfa)',
+          description: isLast
+              ? 'Todas las evaluaciones marginales (deltas) cumplen el criterio de optimalidad. Se ha alcanzado el costo óptimo final Z = ${iter.objectiveValue.toStringAsFixed(2)}.'
+              : 'Se calculan los potenciales de filas (u) y columnas (v) para celdas básicas. La celda de entrada ajusta su flujo en alfa = ${iter.alpha?.toStringAsFixed(2) ?? "0"}.',
+          formulaLatex:
+              r'u_i + v_j = c_{ij}, \quad \Delta_{ij} = c_{ij} - (u_i + v_j)',
+          metrics: {
+            'Z en Iteración': iter.objectiveValue.toStringAsFixed(2),
+            'Potenciales Filas (u)': iter.rowPotentials
+                .map((e) => e.toStringAsFixed(1))
+                .join(', '),
+            'Potenciales Columnas (v)': iter.columnPotentials
+                .map((e) => e.toStringAsFixed(1))
+                .join(', '),
+            'Estado': isLast ? 'Óptimo' : 'En optimización',
+          },
+        ),
+      );
+    }
+
+    return steps;
+  }
 
   @override
   Future<bool?> showConnectionValueInputDialog(

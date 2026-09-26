@@ -16,7 +16,14 @@ class NorthwestModiSolver {
     var basis = Set<TransportCell>.from(initial.basis);
     final initialAllocations = _copyMatrix(allocations);
     final initialBasis = Set<TransportCell>.from(basis);
-    final initialValue = _objective(allocations, input.costs);
+    final effectiveCosts = List.generate(
+      input.rowCount,
+      (i) => List.generate(
+        input.columnCount,
+        (j) => input.costs[i][j] ?? double.infinity,
+      ),
+    );
+    final initialValue = _objective(allocations, effectiveCosts);
     final iterations = <ModiIteration>[];
     final visitedBases = <String>{};
 
@@ -26,7 +33,7 @@ class NorthwestModiSolver {
         throw StateError('MODI repitio una base y no puede continuar.');
       }
 
-      final potentials = _calculatePotentials(input.costs, basis);
+      final potentials = _calculatePotentials(effectiveCosts, basis);
       final opportunity = List.generate(
         input.rowCount,
         (i) => List.generate(
@@ -38,11 +45,11 @@ class NorthwestModiSolver {
         input.rowCount,
         (i) => List.generate(
           input.columnCount,
-          (j) => input.costs[i][j] - opportunity[i][j],
+          (j) => effectiveCosts[i][j] - opportunity[i][j],
         ),
       );
       final entering = _selectEntering(deltas, basis, input.objective);
-      final value = _objective(allocations, input.costs);
+      final value = _objective(allocations, effectiveCosts);
 
       if (entering == null) {
         iterations.add(
@@ -121,7 +128,7 @@ class NorthwestModiSolver {
           enteringCell: entering,
           circuit: List.unmodifiable(circuit),
           alpha: alpha,
-          objectiveValue: _objective(allocations, input.costs),
+          objectiveValue: _objective(allocations, effectiveCosts),
         ),
       );
     }
@@ -307,7 +314,7 @@ class NorthwestModiSolver {
     final allNumbers = <double>[
       ...input.supplies,
       ...input.demands,
-      ...input.costs.expand((row) => row),
+      ...input.costs.expand((row) => row).whereType<double>(),
     ];
     if (allNumbers.any((value) => !value.isFinite)) {
       throw ArgumentError('Todos los valores deben ser numeros finitos.');

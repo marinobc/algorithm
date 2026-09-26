@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../ui/theme/app_theme.dart';
+import '../../../ui/widgets/math_rich_text.dart';
 import '../domain/models/northwest_models.dart';
 import '../providers/northwest_provider.dart';
 
@@ -115,103 +116,216 @@ class _NorthwestDetailsScreenState
                   const SizedBox(height: 8),
                   Align(
                     alignment: Alignment.center,
-                    child: Card(
-                      elevation: 1,
-                      shape: RoundedRectangleBorder(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: colors.surface,
                         borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: colors.outlineVariant.withValues(alpha: 0.8),
+                          width: 1.5,
+                        ),
                       ),
-                      clipBehavior: Clip.antiAlias,
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: DataTable(
-                          columnSpacing: 24,
-                          horizontalMargin: 16,
-                          headingRowHeight: 42,
-                          dataRowMinHeight: 40,
-                          dataRowMaxHeight: 44,
-                          headingRowColor: WidgetStatePropertyAll(
-                            colors.surfaceContainerHigh,
-                          ),
-                          headingTextStyle: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
-                            color: colors.primary,
-                          ),
-                          columns: [
-                            const DataColumn(label: Text('Origen')),
-                            ...List.generate(problem.destinationNames.length, (
-                              col,
-                            ) {
-                              final name = problem.destinationNames[col];
-                              final id = col < problem.destinationIds.length
-                                  ? problem.destinationIds[col]
-                                  : '';
-                              final isFictitious =
-                                  id == 'nw_dummy_destination' ||
-                                  name == 'Ficticio' ||
-                                  name.startsWith('Ficticio ');
-                              return DataColumn(
-                                label: Text(
-                                  name,
-                                  style: TextStyle(
-                                    color: isFictitious
-                                        ? colors.onSurfaceVariant.withValues(
-                                            alpha: 0.5,
-                                          )
-                                        : colors.primary,
-                                    fontWeight: FontWeight.bold,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(14.5),
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: DataTable(
+                            columnSpacing: 24,
+                            horizontalMargin: 16,
+                            headingRowHeight: 42,
+                            dataRowMinHeight: 40,
+                            dataRowMaxHeight: 44,
+                            headingRowColor: WidgetStatePropertyAll(
+                              colors.surfaceContainerHigh,
+                            ),
+                            headingTextStyle: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                              color: colors.primary,
+                            ),
+                            columns: [
+                              const DataColumn(label: Text('Origen')),
+                              ...List.generate(
+                                problem.destinationNames.length,
+                                (col) {
+                                  final name = problem.destinationNames[col];
+                                  final id = col < problem.destinationIds.length
+                                      ? problem.destinationIds[col]
+                                      : '';
+                                  final isFictitious =
+                                      id == 'nw_dummy_destination' ||
+                                      name == 'Ficticio' ||
+                                      name.startsWith('Ficticio ');
+                                  return DataColumn(
+                                    label: Text(
+                                      name,
+                                      style: TextStyle(
+                                        color: isFictitious
+                                            ? colors.onSurfaceVariant
+                                                  .withValues(alpha: 0.5)
+                                            : colors.primary,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                              DataColumn(
+                                label: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 5,
                                   ),
-                                ),
-                              );
-                            }),
-                            DataColumn(
-                              label: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 5,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: colors.secondaryContainer,
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
-                                child: Text(
-                                  'Disponible',
-                                  style: TextStyle(
-                                    color: colors.onSecondaryContainer,
-                                    fontWeight: FontWeight.w800,
+                                  decoration: BoxDecoration(
+                                    color: colors.secondaryContainer,
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Text(
+                                    'Disponible',
+                                    style: TextStyle(
+                                      color: colors.onSecondaryContainer,
+                                      fontWeight: FontWeight.w800,
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                          ],
-                          rows: [
-                            ...List.generate(problem.rowCount, (row) {
-                              final origName = problem.originNames[row];
-                              final origId = row < problem.originIds.length
-                                  ? problem.originIds[row]
-                                  : '';
-                              final isOriginFictitious =
-                                  origId == 'nw_dummy_origin' ||
-                                  origName == 'Ficticio' ||
-                                  origName.startsWith('Ficticio ');
-                              return DataRow(
-                                color: isOriginFictitious
-                                    ? WidgetStatePropertyAll(
-                                        colors.surfaceContainerHighest
-                                            .withValues(alpha: 0.35),
-                                      )
-                                    : null,
+                            ],
+                            rows: [
+                              ...List.generate(problem.rowCount, (row) {
+                                final origName = problem.originNames[row];
+                                final origId = row < problem.originIds.length
+                                    ? problem.originIds[row]
+                                    : '';
+                                final isOriginFictitious =
+                                    origId == 'nw_dummy_origin' ||
+                                    origName == 'Ficticio' ||
+                                    origName.startsWith('Ficticio ');
+                                return DataRow(
+                                  color: isOriginFictitious
+                                      ? WidgetStatePropertyAll(
+                                          colors.surfaceContainerHighest
+                                              .withValues(alpha: 0.35),
+                                        )
+                                      : null,
+                                  cells: [
+                                    DataCell(
+                                      Text(
+                                        origName,
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 13,
+                                          color: isOriginFictitious
+                                              ? colors.onSurfaceVariant
+                                                    .withValues(alpha: 0.5)
+                                              : colors.onSurface,
+                                        ),
+                                      ),
+                                    ),
+                                    ...List.generate(
+                                      problem.destinationNames.length,
+                                      (col) {
+                                        final destName =
+                                            problem.destinationNames[col];
+                                        final destId =
+                                            col < problem.destinationIds.length
+                                            ? problem.destinationIds[col]
+                                            : '';
+                                        final isDestFictitious =
+                                            destId == 'nw_dummy_destination' ||
+                                            destName == 'Ficticio' ||
+                                            destName.startsWith('Ficticio ');
+                                        final isCellFictitious =
+                                            isOriginFictitious ||
+                                            isDestFictitious;
+                                        final value =
+                                            result.allocations[row][col];
+                                        return DataCell(
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 6,
+                                              vertical: 4,
+                                            ),
+                                            decoration: isCellFictitious
+                                                ? BoxDecoration(
+                                                    color: colors
+                                                        .surfaceContainerHighest
+                                                        .withValues(alpha: 0.6),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          6,
+                                                        ),
+                                                  )
+                                                : null,
+                                            child: Text(
+                                              _formatNumber(value),
+                                              style: TextStyle(
+                                                color: isCellFictitious
+                                                    ? colors.onSurfaceVariant
+                                                          .withValues(
+                                                            alpha: 0.45,
+                                                          )
+                                                    : colors.onSurface,
+                                              ),
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                    DataCell(
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 5,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: isOriginFictitious
+                                              ? colors.surfaceContainerHighest
+                                                    .withValues(alpha: 0.6)
+                                              : colors.secondaryContainer
+                                                    .withValues(alpha: .62),
+                                          borderRadius: BorderRadius.circular(
+                                            6,
+                                          ),
+                                          border: isOriginFictitious
+                                              ? null
+                                              : Border.all(
+                                                  color: colors.secondary
+                                                      .withValues(alpha: .45),
+                                                ),
+                                        ),
+                                        child: Text(
+                                          _formatNumber(problem.supplies[row]),
+                                          style: TextStyle(
+                                            color: isOriginFictitious
+                                                ? colors.onSurfaceVariant
+                                                      .withValues(alpha: 0.45)
+                                                : colors.onSecondaryContainer,
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              }),
+                              DataRow(
                                 cells: [
                                   DataCell(
-                                    Text(
-                                      origName,
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 13,
-                                        color: isOriginFictitious
-                                            ? colors.onSurfaceVariant
-                                                  .withValues(alpha: 0.5)
-                                            : colors.onSurface,
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 5,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: colors.tertiaryContainer,
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: Text(
+                                        'Demanda',
+                                        style: TextStyle(
+                                          color: colors.onTertiaryContainer,
+                                          fontWeight: FontWeight.w800,
+                                        ),
                                       ),
                                     ),
                                   ),
@@ -228,148 +342,47 @@ class _NorthwestDetailsScreenState
                                           destId == 'nw_dummy_destination' ||
                                           destName == 'Ficticio' ||
                                           destName.startsWith('Ficticio ');
-                                      final isCellFictitious =
-                                          isOriginFictitious ||
-                                          isDestFictitious;
-                                      final value =
-                                          result.allocations[row][col];
                                       return DataCell(
                                         Container(
                                           padding: const EdgeInsets.symmetric(
-                                            horizontal: 6,
-                                            vertical: 4,
+                                            horizontal: 8,
+                                            vertical: 5,
                                           ),
-                                          decoration: isCellFictitious
-                                              ? BoxDecoration(
-                                                  color: colors
-                                                      .surfaceContainerHighest
-                                                      .withValues(alpha: 0.6),
-                                                  borderRadius:
-                                                      BorderRadius.circular(6),
-                                                )
-                                              : null,
+                                          decoration: BoxDecoration(
+                                            color: isDestFictitious
+                                                ? colors.surfaceContainerHighest
+                                                      .withValues(alpha: 0.6)
+                                                : colors.tertiaryContainer
+                                                      .withValues(alpha: .62),
+                                            borderRadius: BorderRadius.circular(
+                                              6,
+                                            ),
+                                            border: isDestFictitious
+                                                ? null
+                                                : Border.all(
+                                                    color: colors.tertiary
+                                                        .withValues(alpha: .45),
+                                                  ),
+                                          ),
                                           child: Text(
-                                            _formatNumber(value),
+                                            _formatNumber(problem.demands[col]),
                                             style: TextStyle(
-                                              color: isCellFictitious
+                                              color: isDestFictitious
                                                   ? colors.onSurfaceVariant
                                                         .withValues(alpha: 0.45)
-                                                  : colors.onSurface,
+                                                  : colors.onTertiaryContainer,
+                                              fontWeight: FontWeight.w800,
                                             ),
                                           ),
                                         ),
                                       );
                                     },
                                   ),
-                                  DataCell(
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 8,
-                                        vertical: 5,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: isOriginFictitious
-                                            ? colors.surfaceContainerHighest
-                                                  .withValues(alpha: 0.6)
-                                            : colors.secondaryContainer
-                                                  .withValues(alpha: .62),
-                                        borderRadius: BorderRadius.circular(6),
-                                        border: isOriginFictitious
-                                            ? null
-                                            : Border.all(
-                                                color: colors.secondary
-                                                    .withValues(alpha: .45),
-                                              ),
-                                      ),
-                                      child: Text(
-                                        _formatNumber(problem.supplies[row]),
-                                        style: TextStyle(
-                                          color: isOriginFictitious
-                                              ? colors.onSurfaceVariant
-                                                    .withValues(alpha: 0.45)
-                                              : colors.onSecondaryContainer,
-                                          fontWeight: FontWeight.w700,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
+                                  const DataCell(Text('')),
                                 ],
-                              );
-                            }),
-                            DataRow(
-                              cells: [
-                                DataCell(
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 8,
-                                      vertical: 5,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: colors.tertiaryContainer,
-                                      borderRadius: BorderRadius.circular(6),
-                                    ),
-                                    child: Text(
-                                      'Demanda',
-                                      style: TextStyle(
-                                        color: colors.onTertiaryContainer,
-                                        fontWeight: FontWeight.w800,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                ...List.generate(
-                                  problem.destinationNames.length,
-                                  (col) {
-                                    final destName =
-                                        problem.destinationNames[col];
-                                    final destId =
-                                        col < problem.destinationIds.length
-                                        ? problem.destinationIds[col]
-                                        : '';
-                                    final isDestFictitious =
-                                        destId == 'nw_dummy_destination' ||
-                                        destName == 'Ficticio' ||
-                                        destName.startsWith('Ficticio ');
-                                    return DataCell(
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 8,
-                                          vertical: 5,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: isDestFictitious
-                                              ? colors.surfaceContainerHighest
-                                                    .withValues(alpha: 0.6)
-                                              : colors.tertiaryContainer
-                                                    .withValues(alpha: .62),
-                                          borderRadius: BorderRadius.circular(
-                                            6,
-                                          ),
-                                          border: isDestFictitious
-                                              ? null
-                                              : Border.all(
-                                                  color: colors.tertiary
-                                                      .withValues(alpha: .45),
-                                                ),
-                                        ),
-                                        child: Text(
-                                          _formatNumber(problem.demands[col]),
-                                          style: TextStyle(
-                                            color: isDestFictitious
-                                                ? colors.onSurfaceVariant
-                                                      .withValues(alpha: 0.45)
-                                                : colors.onTertiaryContainer,
-                                            fontWeight: FontWeight.w800,
-                                          ),
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                ),
-                                const DataCell(Text('')),
-                              ],
-                            ),
-                          ],
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -493,13 +506,13 @@ class _NorthwestStepByStep extends StatelessWidget {
                   _PotentialSummary(iteration: iteration),
                   const SizedBox(height: 16),
                   _LabeledMatrix(
-                    title: 'Matriz G = u + v',
+                    title: r'Matriz \$G = u + v\$',
                     problem: problem,
                     values: iteration.opportunityMatrix,
                   ),
                   const SizedBox(height: 16),
                   _LabeledMatrix(
-                    title: 'Matriz Delta = C − G',
+                    title: r'Matriz \$\Delta = C - G\$',
                     problem: problem,
                     values: iteration.deltas,
                     highlightedCell: entering,
@@ -581,8 +594,8 @@ class _StepPanel extends StatelessWidget {
       ),
       child: ExpansionTile(
         initiallyExpanded: initiallyExpanded,
-        shape: const RoundedRectangleBorder(),
-        collapsedShape: const RoundedRectangleBorder(),
+        shape: const Border(),
+        collapsedShape: const Border(),
         leading: CircleAvatar(
           radius: 16,
           backgroundColor: colors.primaryContainer,
@@ -592,11 +605,14 @@ class _StepPanel extends StatelessWidget {
             style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800),
           ),
         ),
-        title: Text(
-          title,
-          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
+        title: MathRichText(
+          text: title,
+          baseStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
         ),
-        subtitle: Text(subtitle, style: const TextStyle(fontSize: 12)),
+        subtitle: MathRichText(
+          text: subtitle,
+          baseStyle: const TextStyle(fontSize: 12),
+        ),
         childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
         expandedCrossAxisAlignment: CrossAxisAlignment.start,
         children: [const Divider(), const SizedBox(height: 8), child],
@@ -618,13 +634,13 @@ class _PotentialSummary extends StatelessWidget {
       runSpacing: 8,
       children: [
         _ValueChip(
-          label: 'u',
+          label: r'\mathbf{u}',
           value: iteration.rowPotentials.map(_formatNumber).join(', '),
           color: colors.secondaryContainer,
           foreground: colors.onSecondaryContainer,
         ),
         _ValueChip(
-          label: 'v',
+          label: r'\mathbf{v}',
           value: iteration.columnPotentials.map(_formatNumber).join(', '),
           color: colors.tertiaryContainer,
           foreground: colors.onTertiaryContainer,
@@ -655,9 +671,9 @@ class _ValueChip extends StatelessWidget {
         color: color,
         borderRadius: BorderRadius.circular(8),
       ),
-      child: Text(
-        '$label = [$value]',
-        style: TextStyle(
+      child: MathRichText(
+        text: '\$$label = [$value]\$',
+        baseStyle: TextStyle(
           color: foreground,
           fontSize: 12,
           fontWeight: FontWeight.w700,
@@ -686,21 +702,33 @@ class _LabeledMatrix extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(title, style: const TextStyle(fontWeight: FontWeight.w800)),
+        MathRichText(
+          text: title,
+          baseStyle: const TextStyle(fontWeight: FontWeight.w800),
+        ),
         const SizedBox(height: 8),
         Align(
           alignment: Alignment.center,
-          child: Card(
-            elevation: 1,
-            shape: RoundedRectangleBorder(
+          child: Container(
+            decoration: BoxDecoration(
+              color: colors.surface,
               borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: colors.outlineVariant.withValues(alpha: 0.8),
+                width: 1.5,
+              ),
             ),
             clipBehavior: Clip.antiAlias,
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Table(
                 defaultColumnWidth: const FixedColumnWidth(72),
-                border: TableBorder.all(color: colors.outlineVariant),
+                border: TableBorder(
+                  horizontalInside: BorderSide(
+                    color: colors.outlineVariant.withValues(alpha: 0.3),
+                    width: 0.8,
+                  ),
+                ),
                 children: [
                   TableRow(
                     decoration: BoxDecoration(
