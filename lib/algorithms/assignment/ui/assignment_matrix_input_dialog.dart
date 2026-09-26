@@ -412,43 +412,68 @@ class _AssignmentMatrixInputDialogState
                 // Value Input Field
                 SizedBox(
                   width: 70,
-                  child: TextField(
-                    controller: controller,
-                    focusNode: focusNode,
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
-                    ),
-                    inputFormatters: [
-                      TextInputFormatter.withFunction((oldVal, newVal) {
-                        if (newVal.text.isEmpty) return newVal;
-                        if (newVal.text == '.') {
-                          return const TextEditingValue(text: '0.');
+                  child: Focus(
+                    canRequestFocus: false,
+                    onKeyEvent: (node, event) {
+                      if (event is KeyDownEvent) {
+                        final key = event.logicalKey;
+                        if (key == LogicalKeyboardKey.arrowUp && index > 0) {
+                          final prevItem = existingConnections[index - 1];
+                          final prevOrig = prevItem['orig'] as Nodo;
+                          final prevDest = prevItem['dest'] as Nodo;
+                          final prevKey = _cellKey(prevOrig.id, prevDest.id);
+                          _focusNodes[prevKey]?.requestFocus();
+                          return KeyEventResult.handled;
+                        } else if (key == LogicalKeyboardKey.arrowDown &&
+                            index < existingConnections.length - 1) {
+                          final nextItem = existingConnections[index + 1];
+                          final nextOrig = nextItem['orig'] as Nodo;
+                          final nextDest = nextItem['dest'] as Nodo;
+                          final nextKey = _cellKey(nextOrig.id, nextDest.id);
+                          _focusNodes[nextKey]?.requestFocus();
+                          return KeyEventResult.handled;
                         }
-                        final numVal = double.tryParse(newVal.text);
-                        return (numVal != null && numVal >= 0)
-                            ? newVal
-                            : oldVal;
-                      }),
-                    ],
-                    textAlign: TextAlign.center,
-                    decoration: InputDecoration(
-                      hintText: isFocused ? null : '1',
-                      isDense: true,
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 8,
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      fillColor: isInvalid
-                          ? Colors.red.withAlpha(30)
-                          : colorScheme.surfaceContainerHighest,
-                      filled: true,
-                    ),
-                    onSubmitted: (val) {
-                      _commitCellValue(orig, dest, conn, val);
+                      }
+                      return KeyEventResult.ignored;
                     },
+                    child: TextField(
+                      controller: controller,
+                      focusNode: focusNode,
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
+                      inputFormatters: [
+                        TextInputFormatter.withFunction((oldVal, newVal) {
+                          if (newVal.text.isEmpty) return newVal;
+                          if (newVal.text == '.') {
+                            return const TextEditingValue(text: '0.');
+                          }
+                          final numVal = double.tryParse(newVal.text);
+                          return (numVal != null && numVal >= 0)
+                              ? newVal
+                              : oldVal;
+                        }),
+                      ],
+                      textAlign: TextAlign.center,
+                      decoration: InputDecoration(
+                        hintText: isFocused ? null : '1',
+                        isDense: true,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 8,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        fillColor: isInvalid
+                            ? Colors.red.withAlpha(30)
+                            : colorScheme.surfaceContainerHighest,
+                        filled: true,
+                      ),
+                      onSubmitted: (val) {
+                        _commitCellValue(orig, dest, conn, val);
+                      },
+                    ),
                   ),
                 ),
               ],

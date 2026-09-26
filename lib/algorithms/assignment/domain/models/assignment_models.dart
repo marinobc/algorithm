@@ -74,12 +74,30 @@ class StepExplanation {
   final int stepNumber;
   final String title;
   final String description;
+  final String? formulaLatex;
+  final List<double>? rowVectorAlpha;
+  final List<double>? colVectorBeta;
+  final List<List<double>>? alphaMatrix;
+  final List<List<double>>? betaMatrix;
+  final List<List<double>>? operationMatrix;
+  final Set<int>? coveredRows;
+  final Set<int>? coveredCols;
+  final double? thetaValue;
   final List<List<double>>? currentAllocations;
 
   const StepExplanation({
     required this.stepNumber,
     required this.title,
     required this.description,
+    this.formulaLatex,
+    this.rowVectorAlpha,
+    this.colVectorBeta,
+    this.alphaMatrix,
+    this.betaMatrix,
+    this.operationMatrix,
+    this.coveredRows,
+    this.coveredCols,
+    this.thetaValue,
     this.currentAllocations,
   });
 }

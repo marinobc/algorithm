@@ -7,12 +7,15 @@ import '../../domain/models/conexion.dart';
 import '../../domain/models/modo_tipo_nodo.dart';
 import '../../domain/models/nodo.dart';
 import '../../ui/dialogs/connection_value_input_dialog.dart';
+import '../../core/utils/app_logger.dart';
 import '../core/graph_algorithm.dart';
+import '../core/models/algorithm_step.dart';
+import 'domain/models/assignment_models.dart';
 import 'domain/policy/assignment_graph_policy.dart';
 import 'providers/assignment_provider.dart';
 import 'ui/assignment_algorithm_card.dart';
-import 'ui/assignment_bipartite_matrix_screen.dart';
 import 'ui/assignment_canvas_controls.dart';
+import 'ui/assignment_graph_matrix_screen.dart';
 import 'ui/assignment_launch_button.dart';
 
 /// Pluggable GraphAlgorithm implementation for Assignment / Hungarian method.
@@ -183,7 +186,50 @@ class AssignmentAlgorithm implements GraphAlgorithm {
 
   @override
   Widget? buildMatrixScreen(BuildContext context, WidgetRef ref) {
-    return const AssignmentBipartiteMatrixScreen();
+    AppLogger.i(
+      'AssignmentAlgorithm',
+      'Abriendo la pantalla de matriz editable de Asignación (AssignmentGraphMatrixScreen)',
+    );
+    return const AssignmentGraphMatrixScreen();
+  }
+
+  @override
+  bool get supportsStepByStep => true;
+
+  @override
+  String? get stepByStepUnavailableReason => null;
+
+  @override
+  Widget? buildStepByStepScreen(BuildContext context, WidgetRef ref) => null;
+
+  @override
+  List<AlgorithmStep> getStepByStepList(WidgetRef ref) {
+    final result = ref.read(transportationResultProvider);
+    if (result == null) return const [];
+
+    final steps = <AlgorithmStep>[];
+    for (final step in result.steps) {
+      List<List<String>>? matrixSnapshot;
+      if (step.currentAllocations != null) {
+        matrixSnapshot = step.currentAllocations!
+            .map((row) => row.map((v) => v.toStringAsFixed(1)).toList())
+            .toList();
+      }
+      steps.add(
+        AlgorithmStep(
+          stepNumber: step.stepNumber,
+          title: step.title,
+          description: step.description,
+          formulaLatex: step.formulaLatex,
+          matrixSnapshot: matrixSnapshot,
+          metrics: {
+            'Método': result.method.displayName,
+            'Valor Z': result.totalCost.toStringAsFixed(2),
+          },
+        ),
+      );
+    }
+    return steps;
   }
 
   @override

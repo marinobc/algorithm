@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../application/providers/grafo_provider.dart';
@@ -10,6 +11,7 @@ import '../../../../domain/models/nodo.dart';
 import '../../../../ui/widgets/app_toast.dart';
 import '../../../../ui/widgets/matrix/bipartite_matrix_config.dart';
 import '../../../../ui/widgets/matrix/matrix_input_widgets.dart';
+import '../../../../ui/widgets/matrix/universal_matrix_preflight_coordinator.dart';
 import '../domain/policy/assignment_graph_policy.dart';
 import '../providers/assignment_provider.dart';
 
@@ -53,7 +55,7 @@ class AssignmentMatrixConfig implements BipartiteMatrixConfig {
   bool get hasSuppliesAndDemands => false;
 
   @override
-  bool get hasFictitiousBalancing => false;
+  bool get hasFictitiousBalancing => true;
 
   @override
   String get idPrefix => 'asg';
@@ -88,7 +90,10 @@ class _AssignmentGraphMatrixScreenState
 
   List<TextEditingController> _originNames = [];
   List<TextEditingController> _destinationNames = [];
+  List<FocusNode> _originFocusNodes = [];
+  List<FocusNode> _destinationFocusNodes = [];
   List<List<TextEditingController>> _costs = [];
+  List<List<FocusNode>> _cellFocusNodes = [];
   List<String> _originIds = [];
   List<String> _destinationIds = [];
 
@@ -119,6 +124,15 @@ class _AssignmentGraphMatrixScreenState
     ]) {
       controller.dispose();
     }
+    for (final fn in _originFocusNodes) {
+      fn.dispose();
+    }
+    for (final fn in _destinationFocusNodes) {
+      fn.dispose();
+    }
+    for (final fn in _cellFocusNodes.expand((row) => row)) {
+      fn.dispose();
+    }
   }
 
   void _markDirty() {
@@ -144,21 +158,41 @@ class _AssignmentGraphMatrixScreenState
         .toList();
 
     if (origins.isNotEmpty && destinations.isNotEmpty) {
-      _originCount.text = '${origins.length}';
-      _destinationCount.text = '${destinations.length}';
-      _originIds = origins.map((n) => n.id).toList();
-      _destinationIds = destinations.map((n) => n.id).toList();
+      final preflight = UniversalMatrixPreflightCoordinator.calculateBalancing(
+        config: widget.config,
+        realOriginIds: origins.map((n) => n.id).toList(),
+        realOriginNames: origins.map((n) => n.nombre ?? n.id).toList(),
+        realDestinationIds: destinations.map((n) => n.id).toList(),
+        realDestinationNames: destinations
+            .map((n) => n.nombre ?? n.id)
+            .toList(),
+      );
 
-      _originNames = origins
-          .map((n) => _createController(n.nombre ?? n.id))
+      final rows = preflight.originNames.length;
+      final cols = preflight.destinationNames.length;
+
+      _originCount.text = '$rows';
+      _destinationCount.text = '$cols';
+      _originIds = preflight.originIds;
+      _destinationIds = preflight.destinationIds;
+
+      _originNames = preflight.originNames
+          .map((name) => _createController(name))
           .toList();
-      _destinationNames = destinations
-          .map((n) => _createController(n.nombre ?? n.id))
+      _destinationNames = preflight.destinationNames
+          .map((name) => _createController(name))
           .toList();
+
+      _originFocusNodes = List.generate(rows, (_) => FocusNode());
+      _destinationFocusNodes = List.generate(cols, (_) => FocusNode());
 
       _costs = List.generate(
-        origins.length,
-        (i) => List.generate(destinations.length, (j) {
+        rows,
+        (i) => List.generate(cols, (j) {
+          if (i >= origins.length || j >= destinations.length) {
+            // Ficticio connection cost cell - defaults to 0
+            return _createController('0');
+          }
           final costStr = _findConnectionCost(
             graph,
             origins[i].id,
@@ -167,12 +201,19 @@ class _AssignmentGraphMatrixScreenState
           return _createController(costStr ?? '');
         }),
       );
+      _cellFocusNodes = List.generate(
+        rows,
+        (i) => List.generate(cols, (_) => FocusNode()),
+      );
     } else {
       // Do not auto insert table when empty; wait for user to input dimensions
       _disposeMatrixControllers();
       _originNames = [];
       _destinationNames = [];
+      _originFocusNodes = [];
+      _destinationFocusNodes = [];
       _costs = [];
+      _cellFocusNodes = [];
       _originIds = [];
       _destinationIds = [];
     }
@@ -199,52 +240,179 @@ class _AssignmentGraphMatrixScreenState
   }
 
   void _resize(int rows, int columns, {bool isInitial = false}) {
+    // Separate real items from fictitious items before resizing
+    final realOriginIndices = <int>[];
+    for (var i = 0; i < _originIds.length; i++) {
+      if (!_originIds[i].contains('_dummy_')) {
+        realOriginIndices.add(i);
+      }
+    }
+    final realDestIndices = <int>[];
+    for (var j = 0; j < _destinationIds.length; j++) {
+      if (!_destinationIds[j].contains('_dummy_')) {
+        realDestIndices.add(j);
+      }
+    }
+
+    final realRowsCount = rows;
+    final realColsCount = columns;
+
     final oldOriginNames = _originNames;
     final oldDestinationNames = _destinationNames;
+    final oldOriginFocusNodes = _originFocusNodes;
+    final oldDestinationFocusNodes = _destinationFocusNodes;
     final oldCosts = _costs;
     final stamp = DateTime.now().microsecondsSinceEpoch;
 
-    _originNames = List.generate(
-      rows,
-      (index) => index < oldOriginNames.length
-          ? oldOriginNames[index]
-          : _createController(_originLabel(index)),
+    final rawOriginNames = List.generate(
+      realRowsCount,
+      (index) => index < realOriginIndices.length
+          ? oldOriginNames[realOriginIndices[index]].text
+          : _originLabel(index),
     );
-    _destinationNames = List.generate(
-      columns,
-      (index) => index < oldDestinationNames.length
-          ? oldDestinationNames[index]
-          : _createController('D${index + 1}'),
+    final rawDestinationNames = List.generate(
+      realColsCount,
+      (index) => index < realDestIndices.length
+          ? oldDestinationNames[realDestIndices[index]].text
+          : 'D${index + 1}',
     );
-    _costs = List.generate(
-      rows,
-      (i) => List.generate(
-        columns,
-        (j) => i < oldCosts.length && j < oldCosts[i].length
-            ? oldCosts[i][j]
-            : _createController(),
-      ),
-    );
-    _originIds = List.generate(
-      rows,
-      (index) => index < _originIds.length
-          ? _originIds[index]
+    final rawOriginIds = List.generate(
+      realRowsCount,
+      (index) => index < realOriginIndices.length
+          ? _originIds[realOriginIndices[index]]
           : '${widget.config.idPrefix}_origin_${stamp}_$index',
     );
-    _destinationIds = List.generate(
-      columns,
-      (index) => index < _destinationIds.length
-          ? _destinationIds[index]
+    final rawDestinationIds = List.generate(
+      realColsCount,
+      (index) => index < realDestIndices.length
+          ? _destinationIds[realDestIndices[index]]
           : '${widget.config.idPrefix}_destination_${stamp}_$index',
     );
 
+    // Perform universal preflight balancing
+    final preflight = UniversalMatrixPreflightCoordinator.calculateBalancing(
+      config: widget.config,
+      realOriginIds: rawOriginIds,
+      realOriginNames: rawOriginNames,
+      realDestinationIds: rawDestinationIds,
+      realDestinationNames: rawDestinationNames,
+    );
+
+    final totalRows = preflight.originNames.length;
+    final totalCols = preflight.destinationNames.length;
+
+    // Reuse real controllers for names; create new only for fictitious/new ones
+    _originNames = List.generate(totalRows, (i) {
+      final realIdx = i < realOriginIndices.length ? realOriginIndices[i] : -1;
+      return realIdx >= 0 && realIdx < oldOriginNames.length
+          ? oldOriginNames[realIdx]
+          : _createController(preflight.originNames[i]);
+    });
+    _destinationNames = List.generate(totalCols, (j) {
+      final realIdx = j < realDestIndices.length ? realDestIndices[j] : -1;
+      return realIdx >= 0 && realIdx < oldDestinationNames.length
+          ? oldDestinationNames[realIdx]
+          : _createController(preflight.destinationNames[j]);
+    });
+    _originIds = preflight.originIds;
+    _destinationIds = preflight.destinationIds;
+
+    // Reuse FocusNodes via real-index mapping
+    _originFocusNodes = List.generate(
+      totalRows,
+      (i) =>
+          i < realOriginIndices.length &&
+              realOriginIndices[i] < oldOriginFocusNodes.length
+          ? oldOriginFocusNodes[realOriginIndices[i]]
+          : FocusNode(),
+    );
+    _destinationFocusNodes = List.generate(
+      totalCols,
+      (j) =>
+          j < realDestIndices.length &&
+              realDestIndices[j] < oldDestinationFocusNodes.length
+          ? oldDestinationFocusNodes[realDestIndices[j]]
+          : FocusNode(),
+    );
+
+    _costs = List.generate(
+      totalRows,
+      (i) => List.generate(totalCols, (j) {
+        final isDummyRow = _originIds[i].contains('_dummy_');
+        final isDummyCol = _destinationIds[j].contains('_dummy_');
+        if (isDummyRow || isDummyCol) {
+          return _createController('0');
+        }
+        final oldRowIdx = i < realOriginIndices.length
+            ? realOriginIndices[i]
+            : -1;
+        final oldColIdx = j < realDestIndices.length ? realDestIndices[j] : -1;
+        if (oldRowIdx >= 0 &&
+            oldColIdx >= 0 &&
+            oldRowIdx < oldCosts.length &&
+            oldColIdx < oldCosts[oldRowIdx].length) {
+          return oldCosts[oldRowIdx][oldColIdx];
+        }
+        return _createController();
+      }),
+    );
+
+    final oldFocusNodes = _cellFocusNodes;
+    _cellFocusNodes = List.generate(
+      totalRows,
+      (i) => List.generate(totalCols, (j) {
+        final oldRowIdx = i < realOriginIndices.length
+            ? realOriginIndices[i]
+            : -1;
+        final oldColIdx = j < realDestIndices.length ? realDestIndices[j] : -1;
+        if (oldRowIdx >= 0 &&
+            oldColIdx >= 0 &&
+            oldRowIdx < oldFocusNodes.length &&
+            oldColIdx < oldFocusNodes[oldRowIdx].length) {
+          return oldFocusNodes[oldRowIdx][oldColIdx];
+        }
+        return FocusNode();
+      }),
+    );
+
+    // Dispose controllers and FocusNodes no longer referenced (leak prevention)
+    final keptOriginNames = _originNames.toSet();
+    for (final ctrl in oldOriginNames) {
+      if (!keptOriginNames.contains(ctrl)) ctrl.dispose();
+    }
+    final keptDestNames = _destinationNames.toSet();
+    for (final ctrl in oldDestinationNames) {
+      if (!keptDestNames.contains(ctrl)) ctrl.dispose();
+    }
+    final keptCosts = _costs.expand((r) => r).toSet();
+    for (final ctrl in oldCosts.expand((r) => r)) {
+      if (!keptCosts.contains(ctrl)) ctrl.dispose();
+    }
+    final keptOriginFn = _originFocusNodes.toSet();
+    for (final fn in oldOriginFocusNodes) {
+      if (!keptOriginFn.contains(fn)) fn.dispose();
+    }
+    final keptDestFn = _destinationFocusNodes.toSet();
+    for (final fn in oldDestinationFocusNodes) {
+      if (!keptDestFn.contains(fn)) fn.dispose();
+    }
+    final keptCellFn = _cellFocusNodes.expand((r) => r).toSet();
+    for (final fn in oldFocusNodes.expand((r) => r)) {
+      if (!keptCellFn.contains(fn)) fn.dispose();
+    }
+
     setState(() {
-      _originCount.text = '$rows';
-      _destinationCount.text = '$columns';
+      _originCount.text = '$realRowsCount';
+      _destinationCount.text = '$realColsCount';
       _error = null;
       if (!isInitial) _isDirty = true;
     });
   }
+
+  int get _realRowCount =>
+      _originIds.where((id) => !id.contains('_dummy_')).length;
+  int get _realColCount =>
+      _destinationIds.where((id) => !id.contains('_dummy_')).length;
 
   String _originLabel(int index) {
     if (index < 26) return String.fromCharCode(65 + index);
@@ -252,35 +420,39 @@ class _AssignmentGraphMatrixScreenState
   }
 
   void _addRow() {
-    if (_originNames.length >= _maxDimension) {
+    final currentReal = _realRowCount;
+    if (currentReal >= _maxDimension) {
       _setError('El máximo de filas es $_maxDimension.');
       return;
     }
-    _resize(_originNames.length + 1, _destinationNames.length);
+    _resize(currentReal + 1, _realColCount);
   }
 
   void _removeRow() {
-    if (_originNames.length <= 1) {
+    final currentReal = _realRowCount;
+    if (currentReal <= 1) {
       _setError('Debe haber al menos 1 fila.');
       return;
     }
-    _resize(_originNames.length - 1, _destinationNames.length);
+    _resize(currentReal - 1, _realColCount);
   }
 
   void _addColumn() {
-    if (_destinationNames.length >= _maxDimension) {
+    final currentReal = _realColCount;
+    if (currentReal >= _maxDimension) {
       _setError('El máximo de columnas es $_maxDimension.');
       return;
     }
-    _resize(_originNames.length, _destinationNames.length + 1);
+    _resize(_realRowCount, currentReal + 1);
   }
 
   void _removeColumn() {
-    if (_destinationNames.length <= 1) {
+    final currentReal = _realColCount;
+    if (currentReal <= 1) {
       _setError('Debe haber al menos 1 columna.');
       return;
     }
-    _resize(_originNames.length, _destinationNames.length - 1);
+    _resize(_realRowCount, currentReal - 1);
   }
 
   Future<void> _clearMatrix() async {
@@ -332,7 +504,7 @@ class _AssignmentGraphMatrixScreenState
       return;
     }
 
-    if (rows < _originNames.length || columns < _destinationNames.length) {
+    if (rows < _realRowCount || columns < _realColCount) {
       final confirmed = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
@@ -380,15 +552,19 @@ class _AssignmentGraphMatrixScreenState
       return false;
     }
 
-    final costs = <List<double>>[];
+    final costs = <List<double?>>[];
     for (var i = 0; i < _originNames.length; i++) {
-      final row = <double>[];
+      final row = <double?>[];
       for (var j = 0; j < _destinationNames.length; j++) {
         final raw = _costs[i][j].text.trim();
+        if (raw.isEmpty) {
+          row.add(null);
+          continue;
+        }
         final parsed = double.tryParse(raw);
         if (parsed == null || !parsed.isFinite || parsed < 0) {
           _setError(
-            'El costo en ${originNames[i]} -> ${destinationNames[j]} debe ser un número no negativo.',
+            'El costo en ${originNames[i]} -> ${destinationNames[j]} debe ser un número no negativo o estar vacío (sin conexión).',
           );
           return false;
         }
@@ -408,6 +584,8 @@ class _AssignmentGraphMatrixScreenState
 
     for (var i = 0; i < _originNames.length; i++) {
       final id = _originIds[i];
+      if (id.contains('_dummy_'))
+        continue; // Skip fictitious elements from canvas graph
       final previous = current.nodos[id];
       final pos = previous != null
           ? Offset(previous.x, previous.y)
@@ -424,6 +602,8 @@ class _AssignmentGraphMatrixScreenState
 
     for (var j = 0; j < _destinationNames.length; j++) {
       final id = _destinationIds[j];
+      if (id.contains('_dummy_'))
+        continue; // Skip fictitious elements from canvas graph
       final previous = current.nodos[id];
       final pos = previous != null
           ? Offset(previous.x, previous.y)
@@ -442,8 +622,17 @@ class _AssignmentGraphMatrixScreenState
     final stamp = DateTime.now().microsecondsSinceEpoch;
     for (var i = 0; i < _originNames.length; i++) {
       for (var j = 0; j < _destinationNames.length; j++) {
+        final cost = costs[i][j];
+        if (cost == null) continue; // Empty cell represents no connection
+
         final originId = _originIds[i];
         final destinationId = _destinationIds[j];
+
+        // Skip fictitious connections from being created in canvas graph
+        if (originId.contains('_dummy_') || destinationId.contains('_dummy_')) {
+          continue;
+        }
+
         final existing = existingConnections['$originId|$destinationId'];
         final id =
             existing?.id ?? '${widget.config.idPrefix}_conn_${stamp}_${i}_$j';
@@ -456,7 +645,7 @@ class _AssignmentGraphMatrixScreenState
           atributos: [
             AtributoValor(
               atributoId: widget.config.costAttributeId,
-              valor: _format(costs[i][j]),
+              valor: _format(cost),
             ),
           ],
           curvatura: existing?.curvatura,
@@ -605,8 +794,8 @@ class _AssignmentGraphMatrixScreenState
             children: [
               MatrixDimensionBar(
                 hasMatrix: hasMatrix,
-                rowCount: _originNames.length,
-                columnCount: _destinationNames.length,
+                rowCount: _realRowCount,
+                columnCount: _realColCount,
                 maxDimension: _maxDimension,
                 rowsInputController: _originCount,
                 colsInputController: _destinationCount,
@@ -725,20 +914,82 @@ class _AssignmentGraphMatrixScreenState
         ),
       ),
       ...List.generate(_destinationNames.length, (j) {
+        final isFicticioCol =
+            _destinationNames[j].text.trim().toLowerCase().startsWith(
+              'ficticio',
+            ) ||
+            _destinationIds[j].contains('_dummy_');
         return DataColumn(
           label: SizedBox(
             width: 80,
             child: Focus(
+              canRequestFocus: !isFicticioCol,
+              onKeyEvent: (node, event) {
+                if (event is KeyDownEvent) {
+                  final key = event.logicalKey;
+                  if (key == LogicalKeyboardKey.arrowDown &&
+                      _originNames.isNotEmpty) {
+                    var targetRow = 0;
+                    while (targetRow < _originNames.length &&
+                        (_originNames[targetRow].text
+                                .trim()
+                                .toLowerCase()
+                                .startsWith('ficticio') ||
+                            _originIds[targetRow].contains('_dummy_'))) {
+                      targetRow++;
+                    }
+                    if (targetRow < _originNames.length) {
+                      _cellFocusNodes[targetRow][j].requestFocus();
+                    }
+                    return KeyEventResult.handled;
+                  } else if (key == LogicalKeyboardKey.arrowLeft && j > 0) {
+                    var targetCol = j - 1;
+                    while (targetCol >= 0 &&
+                        (_destinationNames[targetCol].text
+                                .trim()
+                                .toLowerCase()
+                                .startsWith('ficticio') ||
+                            _destinationIds[targetCol].contains('_dummy_'))) {
+                      targetCol--;
+                    }
+                    if (targetCol >= 0) {
+                      _destinationFocusNodes[targetCol].requestFocus();
+                    }
+                    return KeyEventResult.handled;
+                  } else if (key == LogicalKeyboardKey.arrowRight &&
+                      j < _destinationNames.length - 1) {
+                    var targetCol = j + 1;
+                    while (targetCol < _destinationNames.length &&
+                        (_destinationNames[targetCol].text
+                                .trim()
+                                .toLowerCase()
+                                .startsWith('ficticio') ||
+                            _destinationIds[targetCol].contains('_dummy_'))) {
+                      targetCol++;
+                    }
+                    if (targetCol < _destinationNames.length) {
+                      _destinationFocusNodes[targetCol].requestFocus();
+                    }
+                    return KeyEventResult.handled;
+                  }
+                }
+                return KeyEventResult.ignored;
+              },
               child: Builder(
                 builder: (context) {
                   final hasFocus = Focus.of(context).hasFocus;
                   return TextField(
                     controller: _destinationNames[j],
+                    focusNode: _destinationFocusNodes[j],
+                    readOnly: isFicticioCol,
+                    enabled: !isFicticioCol,
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 12,
-                      color: colors.onSecondaryContainer,
+                      color: isFicticioCol
+                          ? colors.onSecondaryContainer.withValues(alpha: 0.4)
+                          : colors.onSecondaryContainer,
                     ),
                     decoration: InputDecoration(
                       isDense: true,
@@ -764,7 +1015,8 @@ class _AssignmentGraphMatrixScreenState
                       ),
                     ),
                     onTap: () {
-                      if (_destinationNames[j].text.isNotEmpty) {
+                      if (!isFicticioCol &&
+                          _destinationNames[j].text.isNotEmpty) {
                         _destinationNames[j].selection = TextSelection(
                           baseOffset: 0,
                           extentOffset: _destinationNames[j].text.length,
@@ -782,21 +1034,83 @@ class _AssignmentGraphMatrixScreenState
 
     final rows = <DataRow>[
       ...List.generate(_originNames.length, (i) {
+        final isFicticioRow =
+            _originNames[i].text.trim().toLowerCase().startsWith('ficticio') ||
+            _originIds[i].contains('_dummy_');
         return DataRow(
           cells: [
             DataCell(
               SizedBox(
                 width: 90,
                 child: Focus(
+                  canRequestFocus: !isFicticioRow,
+                  onKeyEvent: (node, event) {
+                    if (event is KeyDownEvent) {
+                      final key = event.logicalKey;
+                      if (key == LogicalKeyboardKey.arrowUp && i > 0) {
+                        var targetRow = i - 1;
+                        while (targetRow >= 0 &&
+                            (_originNames[targetRow].text
+                                    .trim()
+                                    .toLowerCase()
+                                    .startsWith('ficticio') ||
+                                _originIds[targetRow].contains('_dummy_'))) {
+                          targetRow--;
+                        }
+                        if (targetRow >= 0) {
+                          _originFocusNodes[targetRow].requestFocus();
+                        }
+                        return KeyEventResult.handled;
+                      } else if (key == LogicalKeyboardKey.arrowDown &&
+                          i < _originNames.length - 1) {
+                        var targetRow = i + 1;
+                        while (targetRow < _originNames.length &&
+                            (_originNames[targetRow].text
+                                    .trim()
+                                    .toLowerCase()
+                                    .startsWith('ficticio') ||
+                                _originIds[targetRow].contains('_dummy_'))) {
+                          targetRow++;
+                        }
+                        if (targetRow < _originNames.length) {
+                          _originFocusNodes[targetRow].requestFocus();
+                        }
+                        return KeyEventResult.handled;
+                      } else if (key == LogicalKeyboardKey.arrowRight &&
+                          _destinationNames.isNotEmpty) {
+                        var targetCol = 0;
+                        while (targetCol < _destinationNames.length &&
+                            (_destinationNames[targetCol].text
+                                    .trim()
+                                    .toLowerCase()
+                                    .startsWith('ficticio') ||
+                                _destinationIds[targetCol].contains(
+                                  '_dummy_',
+                                ))) {
+                          targetCol++;
+                        }
+                        if (targetCol < _destinationNames.length) {
+                          _cellFocusNodes[i][targetCol].requestFocus();
+                        }
+                        return KeyEventResult.handled;
+                      }
+                    }
+                    return KeyEventResult.ignored;
+                  },
                   child: Builder(
                     builder: (context) {
                       final hasFocus = Focus.of(context).hasFocus;
                       return TextField(
                         controller: _originNames[i],
+                        focusNode: _originFocusNodes[i],
+                        readOnly: isFicticioRow,
+                        enabled: !isFicticioRow,
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 12,
-                          color: colors.onSurface,
+                          color: isFicticioRow
+                              ? colors.onSurface.withValues(alpha: 0.4)
+                              : colors.onSurface,
                         ),
                         decoration: InputDecoration(
                           isDense: true,
@@ -822,7 +1136,8 @@ class _AssignmentGraphMatrixScreenState
                           ),
                         ),
                         onTap: () {
-                          if (_originNames[i].text.isNotEmpty) {
+                          if (!isFicticioRow &&
+                              _originNames[i].text.isNotEmpty) {
                             _originNames[i].selection = TextSelection(
                               baseOffset: 0,
                               extentOffset: _originNames[i].text.length,
@@ -836,10 +1151,85 @@ class _AssignmentGraphMatrixScreenState
               ),
             ),
             ...List.generate(_destinationNames.length, (j) {
+              final isRowFicticio =
+                  _originNames[i].text.trim().toLowerCase().startsWith(
+                    'ficticio',
+                  ) ||
+                  _originIds[i].contains('_dummy_');
+              final isColFicticio =
+                  _destinationNames[j].text.trim().toLowerCase().startsWith(
+                    'ficticio',
+                  ) ||
+                  _destinationIds[j].contains('_dummy_');
+              final isCellFicticio = isRowFicticio || isColFicticio;
+
               return DataCell(
                 MatrixCellInput(
                   controller: _costs[i][j],
+                  focusNode: _cellFocusNodes[i][j],
+                  readOnly: isCellFicticio,
                   hint: widget.config.costCellHint,
+                  rowIndex: i,
+                  colIndex: j,
+                  totalRows: _originNames.length,
+                  totalCols: _destinationNames.length,
+                  onNavigate: (targetRow, targetCol) {
+                    if (targetRow == -1 && targetCol >= 0) {
+                      var c = targetCol;
+                      while (c >= 0 &&
+                          (_destinationNames[c].text
+                                  .trim()
+                                  .toLowerCase()
+                                  .startsWith('ficticio') ||
+                              _destinationIds[c].contains('_dummy_'))) {
+                        c--;
+                      }
+                      if (c >= 0) {
+                        _destinationFocusNodes[c].requestFocus();
+                      }
+                    } else if (targetCol == -1 && targetRow >= 0) {
+                      var r = targetRow;
+                      while (r >= 0 &&
+                          (_originNames[r].text.trim().toLowerCase().startsWith(
+                                'ficticio',
+                              ) ||
+                              _originIds[r].contains('_dummy_'))) {
+                        r--;
+                      }
+                      if (r >= 0) {
+                        _originFocusNodes[r].requestFocus();
+                      }
+                    } else if (targetRow >= 0 && targetCol >= 0) {
+                      // Determine direction from current cell (i, j)
+                      final dr = targetRow > i ? 1 : (targetRow < i ? -1 : 0);
+                      final dc = targetCol > j ? 1 : (targetCol < j ? -1 : 0);
+                      var r = targetRow;
+                      var c = targetCol;
+                      while (r >= 0 &&
+                          r < _originNames.length &&
+                          c >= 0 &&
+                          c < _destinationNames.length) {
+                        final isCellDisabled =
+                            _originNames[r].text
+                                .trim()
+                                .toLowerCase()
+                                .startsWith('ficticio') ||
+                            _originIds[r].contains('_dummy_') ||
+                            _destinationNames[c].text
+                                .trim()
+                                .toLowerCase()
+                                .startsWith('ficticio') ||
+                            _destinationIds[c].contains('_dummy_');
+                        if (!isCellDisabled) {
+                          _cellFocusNodes[r][c].requestFocus();
+                          return;
+                        }
+                        if (dr == 0 && dc == 0) break;
+                        r += dr;
+                        c += dc;
+                      }
+                    }
+                  },
                 ),
               );
             }),
