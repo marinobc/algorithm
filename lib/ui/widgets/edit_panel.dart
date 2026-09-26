@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../algorithms/core/algorithm_registry.dart';
@@ -39,8 +40,11 @@ class _EditPanelState extends ConsumerState<EditPanel> {
   String? _selectedOrigenId;
   String? _selectedDestinoId;
 
+  final FocusNode _keyboardFocusNode = FocusNode();
+
   @override
   void dispose() {
+    _keyboardFocusNode.dispose();
     _nameController.dispose();
     _newAttrController.dispose();
     for (final c in _attrValueControllers.values) {
@@ -261,6 +265,11 @@ class _EditPanelState extends ConsumerState<EditPanel> {
     if (_lastSyncedItemId != edicion.itemSeleccionadoId) {
       _lastSyncedItemId = edicion.itemSeleccionadoId;
       _syncWithCurrentItem();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _keyboardFocusNode.requestFocus();
+        }
+      });
     }
 
     final isNode = edicion.esNodo;
@@ -372,173 +381,231 @@ class _EditPanelState extends ConsumerState<EditPanel> {
         ? activeAlgo?.buildNodeEditControls(context, ref, currentNode)
         : null;
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 640, maxHeight: 520),
-        child: Material(
-          elevation: 12,
-          shadowColor: colorScheme.shadow.withValues(alpha: 0.3),
-          color: colorScheme.surfaceContainerHigh,
-          borderRadius: BorderRadius.circular(24),
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(
-                color: colorScheme.outlineVariant.withValues(alpha: 0.6),
-                width: 1.0,
+    return Shortcuts(
+      shortcuts: <ShortcutActivator, Intent>{
+        const SingleActivator(LogicalKeyboardKey.enter):
+            const _SaveEditIntent(),
+        const SingleActivator(LogicalKeyboardKey.numpadEnter):
+            const _SaveEditIntent(),
+        const SingleActivator(LogicalKeyboardKey.escape):
+            const _CancelEditIntent(),
+      },
+      child: Actions(
+        actions: <Type, Action<Intent>>{
+          _SaveEditIntent: CallbackAction<_SaveEditIntent>(
+            onInvoke: (_) {
+              _saveChanges();
+              return null;
+            },
+          ),
+          _CancelEditIntent: CallbackAction<_CancelEditIntent>(
+            onInvoke: (_) {
+              FocusScope.of(context).unfocus();
+              ref.read(estadoEdicionProvider.notifier).deseleccionar();
+              return null;
+            },
+          ),
+        },
+        child: Focus(
+          focusNode: _keyboardFocusNode,
+          autofocus: true,
+          child: KeyboardListener(
+            focusNode: FocusNode(),
+            onKeyEvent: (event) {
+              if (event is KeyDownEvent) {
+                if (event.logicalKey == LogicalKeyboardKey.enter ||
+                    event.logicalKey == LogicalKeyboardKey.numpadEnter) {
+                  _saveChanges();
+                } else if (event.logicalKey == LogicalKeyboardKey.escape) {
+                  FocusScope.of(context).unfocus();
+                  ref.read(estadoEdicionProvider.notifier).deseleccionar();
+                }
+              }
+            },
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 12.0,
               ),
-            ),
-            padding: const EdgeInsets.all(20.0),
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        itemTitle,
-                        style: TextStyle(
-                          color: colorScheme.primary,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(
+                  maxWidth: 640,
+                  maxHeight: 520,
+                ),
+                child: Material(
+                  elevation: 12,
+                  shadowColor: colorScheme.shadow.withValues(alpha: 0.3),
+                  color: colorScheme.surfaceContainerHigh,
+                  borderRadius: BorderRadius.circular(24),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(
+                        color: colorScheme.outlineVariant.withValues(
+                          alpha: 0.6,
                         ),
+                        width: 1.0,
                       ),
-                      IconButton(
-                        onPressed: () {
-                          ref
-                              .read(estadoEdicionProvider.notifier)
-                              .deseleccionar();
-                        },
-                        icon: const Icon(Icons.close),
-                      ),
-                    ],
-                  ),
-                  Divider(color: colorScheme.outlineVariant),
-                  if (isNode) ...[
-                    NodeEditSection(
-                      nameController: _nameController,
-                      colorScheme: colorScheme,
-                      palette: palette,
-                      selectedColorValue: _selectedColor,
-                      onNameChanged: (_) {
-                        ref
-                            .read(estadoEdicionProvider.notifier)
-                            .marcarCambioSinGuardar();
-                      },
-                      onColorSelected: (colorVal) {
-                        setState(() {
-                          _selectedColor = colorVal;
-                        });
-                        ref
-                            .read(estadoEdicionProvider.notifier)
-                            .marcarCambioSinGuardar();
-                      },
                     ),
-                    if (customNodeControls != null) ...[
-                      const SizedBox(height: 10),
-                      customNodeControls,
-                    ],
-                  ],
-                  if (!isNode) ...[
-                    ConnectionEditSection(
-                      colorScheme: colorScheme,
-                      isSelfLoop: isSelfLoop,
-                      selectedDireccion: _selectedDireccion,
-                      currentDirectionOptionId: currentDirectionOptionId,
-                      directionOptions: directionOptions
-                          .map(
-                            (opt) => ChoiceChipOption(
-                              id: opt.id,
-                              label: opt.label,
-                              onSelect: opt.onSelect,
-                            ),
-                          )
-                          .toList(),
-                      loopAngle: conn?.loopAngle ?? (-3.14159 / 2),
-                      onLoopAngleChanged: (val) {
-                        if (conn != null) {
-                          ref
-                              .read(grafoProvider.notifier)
-                              .actualizarConexion(conn.id, loopAngle: val);
-                          ref
-                              .read(estadoEdicionProvider.notifier)
-                              .marcarCambioSinGuardar();
-                        }
-                      },
-                    ),
-                  ],
-                  if (!isNode) ...[
-                    CustomAttributesSection(
-                      atributosGlobales: atributosGlobales,
-                      colorScheme: colorScheme,
-                      palette: palette,
-                      newAttrController: _newAttrController,
-                      getAttrController: _getAttrController,
-                      getAttrTagNameController: _getAttrTagNameController,
-                      onTagRenamed: (attrId, newTag) {
-                        ref
-                            .read(atributosGlobalesProvider.notifier)
-                            .renombrarAtributo(attrId, newTag);
-                        ref
-                            .read(estadoEdicionProvider.notifier)
-                            .marcarCambioSinGuardar();
-                      },
-                      onValueChanged: () {
-                        ref
-                            .read(estadoEdicionProvider.notifier)
-                            .marcarCambioSinGuardar();
-                      },
-                      onDeleteAttribute: (attr) {
-                        _confirmDeleteAttribute(context, attr, palette);
-                      },
-                      onAddAttribute: () {
-                        final name = _newAttrController.text.trim();
-                        if (name.isNotEmpty) {
-                          ref
-                              .read(atributosGlobalesProvider.notifier)
-                              .agregarAtributo(name);
-                          _newAttrController.clear();
-                        }
-                      },
-                    ),
-                  ],
-                  const SizedBox(height: 20),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      IconButton.filledTonal(
-                        style: IconButton.styleFrom(
-                          backgroundColor: colorScheme.errorContainer,
-                          foregroundColor: colorScheme.onErrorContainer,
-                        ),
-                        icon: const Icon(Icons.delete_outline_rounded),
-                        tooltip: 'Eliminar',
-                        onPressed: () => _confirmDeleteItem(context),
-                      ),
-                      Row(
+                    padding: const EdgeInsets.all(20.0),
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          OutlinedButton(
-                            onPressed: () {
-                              FocusScope.of(context).unfocus();
-                              ref
-                                  .read(estadoEdicionProvider.notifier)
-                                  .deseleccionar();
-                            },
-                            child: const Text(AppText.cancel),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                itemTitle,
+                                style: TextStyle(
+                                  color: colorScheme.primary,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              IconButton(
+                                onPressed: () {
+                                  ref
+                                      .read(estadoEdicionProvider.notifier)
+                                      .deseleccionar();
+                                },
+                                icon: const Icon(Icons.close),
+                              ),
+                            ],
                           ),
-                          const SizedBox(width: 8),
-                          FilledButton(
-                            onPressed: _saveChanges,
-                            child: const Text(AppText.save),
+                          Divider(color: colorScheme.outlineVariant),
+                          if (isNode) ...[
+                            NodeEditSection(
+                              nameController: _nameController,
+                              colorScheme: colorScheme,
+                              palette: palette,
+                              selectedColorValue: _selectedColor,
+                              onNameChanged: (_) {
+                                ref
+                                    .read(estadoEdicionProvider.notifier)
+                                    .marcarCambioSinGuardar();
+                              },
+                              onColorSelected: (colorVal) {
+                                setState(() {
+                                  _selectedColor = colorVal;
+                                });
+                                ref
+                                    .read(estadoEdicionProvider.notifier)
+                                    .marcarCambioSinGuardar();
+                              },
+                            ),
+                            if (customNodeControls != null) ...[
+                              const SizedBox(height: 10),
+                              customNodeControls,
+                            ],
+                          ],
+                          if (!isNode) ...[
+                            ConnectionEditSection(
+                              colorScheme: colorScheme,
+                              isSelfLoop: isSelfLoop,
+                              selectedDireccion: _selectedDireccion,
+                              currentDirectionOptionId:
+                                  currentDirectionOptionId,
+                              directionOptions: directionOptions
+                                  .map(
+                                    (opt) => ChoiceChipOption(
+                                      id: opt.id,
+                                      label: opt.label,
+                                      onSelect: opt.onSelect,
+                                    ),
+                                  )
+                                  .toList(),
+                              loopAngle: conn?.loopAngle ?? (-3.14159 / 2),
+                              onLoopAngleChanged: (val) {
+                                if (conn != null) {
+                                  ref
+                                      .read(grafoProvider.notifier)
+                                      .actualizarConexion(
+                                        conn.id,
+                                        loopAngle: val,
+                                      );
+                                  ref
+                                      .read(estadoEdicionProvider.notifier)
+                                      .marcarCambioSinGuardar();
+                                }
+                              },
+                            ),
+                          ],
+                          if (!isNode) ...[
+                            CustomAttributesSection(
+                              atributosGlobales: atributosGlobales,
+                              colorScheme: colorScheme,
+                              palette: palette,
+                              newAttrController: _newAttrController,
+                              getAttrController: _getAttrController,
+                              getAttrTagNameController:
+                                  _getAttrTagNameController,
+                              onTagRenamed: (attrId, newTag) {
+                                ref
+                                    .read(atributosGlobalesProvider.notifier)
+                                    .renombrarAtributo(attrId, newTag);
+                                ref
+                                    .read(estadoEdicionProvider.notifier)
+                                    .marcarCambioSinGuardar();
+                              },
+                              onValueChanged: () {
+                                ref
+                                    .read(estadoEdicionProvider.notifier)
+                                    .marcarCambioSinGuardar();
+                              },
+                              onDeleteAttribute: (attr) {
+                                _confirmDeleteAttribute(context, attr, palette);
+                              },
+                              onAddAttribute: () {
+                                final name = _newAttrController.text.trim();
+                                if (name.isNotEmpty) {
+                                  ref
+                                      .read(atributosGlobalesProvider.notifier)
+                                      .agregarAtributo(name);
+                                  _newAttrController.clear();
+                                }
+                              },
+                            ),
+                          ],
+                          const SizedBox(height: 20),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              IconButton.filledTonal(
+                                style: IconButton.styleFrom(
+                                  backgroundColor: colorScheme.errorContainer,
+                                  foregroundColor: colorScheme.onErrorContainer,
+                                ),
+                                icon: const Icon(Icons.delete_outline_rounded),
+                                tooltip: 'Eliminar',
+                                onPressed: () => _confirmDeleteItem(context),
+                              ),
+                              Row(
+                                children: [
+                                  OutlinedButton(
+                                    onPressed: () {
+                                      FocusScope.of(context).unfocus();
+                                      ref
+                                          .read(estadoEdicionProvider.notifier)
+                                          .deseleccionar();
+                                    },
+                                    child: const Text(AppText.cancel),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  FilledButton(
+                                    onPressed: _saveChanges,
+                                    child: const Text(AppText.save),
+                                  ),
+                                ],
+                              ),
+                            ],
                           ),
                         ],
                       ),
-                    ],
+                    ),
                   ),
-                ],
+                ),
               ),
             ),
           ),
@@ -738,4 +805,12 @@ class _ChoiceOption<T> {
     required this.label,
     required this.onSelect,
   });
+}
+
+class _SaveEditIntent extends Intent {
+  const _SaveEditIntent();
+}
+
+class _CancelEditIntent extends Intent {
+  const _CancelEditIntent();
 }

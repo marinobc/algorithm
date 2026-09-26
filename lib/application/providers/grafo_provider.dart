@@ -24,6 +24,7 @@ class GrafoNotifier extends Notifier<Grafo> {
 
   void marcarPuntoGuardado() => _undoTracker.marcarPuntoGuardado(state);
 
+  void recordUndoSnapshot() => _undoTracker.recordUndoState(state);
   void _recordUndoState() => _undoTracker.recordUndoState(state);
 
   bool deshacer() {
@@ -585,9 +586,9 @@ class GrafoNotifier extends Notifier<Grafo> {
     state = state.copyWith(conexiones: updatedConexiones);
   }
 
-  /// Empties all nodes and connections from the current graph while preserving history for undo.
+  /// Empties all nodes and connections from the current graph and resets history (new graph).
   void vaciarGrafo() {
-    _recordUndoState();
+    _undoTracker.clear(const Grafo());
     state = const Grafo();
   }
 

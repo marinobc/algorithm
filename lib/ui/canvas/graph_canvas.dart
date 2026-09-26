@@ -276,6 +276,8 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
       // Start 250ms hold timer for node MOVE mode
       _nodeHoldTimer = Timer(const Duration(milliseconds: 250), () {
         if (mounted && _draggedNodeId == touchedNode.id) {
+          // Record state BEFORE node position starts changing
+          ref.read(grafoProvider.notifier).recordUndoSnapshot();
           setState(() {
             _isNodeMoveUnlocked = true;
             _dragConnectingStartNodeId = null;
@@ -411,7 +413,10 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
       });
     } else if (screenDelta > 6.0) {
       if (_draggedConnId != null) {
-        _isDraggingConn = true;
+        if (!_isDraggingConn) {
+          _isDraggingConn = true;
+          ref.read(grafoProvider.notifier).recordUndoSnapshot();
+        }
         final grafo = ref.read(grafoProvider);
         final conn = grafo.conexiones[_draggedConnId];
         if (conn != null) {
