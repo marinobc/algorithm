@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 /// Modular, responsive header bar displaying dimensions or add/remove step buttons.
 class MatrixDimensionBar extends StatelessWidget {
@@ -271,14 +272,26 @@ class MatrixCellInput extends StatelessWidget {
   final bool isHighlight;
   final bool readOnly;
   final double width;
+  final FocusNode? focusNode;
+  final int? rowIndex;
+  final int? colIndex;
+  final int? totalRows;
+  final int? totalCols;
+  final void Function(int targetRow, int targetCol)? onNavigate;
 
   const MatrixCellInput({
     super.key,
     required this.controller,
+    this.focusNode,
     this.hint = '',
     this.isHighlight = false,
     this.readOnly = false,
     this.width = 76,
+    this.rowIndex,
+    this.colIndex,
+    this.totalRows,
+    this.totalCols,
+    this.onNavigate,
   });
 
   @override
@@ -291,122 +304,171 @@ class MatrixCellInput extends StatelessWidget {
         cursor: readOnly
             ? SystemMouseCursors.forbidden
             : SystemMouseCursors.text,
-        child: Focus(
-          canRequestFocus: !readOnly,
-          onFocusChange: (hasFocus) {
-            if (!hasFocus) {
-              FocusManager.instance.primaryFocus?.unfocus();
-            }
-          },
-          child: ValueListenableBuilder<TextEditingValue>(
-            valueListenable: controller,
-            builder: (context, value, _) {
-              final raw = value.text.trim();
-              final parsed = double.tryParse(raw);
-              final isInvalid =
-                  !readOnly &&
-                  raw.isNotEmpty &&
-                  (parsed == null || !parsed.isFinite || parsed < 0);
+        child: ValueListenableBuilder<TextEditingValue>(
+          valueListenable: controller,
+          builder: (context, value, _) {
+            final raw = value.text.trim();
+            final parsed = double.tryParse(raw);
+            final isInvalid =
+                !readOnly &&
+                raw.isNotEmpty &&
+                (parsed == null || !parsed.isFinite || parsed < 0);
 
-              final hasFocus = Focus.of(context).hasFocus;
-              return TextField(
-                controller: controller,
-                readOnly: readOnly,
-                enabled: !readOnly,
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: isHighlight || isInvalid
-                      ? FontWeight.bold
-                      : FontWeight.w600,
-                  color: isInvalid
-                      ? colors.error
-                      : (readOnly
-                            ? colors.onSurfaceVariant.withValues(alpha: 0.45)
-                            : (isHighlight
-                                  ? colors.primary
-                                  : colors.onSurface)),
-                ),
-                decoration: InputDecoration(
-                  hintText: hasFocus ? '' : hint,
-                  hintStyle: TextStyle(
-                    color: isInvalid
-                        ? colors.error.withValues(alpha: 0.5)
-                        : colors.onSurfaceVariant.withValues(alpha: 0.38),
-                    fontSize: 11,
-                    fontWeight: FontWeight.normal,
-                  ),
-                  isDense: true,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 6,
-                    vertical: 8,
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14),
-                    borderSide: BorderSide(
-                      color: isInvalid
-                          ? colors.error
-                          : colors.outlineVariant.withValues(alpha: 0.6),
-                    ),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14),
-                    borderSide: BorderSide(
-                      color: isInvalid
-                          ? colors.error
-                          : (readOnly
-                                ? colors.outlineVariant.withValues(alpha: 0.2)
-                                : (isHighlight
-                                      ? colors.primary.withValues(alpha: 0.5)
-                                      : colors.outlineVariant.withValues(
-                                          alpha: 0.4,
-                                        ))),
-                    ),
-                  ),
-                  disabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14),
-                    borderSide: BorderSide(
-                      color: colors.outlineVariant.withValues(alpha: 0.2),
-                    ),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14),
-                    borderSide: BorderSide(
-                      color: isInvalid
-                          ? colors.error
-                          : (readOnly
-                                ? colors.outlineVariant.withValues(alpha: 0.2)
-                                : colors.primary),
-                      width: isInvalid ? 2 : (readOnly ? 1 : 2),
-                    ),
-                  ),
-                  fillColor: isInvalid
-                      ? colors.errorContainer.withValues(alpha: 0.25)
-                      : (readOnly
-                            ? colors.surfaceContainerHighest.withValues(
-                                alpha: 0.75,
-                              )
-                            : (isHighlight
-                                  ? colors.primaryContainer.withValues(
-                                      alpha: 0.3,
-                                    )
-                                  : colors.surface)),
-                  filled: true,
-                ),
-                onTap: () {
-                  if (!readOnly && controller.text.isNotEmpty) {
-                    controller.selection = TextSelection(
-                      baseOffset: 0,
-                      extentOffset: controller.text.length,
-                    );
+            return Focus(
+              canRequestFocus: !readOnly,
+              onKeyEvent: (node, event) {
+                if (event is KeyDownEvent &&
+                    onNavigate != null &&
+                    rowIndex != null &&
+                    colIndex != null &&
+                    totalRows != null &&
+                    totalCols != null) {
+                  final key = event.logicalKey;
+                  int dr = 0;
+                  int dc = 0;
+                  if (key == LogicalKeyboardKey.arrowUp) {
+                    dr = -1;
+                  } else if (key == LogicalKeyboardKey.arrowDown) {
+                    dr = 1;
+                  } else if (key == LogicalKeyboardKey.arrowLeft) {
+                    dc = -1;
+                  } else if (key == LogicalKeyboardKey.arrowRight) {
+                    dc = 1;
                   }
+
+                  if (dr != 0 || dc != 0) {
+                    var r = rowIndex! + dr;
+                    var c = colIndex! + dc;
+                    // Attempt step; target focus node will decide or skip if disabled
+                    if (r >= -1 &&
+                        r <= totalRows! &&
+                        c >= -1 &&
+                        c <= totalCols!) {
+                      onNavigate!(r, c);
+                      return KeyEventResult.handled;
+                    }
+                  }
+                }
+                return KeyEventResult.ignored;
+              },
+              child: Builder(
+                builder: (context) {
+                  final hasFocus = Focus.of(context).hasFocus;
+                  final isFicticio = controller.text
+                      .trim()
+                      .toLowerCase()
+                      .startsWith('ficticio');
+                  final effectiveReadOnly = readOnly || isFicticio;
+
+                  return TextField(
+                    controller: controller,
+                    focusNode: focusNode,
+                    readOnly: effectiveReadOnly,
+                    enabled: !effectiveReadOnly,
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: isHighlight || isInvalid
+                          ? FontWeight.bold
+                          : FontWeight.w600,
+                      color: isInvalid
+                          ? colors.error
+                          : (readOnly
+                                ? colors.onSurfaceVariant.withValues(
+                                    alpha: 0.45,
+                                  )
+                                : (isHighlight
+                                      ? colors.primary
+                                      : colors.onSurface)),
+                    ),
+                    decoration: InputDecoration(
+                      hintText: hasFocus ? '' : hint,
+                      hintStyle: TextStyle(
+                        color: isInvalid
+                            ? colors.error.withValues(alpha: 0.5)
+                            : colors.onSurfaceVariant.withValues(alpha: 0.38),
+                        fontSize: 11,
+                        fontWeight: FontWeight.normal,
+                      ),
+                      isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 8,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: BorderSide(
+                          color: isInvalid
+                              ? colors.error
+                              : colors.outlineVariant.withValues(alpha: 0.6),
+                        ),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: BorderSide(
+                          color: isInvalid
+                              ? colors.error
+                              : (readOnly
+                                    ? colors.outlineVariant.withValues(
+                                        alpha: 0.2,
+                                      )
+                                    : (isHighlight
+                                          ? colors.primary.withValues(
+                                              alpha: 0.5,
+                                            )
+                                          : colors.outlineVariant.withValues(
+                                              alpha: 0.4,
+                                            ))),
+                        ),
+                      ),
+                      disabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: BorderSide(
+                          color: colors.outlineVariant.withValues(alpha: 0.2),
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: BorderSide(
+                          color: isInvalid
+                              ? colors.error
+                              : (readOnly
+                                    ? colors.outlineVariant.withValues(
+                                        alpha: 0.2,
+                                      )
+                                    : colors.primary),
+                          width: isInvalid ? 2 : (readOnly ? 1 : 2),
+                        ),
+                      ),
+                      fillColor: isInvalid
+                          ? colors.errorContainer.withValues(alpha: 0.25)
+                          : (readOnly
+                                ? colors.surfaceContainerHighest.withValues(
+                                    alpha: 0.75,
+                                  )
+                                : (isHighlight
+                                      ? colors.primaryContainer.withValues(
+                                          alpha: 0.3,
+                                        )
+                                      : colors.surface)),
+                      filled: true,
+                    ),
+                    onTap: () {
+                      if (!readOnly && controller.text.isNotEmpty) {
+                        controller.selection = TextSelection(
+                          baseOffset: 0,
+                          extentOffset: controller.text.length,
+                        );
+                      }
+                    },
+                  );
                 },
-              );
-            },
-          ),
+              ),
+            );
+          },
         ),
       ),
     );
