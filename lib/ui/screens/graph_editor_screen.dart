@@ -85,7 +85,17 @@ class _GraphEditorScreenState extends ConsumerState<GraphEditorScreen> {
     final graph = ref.read(grafoProvider);
     final loadedItem = ref.read(loadedGraphItemProvider);
     final graphName = loadedItem?.nombre;
-    GraphShareService.showSaveJpgDialog(context, graph, graphName: graphName);
+    final highlights = ref.read(highlightedElementsProvider);
+    final solutionSummary = ref.read(activeSolutionSummaryProvider);
+    GraphShareService.showSaveJpgDialog(
+      context,
+      graph,
+      graphName: graphName,
+      highlightedNodeIds: highlights.nodeIds,
+      highlightedConnectionIds: highlights.connectionIds,
+      solutionTitle: solutionSummary?.displayTitle,
+      solutionValue: solutionSummary?.formattedZ,
+    );
   }
 
   Future<bool> _promptUnsavedChanges({bool isNewGraph = false}) async {
