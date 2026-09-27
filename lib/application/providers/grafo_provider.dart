@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/utils/app_logger.dart';
 import '../../domain/models/atributo.dart';
 import '../../domain/models/conexion.dart';
 import '../../domain/models/direccion.dart';
@@ -594,6 +595,10 @@ class GrafoNotifier extends Notifier<Grafo> {
 
   /// Replaces the graph as one undoable operation.
   void reemplazarGrafo(Grafo grafo) {
+    AppLogger.i(
+      'GrafoNotifier',
+      'Reemplazando grafo en el lienzo: ${grafo.nodos.length} nodos, ${grafo.conexiones.length} conexiones. TipoAlgoritmo: ${grafo.tipoAlgoritmo}',
+    );
     _recordUndoState();
     state = grafo;
   }
