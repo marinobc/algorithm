@@ -44,8 +44,7 @@ class GraphTypesSection extends StatelessWidget {
             icon: Icons.arrow_forward_rounded,
             color: const Color(0xFF7C4DFF),
             title: 'Grafos Dirigidos (Digrafos)',
-            description:
-                'Las conexiones tienen un sentido único (como una calle de una sola vía o un mensaje de Twitter donde tú sigues a alguien pero no necesariamente te sigue a ti).',
+            description: 'Las conexiones tienen un sentido único (como una calle de una sola vía o un mensaje de Twitter donde tú sigues a alguien pero no necesariamente te sigue a ti).',
           ),
           const SizedBox(height: 12),
           // Undirected
@@ -54,8 +53,7 @@ class GraphTypesSection extends StatelessWidget {
             icon: Icons.swap_horiz_rounded,
             color: const Color(0xFF00BFA5),
             title: 'Grafos No Dirigidos',
-            description:
-                'Las conexiones funcionan en ambos sentidos por igual (como una llamada telefónica o dos amigos en Facebook).',
+            description: 'Las conexiones funcionan en ambos sentidos por igual (como una llamada telefónica o dos amigos en Facebook).',
           ),
         ],
       ),

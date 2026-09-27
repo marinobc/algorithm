@@ -86,8 +86,7 @@ class _AssignmentBipartiteMatrixScreenState
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        validation.errorMessage ??
-                            'Configure nodos de origen y destino conectados para ver la matriz de asignación.',
+                        validation.errorMessage ?? 'Configure nodos de origen y destino conectados para ver la matriz de asignación.',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: colorScheme.onSurfaceVariant,

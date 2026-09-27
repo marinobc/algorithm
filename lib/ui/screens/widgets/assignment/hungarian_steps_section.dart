@@ -12,26 +12,22 @@ class HungarianStepsSection extends StatelessWidget {
       {
         'step': 'Paso 1',
         'title': 'Reducción por Filas',
-        'desc':
-            'Resta el menor número de cada fila a todos los elementos de esa fila. ¡Ahora cada fila tiene al menos un cero!',
+        'desc': 'Resta el menor número de cada fila a todos los elementos de esa fila. ¡Ahora cada fila tiene al menos un cero!',
       },
       {
         'step': 'Paso 2',
         'title': 'Reducción por Columnas',
-        'desc':
-            'Resta el menor número de cada columna a todas sus celdas para multiplicar los ceros disponibles en la tabla.',
+        'desc': 'Resta el menor número de cada columna a todas sus celdas para multiplicar los ceros disponibles en la tabla.',
       },
       {
         'step': 'Paso 3',
         'title': 'Cubrir Ceros con Líneas',
-        'desc':
-            'Trazas el mínimo número de líneas (horizontales o verticales) para tachar todos los ceros existentes.',
+        'desc': 'Trazas el mínimo número de líneas (horizontales o verticales) para tachar todos los ceros existentes.',
       },
       {
         'step': 'Paso 4',
         'title': 'Asignar Parejas Óptimas',
-        'desc':
-            'Cuando las líneas son iguales al número de filas, seleccionas las casillas con ceros para emparejar cada recurso a su tarea.',
+        'desc': 'Cuando las líneas son iguales al número de filas, seleccionas las casillas con ceros para emparejar cada recurso a su tarea.',
       },
     ];
 

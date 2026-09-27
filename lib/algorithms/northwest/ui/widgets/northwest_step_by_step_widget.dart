@@ -19,8 +19,7 @@ class NorthwestStepByStepWidget extends StatefulWidget {
       _NorthwestStepByStepWidgetState();
 }
 
-class _NorthwestStepByStepWidgetState
-    extends State<NorthwestStepByStepWidget> {
+class _NorthwestStepByStepWidgetState extends State<NorthwestStepByStepWidget> {
   late final PageController _pageController;
   int _currentStep = 0;
 
@@ -61,10 +60,8 @@ class _NorthwestStepByStepWidgetState
       children: [
         Text(
           'Resolución paso a paso',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: colors.primary,
-                fontWeight: FontWeight.w800,
-              ),
+          style: Theme.of(context).textTheme.titleMedium
+              ?.copyWith(color: colors.primary, fontWeight: FontWeight.w800),
         ),
         const SizedBox(height: 6),
         Text(
@@ -99,8 +96,9 @@ class _NorthwestStepByStepWidgetState
                 labelStyle: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
-                  color:
-                      isSelected ? colors.onPrimary : colors.onSurfaceVariant,
+                  color: isSelected
+                      ? colors.onPrimary
+                      : colors.onSurfaceVariant,
                 ),
                 label: Text(label),
                 onSelected: (_) => _goToStep(index),

@@ -194,8 +194,7 @@ class GraphCanvasDialogs {
     Navigator.pop(dialogContext);
   }
 
-  static String _formatQuantity(double value) =>
-      value == value.roundToDouble()
-          ? value.toInt().toString()
-          : value.toStringAsFixed(2);
+  static String _formatQuantity(double value) => value == value.roundToDouble()
+      ? value.toInt().toString()
+      : value.toStringAsFixed(2);
 }

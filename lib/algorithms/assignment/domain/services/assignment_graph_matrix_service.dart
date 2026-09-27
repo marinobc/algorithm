@@ -99,10 +99,7 @@ class AssignmentGraphMatrixService {
     );
   }
 
-  static Grafo buildGraphFromInput(
-    Grafo current,
-    AssignmentMatrixInput input,
-  ) {
+  static Grafo buildGraphFromInput(Grafo current, AssignmentMatrixInput input) {
     final nodes = <String, Nodo>{};
     final connections = <String, Conexion>{};
 

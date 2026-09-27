@@ -79,7 +79,8 @@ class NorthwestLabeledMatrix extends StatelessWidget {
                           values[row].length,
                           (column) => _NorthwestMatrixCell(
                             text: _formatNumber(values[row][column]),
-                            highlighted: highlightedCell?.row == row &&
+                            highlighted:
+                                highlightedCell?.row == row &&
                                 highlightedCell?.column == column,
                           ),
                         ),
@@ -120,8 +121,9 @@ class _NorthwestMatrixCell extends StatelessWidget {
         overflow: TextOverflow.ellipsis,
         style: TextStyle(
           fontSize: 12,
-          fontWeight:
-              isHeader || highlighted ? FontWeight.w800 : FontWeight.w500,
+          fontWeight: isHeader || highlighted
+              ? FontWeight.w800
+              : FontWeight.w500,
           color: highlighted ? colors.onPrimaryContainer : null,
         ),
       ),

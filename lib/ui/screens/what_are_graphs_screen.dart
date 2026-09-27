@@ -58,16 +58,14 @@ class WhatAreGraphsScreen extends StatelessWidget {
                       // 2. Video Support Card
                       const VideoResourceCard(
                         title: 'Video recomendado: Introducción a los grafos',
-                        description:
-                            'Aprende de forma visual con ejemplos interactivos qué son los nodos y las conexiones.',
+                        description: 'Aprende de forma visual con ejemplos interactivos qué son los nodos y las conexiones.',
                         videoUrl: 'https://www.youtube.com/watch?v=vnNFiNVy9KM',
                         durationOrAuthor: 'Explicación en Video',
                       ),
                       const SizedBox(height: 20),
                       const VideoResourceCard(
                         title: 'Video recomendado: conceptos fundamentales',
-                        description:
-                            'Refuerza la diferencia entre vértices, aristas y las relaciones que modelan.',
+                        description: 'Refuerza la diferencia entre vértices, aristas y las relaciones que modelan.',
                         videoUrl: 'https://www.youtube.com/watch?v=F5Xjpg0-NhM',
                         durationOrAuthor: 'Teoría de Grafos',
                       ),
@@ -91,8 +89,7 @@ class WhatAreGraphsScreen extends StatelessWidget {
                       const SizedBox(height: 48),
                       const VideoResourceCard(
                         title: 'Video recomendado: grafos en acción',
-                        description:
-                            'Conecta la teoría con problemas reales de rutas, redes y toma de decisiones.',
+                        description: 'Conecta la teoría con problemas reales de rutas, redes y toma de decisiones.',
                         videoUrl: 'https://www.youtube.com/watch?v=dIBxZU__3QA',
                         durationOrAuthor: 'Aplicaciones prácticas',
                       ),

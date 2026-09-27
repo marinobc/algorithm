@@ -13,22 +13,19 @@ class WelcomeBasicsSection extends StatelessWidget {
       {
         'icon': Icons.input_rounded,
         'title': 'Entrada',
-        'text':
-            'Los datos iniciales del problema: números, nombres, nodos, costos, tiempos o cualquier información que el algoritmo necesita.',
+        'text': 'Los datos iniciales del problema: números, nombres, nodos, costos, tiempos o cualquier información que el algoritmo necesita.',
         'color': const Color(0xFF00BFA5),
       },
       {
         'icon': Icons.settings_suggest_rounded,
         'title': 'Proceso',
-        'text':
-            'La secuencia de pasos: comparar, ordenar, calcular, validar condiciones y transformar los datos con una lógica definida.',
+        'text': 'La secuencia de pasos: comparar, ordenar, calcular, validar condiciones y transformar los datos con una lógica definida.',
         'color': const Color(0xFF7C4DFF),
       },
       {
         'icon': Icons.output_rounded,
         'title': 'Salida',
-        'text':
-            'El resultado final: una ruta, una asignación, una lista ordenada, una decisión o una respuesta que resuelve el problema.',
+        'text': 'El resultado final: una ruta, una asignación, una lista ordenada, una decisión o una respuesta que resuelve el problema.',
         'color': const Color(0xFFFF5252),
       },
     ];
@@ -65,8 +62,7 @@ class WelcomeBasicsSection extends StatelessWidget {
           context,
           badge: 'BASES Y COMPONENTES',
           title: 'Partes y propiedades de un algoritmo',
-          subtitle:
-              'Identifica qué datos recibe, qué lógica transforma y qué resultado debe entregar.',
+          subtitle: 'Identifica qué datos recibe, qué lógica transforma y qué resultado debe entregar.',
         ),
         const SizedBox(height: 28),
         _buildResponsiveInfoGrid(
@@ -312,8 +308,8 @@ class WelcomeBasicsSection extends StatelessWidget {
           final crossAxisCount = width >= 900
               ? 4
               : width >= 560
-                  ? 2
-                  : 1;
+              ? 2
+              : 1;
 
           return GridView.builder(
             shrinkWrap: true,

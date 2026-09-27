@@ -154,8 +154,10 @@ class WelcomeHeroSection extends StatelessWidget {
                             borderRadius: BorderRadius.circular(14),
                           ),
                         ),
-                        icon:
-                            const Icon(Icons.arrow_downward_rounded, size: 20),
+                        icon: const Icon(
+                          Icons.arrow_downward_rounded,
+                          size: 20,
+                        ),
                         label: const Text(
                           'Ver 3 Ejemplos Prácticos',
                           style: TextStyle(

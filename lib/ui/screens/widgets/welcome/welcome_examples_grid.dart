@@ -21,10 +21,8 @@ class WelcomeExamplesGrid extends StatelessWidget {
         'subtitle': 'Google Maps, Waze, Logística',
         'icon': Icons.map_rounded,
         'color': const Color(0xFF00BFA5),
-        'image':
-            'https://images.unsplash.com/photo-1524661135-423995f22d0b?w=600&auto=format&fit=crop',
-        'description':
-            'Al solicitar una ruta en tu teléfono, un algoritmo analiza miles de calles, intersecciones y condiciones de tráfico en vivo para calcular en milisegundos el trayecto óptimo hasta tu destino.',
+        'image': 'https://images.unsplash.com/photo-1524661135-423995f22d0b?w=600&auto=format&fit=crop',
+        'description': 'Al solicitar una ruta en tu teléfono, un algoritmo analiza miles de calles, intersecciones y condiciones de tráfico en vivo para calcular en milisegundos el trayecto óptimo hasta tu destino.',
       },
       {
         'number': '02',
@@ -32,10 +30,8 @@ class WelcomeExamplesGrid extends StatelessWidget {
         'subtitle': 'Google, Spotify, Redes Sociales',
         'icon': Icons.manage_search_rounded,
         'color': const Color(0xFF7C4DFF),
-        'image':
-            'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?w=600&auto=format&fit=crop',
-        'description':
-            'Cuando buscas información o escuchas música, los algoritmos examinan e indexan millones de datos para mostrarte de inmediato los resultados más relevantes según tu contexto e historial.',
+        'image': 'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?w=600&auto=format&fit=crop',
+        'description': 'Cuando buscas información o escuchas música, los algoritmos examinan e indexan millones de datos para mostrarte de inmediato los resultados más relevantes según tu contexto e historial.',
       },
       {
         'number': '03',
@@ -43,10 +39,8 @@ class WelcomeExamplesGrid extends StatelessWidget {
         'subtitle': 'Filtros, Precios, Catálogos',
         'icon': Icons.sort_rounded,
         'color': const Color(0xFFFF5252),
-        'image':
-            'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&auto=format&fit=crop',
-        'description':
-            'Desde ordenar contactos o correos electrónicos por fecha hasta estructurar inventarios de tiendas electrónicas, los algoritmos de ordenamiento permiten priorizar datos velozmente.',
+        'image': 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&auto=format&fit=crop',
+        'description': 'Desde ordenar contactos o correos electrónicos por fecha hasta estructurar inventarios de tiendas electrónicas, los algoritmos de ordenamiento permiten priorizar datos velozmente.',
       },
     ];
 
@@ -79,10 +73,7 @@ class WelcomeExamplesGrid extends StatelessWidget {
     );
   }
 
-  Widget _buildExampleWebCard(
-    BuildContext context,
-    Map<String, dynamic> data,
-  ) {
+  Widget _buildExampleWebCard(BuildContext context, Map<String, dynamic> data) {
     final colorScheme = Theme.of(context).colorScheme;
     final accentColor = data['color'] as Color;
 

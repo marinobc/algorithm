@@ -88,8 +88,7 @@ class _WelcomeExplanationScreenState extends State<WelcomeExplanationScreen> {
                         context,
                         badge: 'MATERIAL AUDIOVISUAL',
                         title: 'Videos Explicativos Recomendados',
-                        subtitle:
-                            'Dos explicaciones introductorias para conectar la teoría con ejemplos y procesos paso a paso.',
+                        subtitle: 'Dos explicaciones introductorias para conectar la teoría con ejemplos y procesos paso a paso.',
                       ),
                       const SizedBox(height: 28),
                       _buildVideosSection(context, screenWidth),
@@ -103,8 +102,7 @@ class _WelcomeExplanationScreenState extends State<WelcomeExplanationScreen> {
                           context,
                           badge: 'APLICACIONES EN EL MUNDO REAL',
                           title: '3 Ejemplos Prácticos de Algoritmos',
-                          subtitle:
-                              'Descubre cómo la lógica algorítmica resuelve problemas cotidianos a gran escala.',
+                          subtitle: 'Descubre cómo la lógica algorítmica resuelve problemas cotidianos a gran escala.',
                         ),
                       ),
                       const SizedBox(height: 32),
@@ -136,17 +134,14 @@ class _WelcomeExplanationScreenState extends State<WelcomeExplanationScreen> {
     const videos = [
       VideoResourceCard(
         title: 'Introducción visual a los algoritmos',
-        description:
-            'Un recurso de apoyo para entender cómo una serie de instrucciones ordenadas permite resolver problemas de forma clara y repetible.',
+        description: 'Un recurso de apoyo para entender cómo una serie de instrucciones ordenadas permite resolver problemas de forma clara y repetible.',
         videoUrl: 'https://www.youtube.com/watch?v=U3CGMyjzlvM',
         durationOrAuthor: 'Video introductorio',
       ),
       VideoResourceCard(
         title: 'Algoritmos explicados paso a paso',
-        description:
-            'Material complementario para repasar conceptos básicos, ejemplos y la lógica detrás de la resolución estructurada de problemas.',
-        videoUrl:
-            'https://www.youtube.com/watch?v=FS9u9cIGf3o&list=PLYYyYpMvAtD1Gu8o1734Ld22LTDxlfKfO',
+        description: 'Material complementario para repasar conceptos básicos, ejemplos y la lógica detrás de la resolución estructurada de problemas.',
+        videoUrl: 'https://www.youtube.com/watch?v=FS9u9cIGf3o&list=PLYYyYpMvAtD1Gu8o1734Ld22LTDxlfKfO',
         durationOrAuthor: 'Lista de reproducción',
       ),
     ];

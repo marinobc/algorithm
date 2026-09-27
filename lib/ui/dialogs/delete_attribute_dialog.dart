@@ -22,10 +22,8 @@ class DeleteAttributeDialog extends StatelessWidget {
     return showDialog<bool>(
       context: context,
       useRootNavigator: true,
-      builder: (_) => DeleteAttributeDialog(
-        attr: attr,
-        valuesSummary: valuesSummary,
-      ),
+      builder: (_) =>
+          DeleteAttributeDialog(attr: attr, valuesSummary: valuesSummary),
     );
   }
 

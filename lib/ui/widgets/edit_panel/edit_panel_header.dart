@@ -25,10 +25,7 @@ class EditPanelHeader extends StatelessWidget {
             fontWeight: FontWeight.bold,
           ),
         ),
-        IconButton(
-          onPressed: onClose,
-          icon: const Icon(Icons.close),
-        ),
+        IconButton(onPressed: onClose, icon: const Icon(Icons.close)),
       ],
     );
   }

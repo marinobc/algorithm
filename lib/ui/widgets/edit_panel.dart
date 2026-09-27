@@ -145,9 +145,7 @@ class _EditPanelState extends ConsumerState<EditPanel> {
 
     if (confirmed == true) {
       ref.read(atributosGlobalesProvider.notifier).eliminarAtributo(attr.id);
-      ref
-          .read(grafoProvider.notifier)
-          .eliminarAtributoDeConexiones(attr.id);
+      ref.read(grafoProvider.notifier).eliminarAtributoDeConexiones(attr.id);
       if (mounted) {
         setState(() {
           _attrValueControllers.remove(attr.id)?.dispose();

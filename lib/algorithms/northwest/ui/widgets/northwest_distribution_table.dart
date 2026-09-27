@@ -16,7 +16,7 @@ class NorthwestDistributionTable extends StatelessWidget {
     super.key,
     required this.problem,
     required NorthwestResult result,
-  })  : allocations = result.allocations;
+  }) : allocations = result.allocations;
 
   static String formatNumber(double val) {
     if (val % 1 == 0) {
@@ -35,8 +35,9 @@ class NorthwestDistributionTable extends StatelessWidget {
 
   bool _isFictitiousDestination(int col) {
     final name = problem.destinationNames[col];
-    final id =
-        col < problem.destinationIds.length ? problem.destinationIds[col] : '';
+    final id = col < problem.destinationIds.length
+        ? problem.destinationIds[col]
+        : '';
     return id == 'nw_dummy_destination' ||
         name == 'Ficticio' ||
         name.startsWith('Ficticio ');
@@ -83,15 +84,9 @@ class NorthwestDistributionTable extends StatelessWidget {
 
   TableRow _buildHeaderRow(ColorScheme colors) {
     return TableRow(
-      decoration: BoxDecoration(
-        color: colors.surfaceContainerHigh,
-      ),
+      decoration: BoxDecoration(color: colors.surfaceContainerHigh),
       children: [
-        _HeaderCell(
-          text: 'Origen',
-          textColor: colors.primary,
-          alignLeft: true,
-        ),
+        _HeaderCell(text: 'Origen', textColor: colors.primary, alignLeft: true),
         ...List.generate(problem.destinationNames.length, (col) {
           final isFictitious = _isFictitiousDestination(col);
           return _HeaderCell(
@@ -101,10 +96,7 @@ class NorthwestDistributionTable extends StatelessWidget {
                 : colors.primary,
           );
         }),
-        _HeaderCell(
-          text: 'Disponible',
-          textColor: colors.secondary,
-        ),
+        _HeaderCell(text: 'Disponible', textColor: colors.secondary),
       ],
     );
   }
@@ -116,24 +108,16 @@ class NorthwestDistributionTable extends StatelessWidget {
     return TableRow(
       decoration: isOriginFictitious
           ? BoxDecoration(
-              color: colors.surfaceContainerHighest.withValues(
-                alpha: 0.35,
-              ),
+              color: colors.surfaceContainerHighest.withValues(alpha: 0.35),
             )
           : null,
       children: [
-        _DataCellLabel(
-          text: origName,
-          isFictitious: isOriginFictitious,
-        ),
+        _DataCellLabel(text: origName, isFictitious: isOriginFictitious),
         ...List.generate(problem.destinationNames.length, (col) {
           final isDestFictitious = _isFictitiousDestination(col);
           final isCellFictitious = isOriginFictitious || isDestFictitious;
           final value = allocations[row][col];
-          return _DataCell(
-            value: value,
-            isFictitious: isCellFictitious,
-          );
+          return _DataCell(value: value, isFictitious: isCellFictitious);
         }),
         _DataCellTotal(
           value: problem.supplies[row],
@@ -200,10 +184,7 @@ class _DataCellLabel extends StatelessWidget {
   final String text;
   final bool isFictitious;
 
-  const _DataCellLabel({
-    required this.text,
-    required this.isFictitious,
-  });
+  const _DataCellLabel({required this.text, required this.isFictitious});
 
   @override
   Widget build(BuildContext context) {
@@ -229,10 +210,7 @@ class _DataCell extends StatelessWidget {
   final double value;
   final bool isFictitious;
 
-  const _DataCell({
-    required this.value,
-    required this.isFictitious,
-  });
+  const _DataCell({required this.value, required this.isFictitious});
 
   @override
   Widget build(BuildContext context) {
@@ -265,10 +243,7 @@ class _DataCellTotal extends StatelessWidget {
   final double value;
   final bool isFictitious;
 
-  const _DataCellTotal({
-    required this.value,
-    required this.isFictitious,
-  });
+  const _DataCellTotal({required this.value, required this.isFictitious});
 
   @override
   Widget build(BuildContext context) {
@@ -294,10 +269,7 @@ class _FooterCellLabel extends StatelessWidget {
   final String text;
   final Color textColor;
 
-  const _FooterCellLabel({
-    required this.text,
-    required this.textColor,
-  });
+  const _FooterCellLabel({required this.text, required this.textColor});
 
   @override
   Widget build(BuildContext context) {

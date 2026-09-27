@@ -45,8 +45,8 @@ class AssignmentMatrixGridTable extends StatelessWidget {
       ...List.generate(destinationNames.length, (j) {
         final isFicticioCol =
             destinationNames[j].text.trim().toLowerCase().startsWith(
-                  'ficticio',
-                ) ||
+              'ficticio',
+            ) ||
             destinationIds[j].contains('_dummy_');
         return DataColumn(
           label: SizedBox(
@@ -282,13 +282,13 @@ class AssignmentMatrixGridTable extends StatelessWidget {
             ...List.generate(destinationNames.length, (j) {
               final isRowFicticio =
                   originNames[i].text.trim().toLowerCase().startsWith(
-                        'ficticio',
-                      ) ||
+                    'ficticio',
+                  ) ||
                   originIds[i].contains('_dummy_');
               final isColFicticio =
                   destinationNames[j].text.trim().toLowerCase().startsWith(
-                        'ficticio',
-                      ) ||
+                    'ficticio',
+                  ) ||
                   destinationIds[j].contains('_dummy_');
               final isCellFicticio = isRowFicticio || isColFicticio;
 
@@ -338,10 +338,9 @@ class AssignmentMatrixGridTable extends StatelessWidget {
                           c >= 0 &&
                           c < destinationNames.length) {
                         final isCellDisabled =
-                            originNames[r].text
-                                .trim()
-                                .toLowerCase()
-                                .startsWith('ficticio') ||
+                            originNames[r].text.trim().toLowerCase().startsWith(
+                              'ficticio',
+                            ) ||
                             originIds[r].contains('_dummy_') ||
                             destinationNames[c].text
                                 .trim()

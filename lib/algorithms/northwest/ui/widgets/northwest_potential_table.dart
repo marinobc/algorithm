@@ -25,10 +25,8 @@ class NorthwestPotentialTable extends StatelessWidget {
       children: [
         Text(
           'Potenciales MODI',
-          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: colors.primary,
-              ),
+          style: Theme.of(context).textTheme.titleSmall
+              ?.copyWith(fontWeight: FontWeight.bold, color: colors.primary),
         ),
         const SizedBox(height: 8),
         Wrap(

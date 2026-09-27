@@ -71,10 +71,11 @@ class _NorthwestDetailsScreenState
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20),
                       ),
-                      color: (isMinimization
-                              ? colors.primaryContainer
-                              : colors.tertiaryContainer)
-                          .withValues(alpha: .85),
+                      color:
+                          (isMinimization
+                                  ? colors.primaryContainer
+                                  : colors.tertiaryContainer)
+                              .withValues(alpha: .85),
                       child: Padding(
                         padding: const EdgeInsets.all(20),
                         child: Column(

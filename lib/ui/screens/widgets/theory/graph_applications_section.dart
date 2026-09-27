@@ -52,8 +52,8 @@ class GraphApplicationsSection extends StatelessWidget {
             final columns = constraints.maxWidth >= 800
                 ? 3
                 : constraints.maxWidth >= 500
-                    ? 2
-                    : 1;
+                ? 2
+                : 1;
             return GridView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),

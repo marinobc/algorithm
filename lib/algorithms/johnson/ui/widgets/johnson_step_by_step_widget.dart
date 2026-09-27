@@ -104,8 +104,7 @@ class _JohnsonStepByStepWidgetState extends State<JohnsonStepByStepWidget> {
                 stepNumber: 1,
                 title: 'Pasada Hacia Adelante (Tiempos Tempranos ES/EF)',
                 formula: r'ES_j = \max_{(i,j)} (EF_i), \quad EF_j = ES_j + t_j',
-                description:
-                    'Comienza en el nodo inicial con ES = 0. Para cada nodo posterior j, su tiempo temprano de inicio ES_j es el máximo tiempo de finalización temprana EF de todos sus predecesores.',
+                description: 'Comienza en el nodo inicial con ES = 0. Para cada nodo posterior j, su tiempo temprano de inicio ES_j es el máximo tiempo de finalización temprana EF de todos sus predecesores.',
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -156,8 +155,7 @@ class _JohnsonStepByStepWidgetState extends State<JohnsonStepByStepWidget> {
                 stepNumber: 2,
                 title: 'Pasada Hacia Atrás (Tiempos Tardíos LS/LF)',
                 formula: r'LF_i = \min_{(i,j)} (LS_j), \quad LS_i = LF_i - t_i',
-                description:
-                    'Inicia desde el nodo final fijando LF igual a la duración total del proyecto. Recorre el grafo en sentido inverso fijando para cada nodo i el mínimo LS de sus sucesores.',
+                description: 'Inicia desde el nodo final fijando LF igual a la duración total del proyecto. Recorre el grafo en sentido inverso fijando para cada nodo i el mínimo LS de sus sucesores.',
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -208,8 +206,7 @@ class _JohnsonStepByStepWidgetState extends State<JohnsonStepByStepWidget> {
                 stepNumber: 3,
                 title: 'Cálculo de Holguras y Selección de Ruta Crítica',
                 formula: r'TS_i = LS_i - ES_i = LF_i - EF_i = 0',
-                description:
-                    'La holgura total TS_i indica el tiempo que se puede retrasar una actividad sin demorar la fecha final del proyecto. Los nodos con TS_i = 0 forman la Ruta Crítica.',
+                description: 'La holgura total TS_i indica el tiempo que se puede retrasar una actividad sin demorar la fecha final del proyecto. Los nodos con TS_i = 0 forman la Ruta Crítica.',
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [

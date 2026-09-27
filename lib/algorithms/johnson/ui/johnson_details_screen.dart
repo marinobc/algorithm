@@ -204,9 +204,7 @@ class _JohnsonDetailsScreenState extends ConsumerState<JohnsonDetailsScreen> {
                             : Icons.auto_awesome_rounded,
                       ),
                       label: Text(
-                        _showSteps
-                            ? 'Ocultar paso a paso matemático'
-                            : 'Mostrar paso a paso matemático (Algoritmo de Johnson)',
+                        _showSteps ? 'Ocultar paso a paso matemático' : 'Mostrar paso a paso matemático (Algoritmo de Johnson)',
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                     ),

@@ -136,20 +136,21 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
   @override
   void initState() {
     super.initState();
-    _snapBackController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 300),
-    )..addListener(() {
-        if (_animatingNodeId != null && _snapBackAnimation != null) {
-          ref
-              .read(grafoProvider.notifier)
-              .moverNodo(
-                _animatingNodeId!,
-                _snapBackAnimation!.value.dx,
-                _snapBackAnimation!.value.dy,
-              );
-        }
-      });
+    _snapBackController =
+        AnimationController(
+          vsync: this,
+          duration: const Duration(milliseconds: 300),
+        )..addListener(() {
+          if (_animatingNodeId != null && _snapBackAnimation != null) {
+            ref
+                .read(grafoProvider.notifier)
+                .moverNodo(
+                  _animatingNodeId!,
+                  _snapBackAnimation!.value.dx,
+                  _snapBackAnimation!.value.dy,
+                );
+          }
+        });
   }
 
   @override
@@ -296,11 +297,7 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
         _draggedConnId = touchedConn.id;
         _longPressTimer = Timer(const Duration(milliseconds: 1000), () {
           if (!_isDraggingConn) {
-            _triggerContextMenu(
-              details.localFocalPoint,
-              touchedConn.id,
-              false,
-            );
+            _triggerContextMenu(details.localFocalPoint, touchedConn.id, false);
           }
         });
       } else {

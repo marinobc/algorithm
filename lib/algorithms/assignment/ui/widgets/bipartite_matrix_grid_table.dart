@@ -29,8 +29,7 @@ class BipartiteMatrixGridTable extends StatefulWidget {
       _BipartiteMatrixGridTableState();
 }
 
-class _BipartiteMatrixGridTableState
-    extends State<BipartiteMatrixGridTable> {
+class _BipartiteMatrixGridTableState extends State<BipartiteMatrixGridTable> {
   static const double cellWidth = 84.0;
   static const double cellHeight = 52.0;
   static const double rowHeaderWidth = 90.0;
@@ -193,7 +192,8 @@ class _BipartiteMatrixGridTableState
                 context: context,
                 label: 'Oferta',
                 isSelected:
-                    widget.selectedColumnIndex == widget.destinations.length + 2,
+                    widget.selectedColumnIndex ==
+                    widget.destinations.length + 2,
                 onTap: () {
                   widget.onSelectionChanged(
                     widget.selectedRowIndex,
@@ -300,20 +300,22 @@ class _BipartiteMatrixGridTableState
                     mainAxisSize: MainAxisSize.min,
                     children: List.generate(widget.destinations.length, (j) {
                       final destNode = widget.destinations[j];
-                      final weight = AssignmentBipartiteService.getConnectionWeight(
-                        widget.grafo,
-                        origNode.id,
-                        destNode.id,
-                      );
+                      final weight =
+                          AssignmentBipartiteService.getConnectionWeight(
+                            widget.grafo,
+                            origNode.id,
+                            destNode.id,
+                          );
 
                       final isColSelected = widget.selectedColumnIndex == j;
                       final isCellSelected =
                           widget.selectedRowIndex == i &&
-                              widget.selectedColumnIndex == j;
+                          widget.selectedColumnIndex == j;
                       final isHighlighted = isRowSelected || isColSelected;
 
                       final hasConnection = weight != null;
-                      final cellText = AssignmentBipartiteService.formatCellText(weight);
+                      final cellText =
+                          AssignmentBipartiteService.formatCellText(weight);
 
                       Color bgColor = Colors.transparent;
                       if (isCellSelected) {
@@ -433,13 +435,16 @@ class _BipartiteMatrixGridTableState
                       // Suma Fila
                       _buildSummaryCell(
                         context: context,
-                        text: AssignmentBipartiteService.formatCellText(rowSums[i]),
+                        text: AssignmentBipartiteService.formatCellText(
+                          rowSums[i],
+                        ),
                         tooltip:
                             'Suma total de costos para el origen $origLabel',
                         isSum: true,
                         isSelected:
                             isRowSelected ||
-                            widget.selectedColumnIndex == widget.destinations.length,
+                            widget.selectedColumnIndex ==
+                                widget.destinations.length,
                         colorScheme: colorScheme,
                         width: cellWidth,
                         height: cellHeight,
@@ -452,7 +457,8 @@ class _BipartiteMatrixGridTableState
                         isSum: false,
                         isSelected:
                             isRowSelected ||
-                            widget.selectedColumnIndex == widget.destinations.length + 1,
+                            widget.selectedColumnIndex ==
+                                widget.destinations.length + 1,
                         colorScheme: colorScheme,
                         width: cellWidth,
                         height: cellHeight,
@@ -461,13 +467,16 @@ class _BipartiteMatrixGridTableState
                       if (widget.isNorthwest)
                         _buildSummaryCell(
                           context: context,
-                          text: AssignmentBipartiteService.formatCellText(origNode.cantidad ?? 0),
+                          text: AssignmentBipartiteService.formatCellText(
+                            origNode.cantidad ?? 0,
+                          ),
                           tooltip: 'Oferta disponible en el origen $origLabel',
                           isSum: true,
                           customColor: colorScheme.error,
                           isSelected:
                               isRowSelected ||
-                              widget.selectedColumnIndex == widget.destinations.length + 2,
+                              widget.selectedColumnIndex ==
+                                  widget.destinations.length + 2,
                           colorScheme: colorScheme,
                           width: cellWidth,
                           height: cellHeight,
@@ -518,7 +527,8 @@ class _BipartiteMatrixGridTableState
                   tooltip: 'Suma total de costos para el destino $destLabel',
                   isSum: true,
                   isSelected:
-                      isColSelected || widget.selectedRowIndex == widget.origins.length,
+                      isColSelected ||
+                      widget.selectedRowIndex == widget.origins.length,
                   colorScheme: colorScheme,
                   width: cellWidth,
                   height: cellHeight,
@@ -565,7 +575,8 @@ class _BipartiteMatrixGridTableState
                   tooltip: 'Conexiones recibidas por el destino $destLabel',
                   isSum: false,
                   isSelected:
-                      isColSelected || widget.selectedRowIndex == widget.origins.length + 1,
+                      isColSelected ||
+                      widget.selectedRowIndex == widget.origins.length + 1,
                   colorScheme: colorScheme,
                   width: cellWidth,
                   height: cellHeight,
@@ -584,7 +595,8 @@ class _BipartiteMatrixGridTableState
               _buildHeaderCell(
                 context: context,
                 label: 'Demanda',
-                isSelected: widget.selectedRowIndex == widget.origins.length + 2,
+                isSelected:
+                    widget.selectedRowIndex == widget.origins.length + 2,
                 onTap: () {
                   widget.onSelectionChanged(
                     widget.selectedRowIndex == widget.origins.length + 2
@@ -610,7 +622,9 @@ class _BipartiteMatrixGridTableState
                   padding: const EdgeInsets.symmetric(vertical: 2),
                   child: _buildSummaryCell(
                     context: context,
-                    text: AssignmentBipartiteService.formatCellText(destNode.cantidad ?? 0),
+                    text: AssignmentBipartiteService.formatCellText(
+                      destNode.cantidad ?? 0,
+                    ),
                     tooltip: 'Demanda requerida por el destino $destLabel',
                     isSum: true,
                     customColor: colorScheme.error,

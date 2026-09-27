@@ -59,7 +59,8 @@ class NorthwestMatrixGridTable extends StatelessWidget {
       ...List.generate(destinationNames.length, (j) {
         final name = destinationNames[j].text.trim();
         final destId = j < destinationIds.length ? destinationIds[j] : '';
-        final isFictitious = destId == _dummyDestinationId ||
+        final isFictitious =
+            destId == _dummyDestinationId ||
             name == 'Ficticio' ||
             name.startsWith('Ficticio ');
         return DataColumn(
@@ -187,7 +188,8 @@ class NorthwestMatrixGridTable extends StatelessWidget {
       ...List.generate(originNames.length, (i) {
         final originName = originNames[i].text.trim();
         final originId = i < originIds.length ? originIds[i] : '';
-        final isOriginFictitious = originId == _dummyOriginId ||
+        final isOriginFictitious =
+            originId == _dummyOriginId ||
             originName == 'Ficticio' ||
             originName.startsWith('Ficticio ');
         return DataRow(
@@ -315,10 +317,12 @@ class NorthwestMatrixGridTable extends StatelessWidget {
             ...List.generate(destinationNames.length, (j) {
               final destName = destinationNames[j].text.trim();
               final destId = j < destinationIds.length ? destinationIds[j] : '';
-              final isDestFictitious = destId == _dummyDestinationId ||
+              final isDestFictitious =
+                  destId == _dummyDestinationId ||
                   destName == 'Ficticio' ||
                   destName.startsWith('Ficticio ');
-              final isCellFictitiousVal = isOriginFictitious || isDestFictitious;
+              final isCellFictitiousVal =
+                  isOriginFictitious || isDestFictitious;
               return DataCell(
                 MatrixCellInput(
                   controller: costs[i][j],

@@ -37,10 +37,7 @@ class EditPanelFooterActions extends StatelessWidget {
               child: const Text(AppText.cancel),
             ),
             const SizedBox(width: 8),
-            FilledButton(
-              onPressed: onSave,
-              child: const Text(AppText.save),
-            ),
+            FilledButton(onPressed: onSave, child: const Text(AppText.save)),
           ],
         ),
       ],

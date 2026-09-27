@@ -50,8 +50,9 @@ class NorthwestModiIterationCard extends StatelessWidget {
                 children: [
                   CircleAvatar(
                     radius: 14,
-                    backgroundColor:
-                        isOptimal ? Colors.green.shade700 : colors.primary,
+                    backgroundColor: isOptimal
+                        ? Colors.green.shade700
+                        : colors.primary,
                     foregroundColor: Colors.white,
                     child: Text(
                       '$stepNumber',
@@ -95,10 +96,7 @@ class NorthwestModiIterationCard extends StatelessWidget {
               const SizedBox(height: 14),
 
               // Step operations
-              NorthwestPotentialTable(
-                problem: problem,
-                iteration: iteration,
-              ),
+              NorthwestPotentialTable(problem: problem, iteration: iteration),
               const SizedBox(height: 14),
               NorthwestLabeledMatrix(
                 title: r'Matriz de Costos Relativos ($G_{ij} = u_i + v_j$)',
@@ -124,10 +122,7 @@ class NorthwestModiIterationCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 10),
-                NorthwestCircuitView(
-                  problem: problem,
-                  iteration: iteration,
-                ),
+                NorthwestCircuitView(problem: problem, iteration: iteration),
                 const SizedBox(height: 14),
                 Text(
                   'Nueva Distribución Resultante · Z = ${_formatNumber(iteration.objectiveValue)}',

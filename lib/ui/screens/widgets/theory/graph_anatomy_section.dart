@@ -43,8 +43,7 @@ class GraphAnatomySection extends StatelessWidget {
                     title: '1. Nodos o Vértices',
                     icon: Icons.circle_outlined,
                     color: const Color(0xFF7C4DFF),
-                    description:
-                        'Son las entidades individuales de la red que guardan datos como su nombre o estado.',
+                    description: 'Son las entidades individuales de la red que guardan datos como su nombre o estado.',
                   ),
                 ),
                 SizedBox(width: isWide ? 16 : 0, height: isWide ? 0 : 16),
@@ -55,8 +54,7 @@ class GraphAnatomySection extends StatelessWidget {
                     title: '2. Aristas o Enlaces',
                     icon: Icons.alt_route_rounded,
                     color: const Color(0xFF00BFA5),
-                    description:
-                        'Son los enlaces que indican interacción o posibilidad de viaje de un nodo a otro.',
+                    description: 'Son los enlaces que indican interacción o posibilidad de viaje de un nodo a otro.',
                   ),
                 ),
                 SizedBox(width: isWide ? 16 : 0, height: isWide ? 0 : 16),
@@ -67,8 +65,7 @@ class GraphAnatomySection extends StatelessWidget {
                     title: '3. Pesos o Costos',
                     icon: Icons.tune_rounded,
                     color: const Color(0xFFFF5252),
-                    description:
-                        'Es el "costo", la distancia o el tiempo que toma atravesar esa conexión concreta.',
+                    description: 'Es el "costo", la distancia o el tiempo que toma atravesar esa conexión concreta.',
                   ),
                 ),
               ],

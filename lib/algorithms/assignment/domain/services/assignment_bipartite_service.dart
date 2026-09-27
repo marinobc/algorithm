@@ -49,11 +49,7 @@ class AssignmentBipartiteService {
       origins.length,
       (i) => List.generate(
         destinations.length,
-        (j) => getConnectionWeight(
-          grafo,
-          origins[i].id,
-          destinations[j].id,
-        ),
+        (j) => getConnectionWeight(grafo, origins[i].id, destinations[j].id),
       ),
     );
   }

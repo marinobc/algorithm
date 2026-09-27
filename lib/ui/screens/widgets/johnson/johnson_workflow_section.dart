@@ -13,15 +13,13 @@ class JohnsonWorkflowSection extends StatelessWidget {
         'num': '1',
         'title': 'Pasada de Ida (De Ida)',
         'subtitle': 'Sumar y elegir el MÁXIMO',
-        'desc':
-            'Avanza sumando la duración de cada tarea. En los nodos donde convergen varias actividades antecedoras, escoge siempre el valor máximo.',
+        'desc': 'Avanza sumando la duración de cada tarea. En los nodos donde convergen varias actividades antecedoras, escoge siempre el valor máximo.',
       },
       {
         'num': '2',
         'title': 'Pasada de Regreso (De Regreso)',
         'subtitle': 'Restar y elegir el MÍNIMO',
-        'desc':
-            'Retrocede restando las duraciones. En los nodos donde parten o se separan varias actividades hacia adelante, escoge siempre el valor mínimo.',
+        'desc': 'Retrocede restando las duraciones. En los nodos donde parten o se separan varias actividades hacia adelante, escoge siempre el valor mínimo.',
       },
     ];
 
