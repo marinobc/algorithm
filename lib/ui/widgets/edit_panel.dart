@@ -13,13 +13,14 @@ import '../../domain/models/direccion.dart';
 import '../dialogs/connection_duplicate_dialog.dart';
 import '../dialogs/delete_attribute_dialog.dart';
 import '../dialogs/delete_confirmation_dialog.dart';
-import '../text/app_text.dart';
 import '../text/connection_text.dart';
 import '../text/dialog_text.dart';
 import '../theme/app_theme.dart';
 import 'app_toast.dart';
 import 'edit_panel/connection_edit_section.dart';
 import 'edit_panel/custom_attributes_section.dart';
+import 'edit_panel/edit_panel_footer_actions.dart';
+import 'edit_panel/edit_panel_header.dart';
 import 'edit_panel/node_edit_section.dart';
 
 class EditPanel extends ConsumerStatefulWidget {
@@ -358,26 +359,13 @@ class _EditPanelState extends ConsumerState<EditPanel> {
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                itemTitle,
-                                style: TextStyle(
-                                  color: colorScheme.primary,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              IconButton(
-                                onPressed: () {
-                                  ref
-                                      .read(estadoEdicionProvider.notifier)
-                                      .deseleccionar();
-                                },
-                                icon: const Icon(Icons.close),
-                              ),
-                            ],
+                          EditPanelHeader(
+                            title: itemTitle,
+                            onClose: () {
+                              ref
+                                  .read(estadoEdicionProvider.notifier)
+                                  .deseleccionar();
+                            },
                           ),
                           Divider(color: colorScheme.outlineVariant),
                           if (isNode) ...[
@@ -474,37 +462,15 @@ class _EditPanelState extends ConsumerState<EditPanel> {
                             ),
                           ],
                           const SizedBox(height: 20),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              IconButton.filledTonal(
-                                style: IconButton.styleFrom(
-                                  backgroundColor: colorScheme.errorContainer,
-                                  foregroundColor: colorScheme.onErrorContainer,
-                                ),
-                                icon: const Icon(Icons.delete_outline_rounded),
-                                tooltip: 'Eliminar',
-                                onPressed: () => _confirmDeleteItem(context),
-                              ),
-                              Row(
-                                children: [
-                                  OutlinedButton(
-                                    onPressed: () {
-                                      FocusScope.of(context).unfocus();
-                                      ref
-                                          .read(estadoEdicionProvider.notifier)
-                                          .deseleccionar();
-                                    },
-                                    child: const Text(AppText.cancel),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  FilledButton(
-                                    onPressed: _saveChanges,
-                                    child: const Text(AppText.save),
-                                  ),
-                                ],
-                              ),
-                            ],
+                          EditPanelFooterActions(
+                            onDelete: () => _confirmDeleteItem(context),
+                            onCancel: () {
+                              FocusScope.of(context).unfocus();
+                              ref
+                                  .read(estadoEdicionProvider.notifier)
+                                  .deseleccionar();
+                            },
+                            onSave: _saveChanges,
                           ),
                         ],
                       ),
