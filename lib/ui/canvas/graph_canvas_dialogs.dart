@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../algorithms/core/algorithm_registry.dart';
+import '../../algorithms/northwest/providers/northwest_provider.dart';
 import '../../application/providers/atributos_provider.dart';
 import '../../application/providers/creacion_provider.dart';
 import '../../application/providers/edicion_provider.dart';
@@ -108,7 +109,93 @@ class GraphCanvasDialogs {
     onDeleted();
 
     ref.read(estadoEdicionProvider.notifier).deseleccionar();
-    ref.read(estadoCreacionProvider.notifier).reset();
     ref.read(grafoProvider.notifier).eliminarConexion(conexion.id);
   }
+
+  static Future<void> showQuantityEditor({
+    required BuildContext context,
+    required WidgetRef ref,
+    required Nodo node,
+  }) async {
+    final controller = TextEditingController(
+      text: _formatQuantity(node.cantidad ?? 0),
+    );
+    String? error;
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: Text(
+            node.rol == 'northwest_origin'
+                ? 'Editar oferta / disponibilidad'
+                : 'Editar demanda',
+          ),
+          content: TextField(
+            controller: controller,
+            autofocus: true,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            decoration: InputDecoration(
+              labelText: node.rol == 'northwest_origin'
+                  ? 'Oferta / disponibilidad'
+                  : 'Demanda',
+              errorText: error,
+            ),
+            onTap: () => controller.selection = TextSelection(
+              baseOffset: 0,
+              extentOffset: controller.text.length,
+            ),
+            onSubmitted: (_) => _saveQuantity(
+              dialogContext,
+              ref,
+              controller,
+              node,
+              setDialogState,
+              (message) => error = message,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Cancelar'),
+            ),
+            FilledButton(
+              onPressed: () => _saveQuantity(
+                dialogContext,
+                ref,
+                controller,
+                node,
+                setDialogState,
+                (message) => error = message,
+              ),
+              child: const Text('Guardar'),
+            ),
+          ],
+        ),
+      ),
+    );
+    controller.dispose();
+  }
+
+  static void _saveQuantity(
+    BuildContext dialogContext,
+    WidgetRef ref,
+    TextEditingController controller,
+    Nodo node,
+    void Function(void Function()) setDialogState,
+    void Function(String?) setError,
+  ) {
+    final value = double.tryParse(controller.text.trim());
+    if (value == null || !value.isFinite || value < 0) {
+      setDialogState(() => setError('Ingresa un numero no negativo.'));
+      return;
+    }
+    ref.read(grafoProvider.notifier).actualizarNodo(node.id, cantidad: value);
+    ref.read(northwestNotifierProvider.notifier).setActive(false);
+    Navigator.pop(dialogContext);
+  }
+
+  static String _formatQuantity(double value) =>
+      value == value.roundToDouble()
+          ? value.toInt().toString()
+          : value.toStringAsFixed(2);
 }

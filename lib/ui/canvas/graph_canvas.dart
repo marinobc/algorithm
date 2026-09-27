@@ -5,32 +5,31 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../algorithms/assignment/providers/assignment_provider.dart';
+import '../../algorithms/core/algorithm_registry.dart';
 import '../../application/providers/config_provider.dart';
 import '../../application/providers/creacion_provider.dart';
 import '../../application/providers/edicion_provider.dart';
 import '../../application/providers/grafo_invalido_provider.dart';
 import '../../application/providers/grafo_provider.dart';
 import '../../application/providers/modo_provider.dart';
-import '../../domain/models/modo_tipo_nodo.dart';
-import '../../algorithms/assignment/providers/assignment_provider.dart';
-import '../../algorithms/core/algorithm_registry.dart';
-import '../../algorithms/northwest/providers/northwest_provider.dart';
 import '../../domain/models/conexion.dart';
 import '../../domain/models/direccion.dart';
 import '../../domain/models/grafo.dart';
+import '../../domain/models/modo_tipo_nodo.dart';
 import '../../domain/models/nodo.dart';
 import '../../domain/services/graph_geometry.dart';
 import '../dialogs/connection_value_input_dialog.dart';
 import '../dialogs/overlapping_elements_dialog.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_toast.dart';
-import '../widgets/floating_context_menu.dart';
 import 'canvas_camera.dart';
 import 'canvas_gesture_state.dart';
 import 'graph_canvas_dialogs.dart';
 import 'graph_hit_tester.dart';
 import 'graph_painter.dart';
 import 'graph_render_model.dart';
+import 'widgets/canvas_context_menu_overlay.dart';
 
 class GraphCanvas extends ConsumerStatefulWidget {
   const GraphCanvas({super.key});
@@ -41,17 +40,13 @@ class GraphCanvas extends ConsumerStatefulWidget {
 
 class GraphCanvasState extends ConsumerState<GraphCanvas>
     with SingleTickerProviderStateMixin {
-  // Spatial Base Unit & World Grid Constants
   static const double nodeDiameter = CanvasCamera.nodeDiameter;
   static const double worldGridNodes = CanvasCamera.worldGridNodes;
   static const double baseViewNodes = CanvasCamera.baseViewNodes;
   static const double minViewNodes = CanvasCamera.minViewNodes;
   static const double maxViewNodes = CanvasCamera.maxViewNodes;
 
-  // Camera and transformation helper
   final CanvasCamera _camera = CanvasCamera();
-
-  // Gesture state tracking
   final CanvasGestureState _gesture = CanvasGestureState();
 
   Offset? get _pointerDownScreenPosition => _gesture.pointerDownScreenPosition;
@@ -130,12 +125,10 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
   Timer? get _zoomLockoutTimer => _gesture.zoomLockoutTimer;
   set _zoomLockoutTimer(Timer? val) => _gesture.zoomLockoutTimer = val;
 
-  // Snap-back animation controller for invalid node positioning
   late AnimationController _snapBackController;
   Animation<Offset>? _snapBackAnimation;
   String? _animatingNodeId;
 
-  // Contextual Floating Menu state
   Offset? _contextMenuScreenPosition;
   String? _contextMenuTargetId;
   bool _contextMenuIsNode = true;
@@ -143,21 +136,20 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
   @override
   void initState() {
     super.initState();
-    _snapBackController =
-        AnimationController(
-          vsync: this,
-          duration: const Duration(milliseconds: 300),
-        )..addListener(() {
-          if (_animatingNodeId != null && _snapBackAnimation != null) {
-            ref
-                .read(grafoProvider.notifier)
-                .moverNodo(
-                  _animatingNodeId!,
-                  _snapBackAnimation!.value.dx,
-                  _snapBackAnimation!.value.dy,
-                );
-          }
-        });
+    _snapBackController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    )..addListener(() {
+        if (_animatingNodeId != null && _snapBackAnimation != null) {
+          ref
+              .read(grafoProvider.notifier)
+              .moverNodo(
+                _animatingNodeId!,
+                _snapBackAnimation!.value.dx,
+                _snapBackAnimation!.value.dy,
+              );
+        }
+      });
   }
 
   @override
@@ -240,7 +232,6 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
     _isNodeMoveUnlocked = false;
     _hasPannedCanvas = false;
 
-    // Dismiss floating context menu on tap outside
     if (_contextMenuScreenPosition != null) {
       setState(() {
         _contextMenuScreenPosition = null;
@@ -273,10 +264,8 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
       _dragConnectingCurrentPos = Offset(touchedNode.x, touchedNode.y);
       _dragConnectingTargetNodeId = null;
 
-      // Start 250ms hold timer for node MOVE mode
       _nodeHoldTimer = Timer(const Duration(milliseconds: 250), () {
         if (mounted && _draggedNodeId == touchedNode.id) {
-          // Record state BEFORE node position starts changing
           ref.read(grafoProvider.notifier).recordUndoSnapshot();
           setState(() {
             _isNodeMoveUnlocked = true;
@@ -287,7 +276,6 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
         }
       });
 
-      // Start 1.0-second long press timer for contextual popup
       _longPressTimer = Timer(const Duration(milliseconds: 1000), () {
         if (!_isDraggingNode && !_isNodeMoveUnlocked) {
           _triggerContextMenu(details.localFocalPoint, touchedNode.id, true);
@@ -308,7 +296,11 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
         _draggedConnId = touchedConn.id;
         _longPressTimer = Timer(const Duration(milliseconds: 1000), () {
           if (!_isDraggingConn) {
-            _triggerContextMenu(details.localFocalPoint, touchedConn.id, false);
+            _triggerContextMenu(
+              details.localFocalPoint,
+              touchedConn.id,
+              false,
+            );
           }
         });
       } else {
@@ -323,7 +315,6 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
       _maxPointerCountDuringGesture = details.pointerCount;
     }
 
-    // 2-Finger Pinch Zoom (scale centred at focal point)
     if (details.pointerCount >= 2 ||
         _maxPointerCountDuringGesture >= 2 ||
         _isZoomLockoutActive) {
@@ -338,11 +329,9 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
           ? (minDim / (baseViewNodes * nodeDiameter))
           : 1.0;
 
-      // Scale bounds: max zoom-in shows 10×10 nodes, max zoom-out shows 100×100
       final minZoomOutScale = baseScale * (baseViewNodes / maxViewNodes);
       final maxZoomInScale = baseScale * (baseViewNodes / minViewNodes);
 
-      // Compute per-frame incremental scale ratio
       final scaleDelta = (_lastScale > 0 && _lastScale.isFinite)
           ? (details.scale / _lastScale)
           : 1.0;
@@ -376,7 +365,6 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
       return;
     }
 
-    // Single-finger touch — check movement threshold against initial touch point
     if (_pointerDownScreenPosition == null) return;
     final screenDelta =
         (details.localFocalPoint - _pointerDownScreenPosition!).distance;
@@ -391,7 +379,6 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
     final worldPos = _screenToWorld(details.localFocalPoint);
 
     if (_isNodeMoveUnlocked && _draggedNodeId != null) {
-      // User held node for >250ms -> Move Node mode active!
       _isDraggingNode = true;
       _dragConnectingStartNodeId = null;
       _dragConnectingCurrentPos = null;
@@ -399,7 +386,6 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
           .read(grafoProvider.notifier)
           .moverNodo(_draggedNodeId!, worldPos.dx, worldPos.dy);
     } else if (_dragConnectingStartNodeId != null && screenDelta > 6.0) {
-      // Instant drag from node -> Live direction connection line to target!
       final grafo = ref.read(grafoProvider);
       final targetNode = GraphHitTester.hitTestNode(
         worldPos,
@@ -466,7 +452,6 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
           }
         }
       } else if (_lastFocalPoint != null) {
-        // Direct 1-finger canvas panning when no element is dragged
         final focalDelta = details.localFocalPoint - _lastFocalPoint!;
         if (focalDelta.distance > 0.5) {
           _hasPannedCanvas = true;
@@ -582,7 +567,6 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
           }
         } else if (distWorld <= 15.0 || targetNode?.id == startId) {
           if (screenDelta < 200.0) {
-            // Tap / release on same node -> Edit node!
             _handleTap(startWorldPos);
           }
         }
@@ -640,7 +624,6 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
   }
 
   void _handleTap(Offset worldPos) {
-    // Zoom Lockout Guard: Block all tap actions & node creations while zoom lockout is active
     if (_isZoomLockoutActive) {
       return;
     }
@@ -659,7 +642,11 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
         isDetectadoMode: isDetectadoMode,
       );
       if (quantityNode != null) {
-        _showQuantityEditor(quantityNode);
+        GraphCanvasDialogs.showQuantityEditor(
+          context: context,
+          ref: ref,
+          node: quantityNode,
+        );
         return;
       }
     }
@@ -676,7 +663,6 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
     );
     final totalHits = hitNodes.length + hitConns.length;
 
-    // Directly trigger deletion dialog if current active mode is ModoActivo.eliminar!
     if (modoActivo == ModoActivo.eliminar) {
       if (totalHits > 1) {
         showDialog(
@@ -706,13 +692,11 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
       return;
     }
 
-    // Check double tap for self loop
     if (hitNodes.isNotEmpty) {
       final firstNode = hitNodes.first;
       if (_lastTapNodeId == firstNode.id &&
           _lastTapTime != null &&
           now.difference(_lastTapTime!).inMilliseconds < 300) {
-        // Double tap detected on node -> Cancel single-tap edit timer & create self loop!
         _singleTapEditTimer?.cancel();
         _lastTapNodeId = null;
         _lastTapTime = null;
@@ -744,7 +728,6 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
         return;
       }
 
-      // First tap on node: cancel previous timer and set a 300ms debounce timer for edit mode
       _singleTapEditTimer?.cancel();
       _lastTapNodeId = firstNode.id;
       _lastTapTime = now;
@@ -789,7 +772,6 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
     }
 
     if (totalHits > 1) {
-      // Overlapping connections! Trigger selection modal
       showDialog(
         context: context,
         builder: (context) {
@@ -813,7 +795,6 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
     } else if (hitConns.length == 1) {
       _onConnectionTapped(hitConns.first);
     } else {
-      // Tap empty canvas -> Create node!
       final validPos = GraphGeometry.clampNodePosition(
         worldPos.dx,
         worldPos.dy,
@@ -877,85 +858,6 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
   void _onConnectionTapped(Conexion conn) {
     ref.read(estadoEdicionProvider.notifier).seleccionarConexion(conn.id);
   }
-
-  Future<void> _showQuantityEditor(Nodo node) async {
-    final controller = TextEditingController(
-      text: _formatQuantity(node.cantidad ?? 0),
-    );
-    String? error;
-    await showDialog<void>(
-      context: context,
-      builder: (dialogContext) => StatefulBuilder(
-        builder: (context, setDialogState) => AlertDialog(
-          title: Text(
-            node.rol == 'northwest_origin'
-                ? 'Editar oferta / disponibilidad'
-                : 'Editar demanda',
-          ),
-          content: TextField(
-            controller: controller,
-            autofocus: true,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: InputDecoration(
-              labelText: node.rol == 'northwest_origin'
-                  ? 'Oferta / disponibilidad'
-                  : 'Demanda',
-              errorText: error,
-            ),
-            onTap: () => controller.selection = TextSelection(
-              baseOffset: 0,
-              extentOffset: controller.text.length,
-            ),
-            onSubmitted: (_) => _saveQuantity(
-              dialogContext,
-              controller,
-              node,
-              setDialogState,
-              (message) => error = message,
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('Cancelar'),
-            ),
-            FilledButton(
-              onPressed: () => _saveQuantity(
-                dialogContext,
-                controller,
-                node,
-                setDialogState,
-                (message) => error = message,
-              ),
-              child: const Text('Guardar'),
-            ),
-          ],
-        ),
-      ),
-    );
-    controller.dispose();
-  }
-
-  void _saveQuantity(
-    BuildContext dialogContext,
-    TextEditingController controller,
-    Nodo node,
-    void Function(void Function()) setDialogState,
-    void Function(String?) setError,
-  ) {
-    final value = double.tryParse(controller.text.trim());
-    if (value == null || !value.isFinite || value < 0) {
-      setDialogState(() => setError('Ingresa un numero no negativo.'));
-      return;
-    }
-    ref.read(grafoProvider.notifier).actualizarNodo(node.id, cantidad: value);
-    ref.read(northwestNotifierProvider.notifier).setActive(false);
-    Navigator.pop(dialogContext);
-  }
-
-  String _formatQuantity(double value) => value == value.roundToDouble()
-      ? value.toInt().toString()
-      : value.toStringAsFixed(2);
 
   void _triggerContextMenu(Offset screenPos, String targetId, bool isNode) {
     setState(() {
@@ -1105,53 +1007,44 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
               ),
               if (_contextMenuScreenPosition != null &&
                   _contextMenuTargetId != null)
-                Positioned(
-                  left: min(
-                    _contextMenuScreenPosition!.dx,
-                    MediaQuery.of(context).size.width - 150,
-                  ),
-                  top: min(
-                    _contextMenuScreenPosition!.dy,
-                    MediaQuery.of(context).size.height - 120,
-                  ),
-                  child: FloatingContextMenu(
-                    onEdit: () {
-                      final targetId = _contextMenuTargetId!;
-                      final isNode = _contextMenuIsNode;
-                      setState(() {
-                        _contextMenuScreenPosition = null;
-                      });
-                      if (isNode) {
-                        ref
-                            .read(estadoEdicionProvider.notifier)
-                            .seleccionarNodo(targetId);
-                      } else {
-                        ref
-                            .read(estadoEdicionProvider.notifier)
-                            .seleccionarConexion(targetId);
-                      }
-                    },
-                    onDelete: () {
-                      final targetId = _contextMenuTargetId!;
-                      final isNode = _contextMenuIsNode;
-                      setState(() {
-                        _contextMenuScreenPosition = null;
-                      });
-                      final grafo = ref.read(grafoProvider);
-                      if (isNode) {
-                        final nodo = grafo.nodos[targetId];
-                        if (nodo != null) _showDeleteNodeDialog(nodo);
-                      } else {
-                        final conn = grafo.conexiones[targetId];
-                        if (conn != null) _showDeleteConnectionDialog(conn);
-                      }
-                    },
-                    onDismiss: () {
-                      setState(() {
-                        _contextMenuScreenPosition = null;
-                      });
-                    },
-                  ),
+                CanvasContextMenuOverlay(
+                  position: _contextMenuScreenPosition!,
+                  onEdit: () {
+                    final targetId = _contextMenuTargetId!;
+                    final isNode = _contextMenuIsNode;
+                    setState(() {
+                      _contextMenuScreenPosition = null;
+                    });
+                    if (isNode) {
+                      ref
+                          .read(estadoEdicionProvider.notifier)
+                          .seleccionarNodo(targetId);
+                    } else {
+                      ref
+                          .read(estadoEdicionProvider.notifier)
+                          .seleccionarConexion(targetId);
+                    }
+                  },
+                  onDelete: () {
+                    final targetId = _contextMenuTargetId!;
+                    final isNode = _contextMenuIsNode;
+                    setState(() {
+                      _contextMenuScreenPosition = null;
+                    });
+                    final grafo = ref.read(grafoProvider);
+                    if (isNode) {
+                      final nodo = grafo.nodos[targetId];
+                      if (nodo != null) _showDeleteNodeDialog(nodo);
+                    } else {
+                      final conn = grafo.conexiones[targetId];
+                      if (conn != null) _showDeleteConnectionDialog(conn);
+                    }
+                  },
+                  onDismiss: () {
+                    setState(() {
+                      _contextMenuScreenPosition = null;
+                    });
+                  },
                 ),
             ],
           ),
