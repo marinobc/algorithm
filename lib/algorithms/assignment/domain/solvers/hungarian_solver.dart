@@ -224,7 +224,7 @@ class HungarianAssignmentSolver implements ITransportationSolver {
       ),
     );
 
-    // 3. Step 2A: Column Reduction (\alpha_j) - Selection & Vector
+    // 3. Step 2: Column Reduction (\alpha_j = \min_{i} c_{ij})
     final alpha = List<double>.filled(n, 0.0);
     final colMinDetails = <String>[];
     for (int j = 0; j < n; j++) {
@@ -238,43 +238,6 @@ class HungarianAssignmentSolver implements ITransportationSolver {
       );
     }
 
-    steps.add(
-      StepExplanation(
-        stepNumber: stepCounter++,
-        title: r'Paso 2A: Selección de Mínimos por Columna ($\alpha_j = \min_{i} c_{ij}$)',
-        description:
-            'Se identifica el valor mínimo de cada columna \$j\$:\n\n'
-            '${colMinDetails.join(' ; ')}\n\n'
-            'Signo operacional aplicado: \$(-\\alpha_j)\$ a cada elemento de la columna \$j\$.',
-        formulaLatex:
-            '\\alpha_j = \\min_{i} c_{ij} \\quad \\implies \\quad \\boldsymbol{\\alpha} = [${alpha.map((e) => e.toStringAsFixed(1).replaceAll(RegExp(r'\.0$'), '')).join(', ')}]',
-        colVectorBeta: List<double>.from(alpha),
-        currentAllocations: List.generate(
-          n,
-          (r) => List<double>.from(effCosts[r]),
-        ),
-      ),
-    );
-
-    // 4. Step 2B: Construction of Column Alpha Matrix
-    final alphaMatrix = List.generate(
-      n,
-      (i) => List.generate(n, (j) => alpha[j]),
-    );
-
-    steps.add(
-      StepExplanation(
-        stepNumber: stepCounter++,
-        title: r'Paso 2B: Construcción de la Matriz $A_{\alpha}$ (Signo Positivo $+A_{\alpha}$)',
-        description: r'Se conforma la matriz de restandos $A_{\alpha} = [\alpha_j]_{n \times n}$ replicando la columna $\alpha_j$.',
-        formulaLatex: r'A_{\alpha} = \begin{pmatrix} \alpha_1 & \alpha_2 & \dots & \alpha_n \\ \alpha_1 & \alpha_2 & \dots & \alpha_n \\ \vdots & \vdots & \ddots & \vdots \\ \alpha_1 & \alpha_2 & \dots & \alpha_n \end{pmatrix}',
-        colVectorBeta: List<double>.from(alpha),
-        alphaMatrix: alphaMatrix,
-        currentAllocations: alphaMatrix,
-      ),
-    );
-
-    // 5. Step 2C: Subtraction Operation (C - A_{\alpha})
     final colReduced = List.generate(n, (i) => List<double>.filled(n, 0.0));
     for (int i = 0; i < n; i++) {
       for (int j = 0; j < n; j++) {
@@ -285,12 +248,15 @@ class HungarianAssignmentSolver implements ITransportationSolver {
     steps.add(
       StepExplanation(
         stepNumber: stepCounter++,
-        title: r'Paso 2C: Sustracción $C^\prime = C - A_{\alpha}$ (Signo de Resta $-$)',
-        description: r'Se efectúa la resta celda por celda: $c^\prime_{ij} = c_{ij} - \alpha_j$. Toda celda mínima toma valor $0$.',
+        title: r'Paso 2: Reducción por Columnas ($\alpha_j = \min_{i} c_{ij}$)',
+        description:
+            'Se determina el valor mínimo de cada columna \$j\$ y se resta celda por celda:\n\n'
+            '${colMinDetails.join(' ; ')}\n\n'
+            r'Fórmula de sustracción: $c^\prime_{ij} = c_{ij} - \alpha_j$. Toda celda mínima toma valor $0$.',
         formulaLatex:
-            r'C^\prime = C - A_{\alpha} = [c_{ij} - \alpha_j]_{n \times n}',
-        colVectorBeta: List<double>.from(alpha),
-        alphaMatrix: alphaMatrix,
+            r'C^\prime = [c_{ij} - \alpha_j]_{n \times n} \quad \implies \quad \boldsymbol{\alpha} = ['
+            '${alpha.map((e) => e.toStringAsFixed(1).replaceAll(RegExp(r'\\.0\$'), '')).join(', ')}]',
+        rowVectorAlpha: List<double>.from(alpha),
         currentAllocations: List.generate(
           n,
           (r) => List<double>.from(colReduced[r]),
@@ -298,7 +264,7 @@ class HungarianAssignmentSolver implements ITransportationSolver {
       ),
     );
 
-    // 6. Step 3A: Row Reduction (\beta_i) - Selection & Vector
+    // 4. Step 3: Row Reduction (\beta_i = \min_{j} c'_{ij})
     final beta = List<double>.filled(n, 0.0);
     final rowMinDetails = <String>[];
     for (int i = 0; i < n; i++) {
@@ -309,45 +275,6 @@ class HungarianAssignmentSolver implements ITransportationSolver {
       );
     }
 
-    steps.add(
-      StepExplanation(
-        stepNumber: stepCounter++,
-        title: r'Paso 3A: Selección de Mínimos por Fila ($\beta_i = \min_{j} c^\prime_{ij}$)',
-        description:
-            'Se examina cada fila \$i\$ de la matriz reducida \$C^\\prime\$ y se extrae su mínimo:\n\n'
-            '${rowMinDetails.join(' ; ')}\n\n'
-            'Signo operacional aplicado: \$(-\\beta_i)\$ a cada elemento de la fila \$i\$.',
-        formulaLatex:
-            '\\beta_i = \\min_{j} c^\\prime_{ij} \\quad \\implies \\quad \\boldsymbol{\\beta} = [${beta.map((e) => e.toStringAsFixed(1).replaceAll(RegExp(r'\.0$'), '')).join(', ')}]^T',
-        colVectorBeta: List<double>.from(alpha),
-        rowVectorAlpha: List<double>.from(beta),
-        currentAllocations: List.generate(
-          n,
-          (r) => List<double>.from(colReduced[r]),
-        ),
-      ),
-    );
-
-    // 7. Step 3B: Construction of Row Beta Matrix
-    final betaMatrix = List.generate(
-      n,
-      (i) => List.generate(n, (j) => beta[i]),
-    );
-
-    steps.add(
-      StepExplanation(
-        stepNumber: stepCounter++,
-        title: r'Paso 3B: Construcción de la Matriz $B_{\beta}$ (Signo Positivo $+B_{\beta}$)',
-        description: r'Se conforma la matriz de restandos $B_{\beta} = [\beta_i]_{n \times n}$ replicando la fila $\beta_i$.',
-        formulaLatex: r'B_{\beta} = \begin{pmatrix} \beta_1 & \beta_1 & \dots & \beta_1 \\ \beta_2 & \beta_2 & \dots & \beta_2 \\ \vdots & \vdots & \ddots & \vdots \\ \beta_n & \beta_n & \dots & \beta_n \end{pmatrix}',
-        colVectorBeta: List<double>.from(alpha),
-        rowVectorAlpha: List<double>.from(beta),
-        betaMatrix: betaMatrix,
-        currentAllocations: betaMatrix,
-      ),
-    );
-
-    // 8. Step 3C: Subtraction Operation (C' - B_{\beta})
     final rowReduced = List.generate(n, (i) => List<double>.filled(n, 0.0));
     for (int i = 0; i < n; i++) {
       for (int j = 0; j < n; j++) {
@@ -358,12 +285,16 @@ class HungarianAssignmentSolver implements ITransportationSolver {
     steps.add(
       StepExplanation(
         stepNumber: stepCounter++,
-        title: r'Paso 3C: Sustracción $C^{\prime\prime} = C^\prime - B_{\beta}$ (Signo de Resta $-$)',
-        description: r'Se aplica la resta celda por celda: $c^{\prime\prime}_{ij} = c^\prime_{ij} - \beta_i$.',
-        formulaLatex: r'C^{\prime\prime} = C^\prime - B_{\beta} = [c^\prime_{ij} - \beta_i]_{n \times n}',
-        colVectorBeta: List<double>.from(alpha),
-        rowVectorAlpha: List<double>.from(beta),
-        betaMatrix: betaMatrix,
+        title:
+            r'Paso 3: Reducción por Filas ($\beta_i = \min_{j} c^\prime_{ij}$)',
+        description:
+            'Se examina cada fila \$i\$ de la matriz reducida por columnas \$C^\\prime\$ y se extrae su mínimo:\n\n'
+            '${rowMinDetails.join(' ; ')}\n\n'
+            r'Fórmula de sustracción: $c^{\prime\prime}_{ij} = c^\prime_{ij} - \beta_i$.',
+        formulaLatex:
+            r'C^{\prime\prime} = [c^\prime_{ij} - \beta_i]_{n \times n} \quad \implies \quad \boldsymbol{\beta} = ['
+            '${beta.map((e) => e.toStringAsFixed(1).replaceAll(RegExp(r'\\.0\$'), '')).join(', ')}]^T',
+        colVectorBeta: List<double>.from(beta),
         currentAllocations: List.generate(
           n,
           (r) => List<double>.from(rowReduced[r]),

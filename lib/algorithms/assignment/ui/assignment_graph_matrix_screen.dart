@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../application/providers/grafo_provider.dart';
+import '../../../../core/utils/app_logger.dart';
 import '../../../../domain/models/atributo.dart';
 import '../../../../domain/models/conexion.dart';
 import '../../../../domain/models/direccion.dart';
@@ -584,8 +585,9 @@ class _AssignmentGraphMatrixScreenState
 
     for (var i = 0; i < _originNames.length; i++) {
       final id = _originIds[i];
-      if (id.contains('_dummy_'))
+      if (id.contains('_dummy_')) {
         continue; // Skip fictitious elements from canvas graph
+      }
       final previous = current.nodos[id];
       final pos = previous != null
           ? Offset(previous.x, previous.y)
@@ -602,8 +604,9 @@ class _AssignmentGraphMatrixScreenState
 
     for (var j = 0; j < _destinationNames.length; j++) {
       final id = _destinationIds[j];
-      if (id.contains('_dummy_'))
+      if (id.contains('_dummy_')) {
         continue; // Skip fictitious elements from canvas graph
+      }
       final previous = current.nodos[id];
       final pos = previous != null
           ? Offset(previous.x, previous.y)
@@ -636,11 +639,13 @@ class _AssignmentGraphMatrixScreenState
         final existing = existingConnections['$originId|$destinationId'];
         final id =
             existing?.id ?? '${widget.config.idPrefix}_conn_${stamp}_${i}_$j';
+        final nodeColor =
+            nodes[originId]?.colorValue ?? widget.config.defaultOriginColor;
         connections[id] = Conexion(
           id: id,
           nodoOrigenId: originId,
           nodoDestinoId: destinationId,
-          colorValue: existing?.colorValue ?? nodes[originId]!.colorValue,
+          colorValue: existing?.colorValue ?? nodeColor,
           direccion: Direccion.unidireccional,
           atributos: [
             AtributoValor(
@@ -661,6 +666,11 @@ class _AssignmentGraphMatrixScreenState
       conexiones: connections,
       atributosGlobales: current.atributosGlobales,
       tipoAlgoritmo: widget.config.defaultTypeAlgorithm,
+    );
+
+    AppLogger.i(
+      'AssignmentGraphMatrixScreen',
+      'Matriz de Asignación procesada: ${nodes.length} nodos, ${connections.length} conexiones. Aplicando reemplazarGrafo...',
     );
 
     ref.read(transportationNotifierProvider.notifier).setActive(false);

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../application/providers/grafo_provider.dart';
+import '../../../../core/utils/app_logger.dart';
 import '../../../../domain/models/atributo.dart';
 import '../../../../domain/models/conexion.dart';
 import '../../../../domain/models/direccion.dart';
@@ -982,11 +983,12 @@ class _NorthwestGraphMatrixScreenState
 
         final existing = existingConnections['$originId|$destinationId'];
         final id = existing?.id ?? 'nw_connection_${stamp}_${i}_$j';
+        final nodeColor = nodes[originId]?.colorValue ?? 0xFF2196F3;
         connections[id] = Conexion(
           id: id,
           nodoOrigenId: originId,
           nodoDestinoId: destinationId,
-          colorValue: existing?.colorValue ?? nodes[originId]!.colorValue,
+          colorValue: existing?.colorValue ?? nodeColor,
           direccion: Direccion.unidireccional,
           atributos: [
             AtributoValor(atributoId: 'attr_valor', valor: _format(cost)),
@@ -1009,6 +1011,11 @@ class _NorthwestGraphMatrixScreenState
         NorthwestMetadata.destinationOrder: input.destinationIds.join(','),
         NorthwestMetadata.objective: input.objective.name,
       },
+    );
+
+    AppLogger.i(
+      'NorthwestGraphMatrixScreen',
+      'Matriz de Transporte procesada: ${nodes.length} nodos, ${connections.length} conexiones. Aplicando reemplazarGrafo...',
     );
 
     ref.read(northwestNotifierProvider.notifier).setActive(false);
