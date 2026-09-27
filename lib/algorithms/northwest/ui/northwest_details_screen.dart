@@ -119,9 +119,11 @@ class _NorthwestDetailsScreenState
                     ),
                   ),
                   const SizedBox(height: 8),
-                  NorthwestDistributionTable.fromResult(
-                    problem: problem,
-                    result: result,
+                  Center(
+                    child: NorthwestDistributionTable.fromResult(
+                      problem: problem,
+                      result: result,
+                    ),
                   ),
                   const SizedBox(height: 24),
                   SizedBox(

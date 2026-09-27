@@ -85,7 +85,7 @@ void main() {
         expect(find.text('Origen 2'), findsOneWidget);
         expect(find.text('Destino 1'), findsOneWidget);
         expect(find.text('Destino 2'), findsOneWidget);
-        expect(find.text('Disponible'), findsOneWidget);
+        expect(find.text('Oferta'), findsOneWidget);
         expect(find.text('Demanda'), findsOneWidget);
       },
     );

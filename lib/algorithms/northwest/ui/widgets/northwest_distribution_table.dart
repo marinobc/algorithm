@@ -47,35 +47,39 @@ class NorthwestDistributionTable extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: colors.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: colors.outlineVariant.withValues(alpha: 0.8),
-          width: 1.5,
-        ),
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(14.5),
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Table(
-            defaultColumnWidth: const IntrinsicColumnWidth(),
-            border: TableBorder(
-              horizontalInside: BorderSide(
-                color: colors.outlineVariant.withValues(alpha: 0.3),
-                width: 0.8,
+    return Center(
+      child: IntrinsicWidth(
+        child: Container(
+          decoration: BoxDecoration(
+            color: colors.surface,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: colors.outlineVariant.withValues(alpha: 0.8),
+              width: 1.5,
+            ),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(14.5),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Table(
+                defaultColumnWidth: const IntrinsicColumnWidth(),
+                border: TableBorder(
+                  horizontalInside: BorderSide(
+                    color: colors.outlineVariant.withValues(alpha: 0.3),
+                    width: 0.8,
+                  ),
+                ),
+                children: [
+                  _buildHeaderRow(colors),
+                  ...List.generate(
+                    problem.rowCount,
+                    (row) => _buildDataRow(colors, row),
+                  ),
+                  _buildFooterRow(colors),
+                ],
               ),
             ),
-            children: [
-              _buildHeaderRow(colors),
-              ...List.generate(
-                problem.rowCount,
-                (row) => _buildDataRow(colors, row),
-              ),
-              _buildFooterRow(colors),
-            ],
           ),
         ),
       ),
@@ -96,7 +100,7 @@ class NorthwestDistributionTable extends StatelessWidget {
                 : colors.primary,
           );
         }),
-        _HeaderCell(text: 'Disponible', textColor: colors.secondary),
+        _HeaderCell(text: 'Oferta', textColor: colors.secondary),
       ],
     );
   }
@@ -122,6 +126,7 @@ class NorthwestDistributionTable extends StatelessWidget {
         _DataCellTotal(
           value: problem.supplies[row],
           isFictitious: isOriginFictitious,
+          textColor: colors.secondary,
         ),
       ],
     );
@@ -129,20 +134,17 @@ class NorthwestDistributionTable extends StatelessWidget {
 
   TableRow _buildFooterRow(ColorScheme colors) {
     return TableRow(
-      decoration: BoxDecoration(
-        color: colors.tertiaryContainer.withValues(alpha: 0.4),
-      ),
       children: [
         _FooterCellLabel(
           text: 'Demanda',
-          textColor: colors.onTertiaryContainer,
+          textColor: colors.secondary,
         ),
         ...List.generate(problem.destinationNames.length, (col) {
           final isFictitious = _isFictitiousDestination(col);
           return _FooterCell(
             value: problem.demands[col],
             isFictitious: isFictitious,
-            textColor: colors.onTertiaryContainer,
+            textColor: colors.secondary,
           );
         }),
         const SizedBox.shrink(),
@@ -242,8 +244,13 @@ class _DataCell extends StatelessWidget {
 class _DataCellTotal extends StatelessWidget {
   final double value;
   final bool isFictitious;
+  final Color textColor;
 
-  const _DataCellTotal({required this.value, required this.isFictitious});
+  const _DataCellTotal({
+    required this.value,
+    required this.isFictitious,
+    required this.textColor,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -255,10 +262,10 @@ class _DataCellTotal extends StatelessWidget {
         NorthwestDistributionTable.formatNumber(value),
         style: TextStyle(
           fontSize: 12,
-          fontWeight: FontWeight.w700,
+          fontWeight: FontWeight.bold,
           color: isFictitious
               ? colors.onSurfaceVariant.withValues(alpha: 0.5)
-              : colors.onSurface,
+              : textColor,
         ),
       ),
     );

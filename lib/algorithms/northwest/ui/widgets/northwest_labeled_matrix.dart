@@ -34,60 +34,64 @@ class NorthwestLabeledMatrix extends StatelessWidget {
         const SizedBox(height: 8),
         Align(
           alignment: Alignment.center,
-          child: Container(
-            decoration: BoxDecoration(
-              color: colors.surface,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: colors.outlineVariant.withValues(alpha: 0.8),
-                width: 1.5,
-              ),
-            ),
-            clipBehavior: Clip.antiAlias,
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Table(
-                defaultColumnWidth: const FixedColumnWidth(72),
-                border: TableBorder(
-                  horizontalInside: BorderSide(
-                    color: colors.outlineVariant.withValues(alpha: 0.3),
-                    width: 0.8,
-                  ),
+          child: IntrinsicWidth(
+            child: Container(
+              decoration: BoxDecoration(
+                color: colors.surface,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: colors.outlineVariant.withValues(alpha: 0.8),
+                  width: 1.5,
                 ),
-                children: [
-                  TableRow(
-                    decoration: BoxDecoration(
-                      color: colors.surfaceContainerHigh,
+              ),
+              clipBehavior: Clip.antiAlias,
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Table(
+                  defaultColumnWidth: const FixedColumnWidth(72),
+                  border: TableBorder(
+                    horizontalInside: BorderSide(
+                      color: colors.outlineVariant.withValues(alpha: 0.3),
+                      width: 0.8,
                     ),
-                    children: [
-                      const _NorthwestMatrixCell(text: ''),
-                      ...problem.destinationNames.map(
-                        (name) =>
-                            _NorthwestMatrixCell(text: name, isHeader: true),
-                      ),
-                    ],
                   ),
-                  ...List.generate(
-                    values.length,
-                    (row) => TableRow(
+                  children: [
+                    TableRow(
+                      decoration: BoxDecoration(
+                        color: colors.surfaceContainerHigh,
+                      ),
                       children: [
-                        _NorthwestMatrixCell(
-                          text: problem.originNames[row],
-                          isHeader: true,
-                        ),
-                        ...List.generate(
-                          values[row].length,
-                          (column) => _NorthwestMatrixCell(
-                            text: _formatNumber(values[row][column]),
-                            highlighted:
-                                highlightedCell?.row == row &&
-                                highlightedCell?.column == column,
+                        const _NorthwestMatrixCell(text: ''),
+                        ...problem.destinationNames.map(
+                          (name) => _NorthwestMatrixCell(
+                            text: name,
+                            isHeader: true,
                           ),
                         ),
                       ],
                     ),
-                  ),
-                ],
+                    ...List.generate(
+                      values.length,
+                      (row) => TableRow(
+                        children: [
+                          _NorthwestMatrixCell(
+                            text: problem.originNames[row],
+                            isHeader: true,
+                          ),
+                          ...List.generate(
+                            values[row].length,
+                            (column) => _NorthwestMatrixCell(
+                              text: _formatNumber(values[row][column]),
+                              highlighted:
+                                  highlightedCell?.row == row &&
+                                  highlightedCell?.column == column,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
