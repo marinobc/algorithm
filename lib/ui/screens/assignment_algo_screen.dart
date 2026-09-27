@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../../algorithms/assignment/ui/assignment_launch_button.dart';
 import '../widgets/video_resource_card.dart';
 import '../widgets/web_explanation_navbar.dart';
+import 'widgets/assignment/hungarian_hero_section.dart';
+import 'widgets/assignment/hungarian_steps_section.dart';
 
 class AssignmentAlgoScreen extends StatelessWidget {
   const AssignmentAlgoScreen({super.key});
@@ -11,7 +13,6 @@ class AssignmentAlgoScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final width = MediaQuery.of(context).size.width;
 
     return WebExplanationShell(
       activePage: ExplanationWebPage.assignment,
@@ -20,7 +21,7 @@ class AssignmentAlgoScreen extends StatelessWidget {
         child: Column(
           children: [
             // DIVISION 0: Hero Section
-            _buildHeroSection(context, colorScheme, width),
+            const HungarianHeroSection(),
 
             // DIVISION 1: Concept & Initial Video (Surface Canvas)
             Container(
@@ -132,7 +133,7 @@ class AssignmentAlgoScreen extends StatelessWidget {
                           Icons.auto_graph_rounded,
                         ),
                         const SizedBox(height: 48),
-                        _buildStepsSection(context, colorScheme, width),
+                        const HungarianStepsSection(),
                         const SizedBox(height: 48),
                         const VideoResourceCard(
                           title: 'Video 3: explicación del algoritmo húngaro',
@@ -206,104 +207,6 @@ class AssignmentAlgoScreen extends StatelessWidget {
             // DIVISION 5: Footer
             _buildWebFooter(context, colorScheme),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHeroSection(
-    BuildContext context,
-    ColorScheme colorScheme,
-    double width,
-  ) {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            const Color(0xFF7C4DFF).withValues(alpha: 0.25),
-            colorScheme.surface,
-          ],
-        ),
-        border: Border(
-          bottom: BorderSide(
-            color: colorScheme.outlineVariant.withValues(alpha: 0.3),
-          ),
-        ),
-      ),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 1100),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 24.0,
-              vertical: 56.0,
-            ),
-            child: Column(
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: colorScheme.surface,
-                    borderRadius: BorderRadius.circular(30),
-                    border: Border.all(
-                      color: const Color(0xFF7C4DFF).withValues(alpha: 0.4),
-                    ),
-                  ),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.assignment_turned_in_rounded,
-                        size: 16,
-                        color: Color(0xFF7C4DFF),
-                      ),
-                      SizedBox(width: 8),
-                      Text(
-                        'Asignación Óptima 1 a 1',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF7C4DFF),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Text(
-                  'Algoritmo de Asignación',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: width > 700 ? 42 : 30,
-                    fontWeight: FontWeight.w900,
-                    color: colorScheme.onSurface,
-                    letterSpacing: -1,
-                  ),
-                ),
-                const SizedBox(height: 14),
-                ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 750),
-                  child: Text(
-                    '¿Cómo repartir tareas a un equipo gastando lo menos posible? ¡Restamos los costos mínimos para crear una tabla de ceros y hacer parejas perfectas!',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: width > 700 ? 18 : 15,
-                      color: colorScheme.onSurfaceVariant,
-                      height: 1.5,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                const AssignmentLaunchButton(),
-              ],
-            ),
-          ),
         ),
       ),
     );
@@ -721,125 +624,6 @@ class AssignmentAlgoScreen extends StatelessWidget {
                   ),
                 );
               },
-            );
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget _buildStepsSection(
-    BuildContext context,
-    ColorScheme colorScheme,
-    double width,
-  ) {
-    final steps = [
-      {
-        'step': 'Paso 1',
-        'title': 'Reducción por Filas',
-        'desc': 'Resta el menor número de cada fila a todos los elementos de esa fila. ¡Ahora cada fila tiene al menos un cero!',
-      },
-      {
-        'step': 'Paso 2',
-        'title': 'Reducción por Columnas',
-        'desc': 'Resta el menor número de cada columna a todas sus celdas para multiplicar los ceros disponibles en la tabla.',
-      },
-      {
-        'step': 'Paso 3',
-        'title': 'Cubrir Ceros con Líneas',
-        'desc': 'Trazas el mínimo número de líneas (horizontales o verticales) para tachar todos los ceros existentes.',
-      },
-      {
-        'step': 'Paso 4',
-        'title': 'Asignar Parejas Óptimas',
-        'desc': 'Cuando las líneas son iguales al número de filas, seleccionas las casillas con ceros para emparejar cada recurso a su tarea.',
-      },
-    ];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'GENERACIÓN Y SELECCIÓN DE CEROS',
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w800,
-            letterSpacing: 1.5,
-            color: Color(0xFF7C4DFF),
-          ),
-        ),
-        const SizedBox(height: 6),
-        Text(
-          'Pasos Sencillos del Algoritmo',
-          style: TextStyle(
-            fontSize: 26,
-            fontWeight: FontWeight.bold,
-            color: colorScheme.onSurface,
-          ),
-        ),
-        const SizedBox(height: 24),
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: width >= 800 ? 2 : 1,
-            crossAxisSpacing: 16,
-            mainAxisSpacing: 16,
-            mainAxisExtent: 170,
-          ),
-          itemCount: steps.length,
-          itemBuilder: (context, index) {
-            final item = steps[index];
-            return Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: colorScheme.surfaceContainerLow,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: colorScheme.outlineVariant.withValues(alpha: 0.4),
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        item['step']!,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF7C4DFF),
-                        ),
-                      ),
-                      Icon(
-                        Icons.check_circle_outline_rounded,
-                        color: const Color(0xFF7C4DFF).withValues(alpha: 0.6),
-                        size: 18,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    item['title']!,
-                    style: TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.bold,
-                      color: colorScheme.onSurface,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    item['desc']!,
-                    style: TextStyle(
-                      fontSize: 13,
-                      height: 1.4,
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
             );
           },
         ),
