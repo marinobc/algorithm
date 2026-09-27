@@ -105,7 +105,15 @@ class GraphShareService {
                     color: Theme.of(ctx).colorScheme.outlineVariant,
                   ),
                 ),
-                child: Image.memory(jpgBytes, fit: BoxFit.contain, height: 260),
+                clipBehavior: Clip.antiAlias,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(15),
+                  child: Image.memory(
+                    jpgBytes,
+                    fit: BoxFit.contain,
+                    height: 260,
+                  ),
+                ),
               ),
               const SizedBox(height: 12),
               const Text(
