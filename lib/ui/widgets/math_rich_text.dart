@@ -61,10 +61,6 @@ class MathRichText extends StatelessWidget {
 
           final mathExpr = match.group(1)!;
           final normalized = _normalizeTex(mathExpr);
-          AppLogger.d(
-            'MathRichText',
-            'Rendering delimited TeX: "$mathExpr" -> "$normalized"',
-          );
 
           spans.add(
             WidgetSpan(
@@ -126,7 +122,6 @@ class MathRichText extends StatelessWidget {
 
     if (containsPmatrix) {
       final normalized = _normalizeTex(text);
-      AppLogger.d('MathRichText', 'Rendering pmatrix TeX: "$normalized"');
       return Math.tex(
         normalized,
         mathStyle: MathStyle.display,
@@ -142,10 +137,6 @@ class MathRichText extends StatelessWidget {
     } else if (hasMathTokens &&
         (!text.contains(' ') || text.contains('_') || text.contains('\\'))) {
       final normalized = _normalizeTex(text);
-      AppLogger.d(
-        'MathRichText',
-        'Rendering standalone TeX: "$text" -> "$normalized"',
-      );
       return Math.tex(
         normalized,
         mathStyle: MathStyle.text,
