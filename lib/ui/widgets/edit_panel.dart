@@ -11,6 +11,7 @@ import '../../domain/models/atributo.dart';
 import '../../domain/models/conexion.dart';
 import '../../domain/models/direccion.dart';
 import '../dialogs/connection_duplicate_dialog.dart';
+import '../dialogs/delete_attribute_dialog.dart';
 import '../dialogs/delete_confirmation_dialog.dart';
 import '../text/app_text.dart';
 import '../text/connection_text.dart';
@@ -117,11 +118,10 @@ class _EditPanelState extends ConsumerState<EditPanel> {
     }
   }
 
-  void _confirmDeleteAttribute(
+  Future<void> _confirmDeleteAttribute(
     BuildContext context,
     Atributo attr,
-    NeumorphicPalette palette,
-  ) {
+  ) async {
     final grafo = ref.read(grafoProvider);
     final affectedValues = <String>[];
     for (final conn in grafo.conexiones.values) {
@@ -136,119 +136,24 @@ class _EditPanelState extends ConsumerState<EditPanel> {
         ? '(Ningún valor asignado)'
         : affectedValues.join(', ');
 
-    showDialog(
-      context: context,
-      useRootNavigator: true,
-      builder: (ctx) => Dialog(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: palette.surfaceBg,
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(
-              color: palette.darkShadow.withValues(alpha: 0.15),
-              width: 1.0,
-            ),
-            boxShadow: NeumorphicShadows.dialog(palette),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                '¿Eliminar atributo "${attr.nombre}"?',
-                style: TextStyle(
-                  color: palette.alertColor,
-                  fontSize: 17,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'Estas borrando los siguientes valores seguro:',
-                style: TextStyle(
-                  color: palette.textPrimary,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: palette.canvasBg,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  valuesSummary,
-                  style: TextStyle(
-                    color: palette.textMuted,
-                    fontSize: 13,
-                    fontStyle: FontStyle.italic,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton(
-                    onPressed: () => Navigator.of(ctx).pop(),
-                    child: Text(
-                      AppText.cancel,
-                      style: TextStyle(color: palette.textMuted),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.of(ctx).pop();
-                      ref
-                          .read(atributosGlobalesProvider.notifier)
-                          .eliminarAtributo(attr.id);
-                      ref
-                          .read(grafoProvider.notifier)
-                          .eliminarAtributoDeConexiones(attr.id);
-                      if (mounted) {
-                        setState(() {
-                          _attrValueControllers.remove(attr.id)?.dispose();
-                          _attrTagNameControllers.remove(attr.id)?.dispose();
-                        });
-                      }
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 18,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        color: palette.alertColor,
-                        borderRadius: BorderRadius.circular(999),
-                        boxShadow: NeumorphicShadows.inset(
-                          palette,
-                          distance: 2,
-                          blur: 4,
-                        ),
-                      ),
-                      child: const Text(
-                        AppText.delete,
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
+    final confirmed = await DeleteAttributeDialog.show(
+      context,
+      attr,
+      valuesSummary,
     );
+
+    if (confirmed == true) {
+      ref.read(atributosGlobalesProvider.notifier).eliminarAtributo(attr.id);
+      ref
+          .read(grafoProvider.notifier)
+          .eliminarAtributoDeConexiones(attr.id);
+      if (mounted) {
+        setState(() {
+          _attrValueControllers.remove(attr.id)?.dispose();
+          _attrTagNameControllers.remove(attr.id)?.dispose();
+        });
+      }
+    }
   }
 
   @override
@@ -555,7 +460,7 @@ class _EditPanelState extends ConsumerState<EditPanel> {
                                     .marcarCambioSinGuardar();
                               },
                               onDeleteAttribute: (attr) {
-                                _confirmDeleteAttribute(context, attr, palette);
+                                _confirmDeleteAttribute(context, attr);
                               },
                               onAddAttribute: () {
                                 final name = _newAttrController.text.trim();
