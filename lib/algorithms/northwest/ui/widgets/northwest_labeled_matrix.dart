@@ -63,10 +63,8 @@ class NorthwestLabeledMatrix extends StatelessWidget {
                       children: [
                         const _NorthwestMatrixCell(text: ''),
                         ...problem.destinationNames.map(
-                          (name) => _NorthwestMatrixCell(
-                            text: name,
-                            isHeader: true,
-                          ),
+                          (name) =>
+                              _NorthwestMatrixCell(text: name, isHeader: true),
                         ),
                       ],
                     ),

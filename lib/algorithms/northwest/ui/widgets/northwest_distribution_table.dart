@@ -135,10 +135,7 @@ class NorthwestDistributionTable extends StatelessWidget {
   TableRow _buildFooterRow(ColorScheme colors) {
     return TableRow(
       children: [
-        _FooterCellLabel(
-          text: 'Demanda',
-          textColor: colors.secondary,
-        ),
+        _FooterCellLabel(text: 'Demanda', textColor: colors.secondary),
         ...List.generate(problem.destinationNames.length, (col) {
           final isFictitious = _isFictitiousDestination(col);
           return _FooterCell(

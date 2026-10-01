@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import '../../../../domain/services/node_name_deduplicator.dart';
 import '../models/assignment_models.dart';
 
 abstract class ITransportationSolver {
@@ -89,7 +90,10 @@ class TransportationSolverHelper {
       wasBalanced = true;
       if (totalSupply > totalDemand) {
         final diff = totalSupply - totalDemand;
-        dummyAdded = '0 (Destino)';
+        dummyAdded = NodeNameDeduplicator.deduplicateName(
+          'Ficticio',
+          destLabels,
+        );
         destLabels.add(dummyAdded);
         dem.add(diff);
         for (int i = 0; i < costs.length; i++) {
@@ -97,7 +101,10 @@ class TransportationSolverHelper {
         }
       } else {
         final diff = totalDemand - totalSupply;
-        dummyAdded = '0 (Origen)';
+        dummyAdded = NodeNameDeduplicator.deduplicateName(
+          'Ficticio',
+          origLabels,
+        );
         origLabels.add(dummyAdded);
         supp.add(diff);
         final dummyRow = List<double>.filled(destLabels.length, dummyCost);
@@ -162,7 +169,9 @@ class HungarianAssignmentSolver implements ITransportationSolver {
       origLabels.add(problem.origins[i].nombre ?? problem.origins[i].id);
     }
     while (origLabels.length < n) {
-      origLabels.add('0 (Origen ${origLabels.length + 1})');
+      origLabels.add(
+        NodeNameDeduplicator.deduplicateName('Ficticio', origLabels),
+      );
     }
 
     final destLabels = <String>[];
@@ -172,7 +181,9 @@ class HungarianAssignmentSolver implements ITransportationSolver {
       );
     }
     while (destLabels.length < n) {
-      destLabels.add('0 (Destino ${destLabels.length + 1})');
+      destLabels.add(
+        NodeNameDeduplicator.deduplicateName('Ficticio', destLabels),
+      );
     }
 
     const bigM = 1e6;
@@ -191,9 +202,7 @@ class HungarianAssignmentSolver implements ITransportationSolver {
     );
 
     final bool wasBalancedWithDummy = origCount != destCount;
-    final String? dummyLabelAdded = wasBalancedWithDummy
-        ? (origCount < destCount ? '0 (Origen)' : '0 (Destino)')
-        : null;
+    final String? dummyLabelAdded = wasBalancedWithDummy ? 'Ficticio' : null;
 
     final steps = <StepExplanation>[];
     int stepCounter = 1;

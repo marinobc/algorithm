@@ -11,6 +11,7 @@ import '../../domain/models/grafo.dart';
 import '../../domain/models/nodo.dart';
 import '../../domain/models/modo_tipo_nodo.dart';
 import '../../domain/services/graph_geometry.dart';
+import '../../domain/services/node_name_deduplicator.dart';
 import 'config_provider.dart';
 import 'grafo_undo_tracker.dart';
 
@@ -103,14 +104,22 @@ class GrafoNotifier extends Notifier<Grafo> {
     _recordUndoState();
     final clamped = GraphGeometry.clampNodePosition(x, y);
     final nextNumber = state.nodos.length + 1;
-    final nodeName = nombre ?? 'Nodo $nextNumber';
+    final rawName = nombre ?? 'Nodo $nextNumber';
+    final existingNames = state.nodos.values
+        .map((n) => n.nombre ?? '')
+        .toList();
+    final uniqueName = NodeNameDeduplicator.deduplicateName(
+      rawName,
+      existingNames,
+    );
+
     final nodeId =
         'nodo_${DateTime.now().microsecondsSinceEpoch}_${_nodeSeq++}';
     final nodeColor = colorValue ?? generateMaximallyDistinctColor();
 
     final nuevoNodo = Nodo(
       id: nodeId,
-      nombre: nodeName,
+      nombre: uniqueName,
       colorValue: nodeColor,
       x: clamped.x,
       y: clamped.y,
@@ -127,7 +136,20 @@ class GrafoNotifier extends Notifier<Grafo> {
   Nodo agregarNodoInstancia(Nodo nodo) {
     _recordUndoState();
     final clamped = GraphGeometry.clampNodePosition(nodo.x, nodo.y);
-    final clampedNode = nodo.copyWith(x: clamped.x, y: clamped.y);
+    final existingNames = state.nodos.values
+        .where((n) => n.id != nodo.id)
+        .map((n) => n.nombre ?? '')
+        .toList();
+    final uniqueName = NodeNameDeduplicator.deduplicateName(
+      nodo.nombre ?? '',
+      existingNames,
+    );
+
+    final clampedNode = nodo.copyWith(
+      x: clamped.x,
+      y: clamped.y,
+      nombre: uniqueName,
+    );
     final updatedNodos = Map<String, Nodo>.from(state.nodos)
       ..[clampedNode.id] = clampedNode;
     state = state.copyWith(nodos: updatedNodos);
@@ -161,8 +183,18 @@ class GrafoNotifier extends Notifier<Grafo> {
     final nodo = state.nodos[id];
     if (nodo == null) return;
     _recordUndoState();
+
+    String? finalName = nodo.nombre;
+    if (nombre != null) {
+      final existingNames = state.nodos.entries
+          .where((e) => e.key != id)
+          .map((e) => e.value.nombre ?? '')
+          .toList();
+      finalName = NodeNameDeduplicator.deduplicateName(nombre, existingNames);
+    }
+
     final updatedNodo = nodo.copyWith(
-      nombre: nombre ?? nodo.nombre,
+      nombre: finalName,
       colorValue: colorValue ?? nodo.colorValue,
       rol: clearRol ? null : (rol ?? nodo.rol),
       clearRol: clearRol,

@@ -94,18 +94,30 @@ class AssignmentAllocationMatrixTable extends StatelessWidget {
                     ),
                   ),
                   ...result.destinationLabels.map((dest) {
-                    return Padding(
+                    final isFicticioCol = dest.trim().toLowerCase().startsWith(
+                      'ficticio',
+                    );
+                    return Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 16,
                         vertical: 12,
                       ),
+                      color: isFicticioCol
+                          ? colorScheme.surfaceContainerHighest.withValues(
+                              alpha: 0.75,
+                            )
+                          : null,
                       child: Center(
                         child: Text(
                           dest,
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 12,
-                            color: colorScheme.primary,
+                            color: isFicticioCol
+                                ? colorScheme.onSurfaceVariant.withValues(
+                                    alpha: 0.45,
+                                  )
+                                : colorScheme.primary,
                           ),
                         ),
                       ),
@@ -115,6 +127,9 @@ class AssignmentAllocationMatrixTable extends StatelessWidget {
               ),
               ...List.generate(result.originLabels.length, (i) {
                 final origName = result.originLabels[i];
+                final isFicticioRow = origName.trim().toLowerCase().startsWith(
+                  'ficticio',
+                );
                 return TableRow(
                   children: [
                     Container(
@@ -123,15 +138,30 @@ class AssignmentAllocationMatrixTable extends StatelessWidget {
                         vertical: 12,
                       ),
                       alignment: Alignment.centerLeft,
+                      color: isFicticioRow
+                          ? colorScheme.surfaceContainerHighest.withValues(
+                              alpha: 0.75,
+                            )
+                          : null,
                       child: Text(
                         origName,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 12,
+                          color: isFicticioRow
+                              ? colorScheme.onSurfaceVariant.withValues(
+                                  alpha: 0.45,
+                                )
+                              : colorScheme.onSurface,
                         ),
                       ),
                     ),
                     ...List.generate(result.destinationLabels.length, (j) {
+                      final isFicticioCol = result.destinationLabels[j]
+                          .trim()
+                          .toLowerCase()
+                          .startsWith('ficticio');
+                      final isFicticioCell = isFicticioRow || isFicticioCol;
                       final alloc = result.allocationMatrix[i][j];
                       final isAssigned = alloc > 0;
                       final cost = result.costMatrix[i][j];
@@ -147,13 +177,17 @@ class AssignmentAllocationMatrixTable extends StatelessWidget {
                           vertical: 12,
                         ),
                         alignment: Alignment.center,
-                        color: isAssigned
-                            ? colorScheme.primaryContainer.withValues(
-                                alpha: 0.55,
+                        color: isFicticioCell
+                            ? colorScheme.surfaceContainerHighest.withValues(
+                                alpha: 0.65,
                               )
-                            : colorScheme.surfaceContainerLow.withValues(
-                                alpha: 0.3,
-                              ),
+                            : (isAssigned
+                                  ? colorScheme.primaryContainer.withValues(
+                                      alpha: 0.55,
+                                    )
+                                  : colorScheme.surfaceContainerLow.withValues(
+                                      alpha: 0.3,
+                                    )),
                         child: Text(
                           isAssigned ? '1 (c=$costText)' : '0',
                           style: TextStyle(
@@ -161,9 +195,13 @@ class AssignmentAllocationMatrixTable extends StatelessWidget {
                             fontWeight: isAssigned
                                 ? FontWeight.w800
                                 : FontWeight.normal,
-                            color: isAssigned
-                                ? colorScheme.primary
-                                : colorScheme.onSurfaceVariant,
+                            color: isFicticioCell
+                                ? colorScheme.onSurfaceVariant.withValues(
+                                    alpha: 0.45,
+                                  )
+                                : (isAssigned
+                                      ? colorScheme.primary
+                                      : colorScheme.onSurfaceVariant),
                           ),
                         ),
                       );

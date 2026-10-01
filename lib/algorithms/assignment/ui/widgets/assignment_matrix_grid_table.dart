@@ -47,113 +47,127 @@ class AssignmentMatrixGridTable extends StatelessWidget {
             destinationNames[j].text.trim().toLowerCase().startsWith(
               'ficticio',
             ) ||
-            destinationIds[j].contains('_dummy_');
+            (j < destinationIds.length &&
+                destinationIds[j].contains('_dummy_'));
         return DataColumn(
           label: SizedBox(
             width: 80,
-            child: Focus(
-              canRequestFocus: !isFicticioCol,
-              onKeyEvent: (node, event) {
-                if (event is KeyDownEvent) {
-                  final key = event.logicalKey;
-                  if (key == LogicalKeyboardKey.arrowDown &&
-                      originNames.isNotEmpty) {
-                    var targetRow = 0;
-                    while (targetRow < originNames.length &&
-                        (originNames[targetRow].text
-                                .trim()
-                                .toLowerCase()
-                                .startsWith('ficticio') ||
-                            originIds[targetRow].contains('_dummy_'))) {
-                      targetRow++;
-                    }
-                    if (targetRow < originNames.length) {
-                      cellFocusNodes[targetRow][j].requestFocus();
-                    }
-                    return KeyEventResult.handled;
-                  } else if (key == LogicalKeyboardKey.arrowLeft && j > 0) {
-                    var targetCol = j - 1;
-                    while (targetCol >= 0 &&
-                        (destinationNames[targetCol].text
-                                .trim()
-                                .toLowerCase()
-                                .startsWith('ficticio') ||
-                            destinationIds[targetCol].contains('_dummy_'))) {
-                      targetCol--;
-                    }
-                    if (targetCol >= 0) {
-                      destinationFocusNodes[targetCol].requestFocus();
-                    }
-                    return KeyEventResult.handled;
-                  } else if (key == LogicalKeyboardKey.arrowRight &&
-                      j < destinationNames.length - 1) {
-                    var targetCol = j + 1;
-                    while (targetCol < destinationNames.length &&
-                        (destinationNames[targetCol].text
-                                .trim()
-                                .toLowerCase()
-                                .startsWith('ficticio') ||
-                            destinationIds[targetCol].contains('_dummy_'))) {
-                      targetCol++;
-                    }
-                    if (targetCol < destinationNames.length) {
-                      destinationFocusNodes[targetCol].requestFocus();
-                    }
-                    return KeyEventResult.handled;
-                  }
-                }
-                return KeyEventResult.ignored;
-              },
-              child: Builder(
-                builder: (context) {
-                  final hasFocus = Focus.of(context).hasFocus;
-                  return TextField(
-                    controller: destinationNames[j],
-                    focusNode: destinationFocusNodes[j],
-                    readOnly: isFicticioCol,
-                    enabled: !isFicticioCol,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
-                      color: isFicticioCol
-                          ? colors.onSecondaryContainer.withValues(alpha: 0.4)
-                          : colors.onSecondaryContainer,
-                    ),
-                    decoration: InputDecoration(
-                      isDense: true,
-                      hintText: hasFocus ? '' : 'Destino ${j + 1}',
-                      hintStyle: TextStyle(
-                        color: colors.onSecondaryContainer.withValues(
-                          alpha: 0.38,
-                        ),
-                        fontSize: 11,
-                        fontWeight: FontWeight.normal,
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 4,
-                        vertical: 6,
-                      ),
-                      fillColor: colors.secondaryContainer.withValues(
-                        alpha: 0.5,
-                      ),
-                      filled: true,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
-                      ),
-                    ),
-                    onTap: () {
-                      if (!isFicticioCol &&
-                          destinationNames[j].text.isNotEmpty) {
-                        destinationNames[j].selection = TextSelection(
-                          baseOffset: 0,
-                          extentOffset: destinationNames[j].text.length,
-                        );
+            child: MouseRegion(
+              cursor: isFicticioCol
+                  ? SystemMouseCursors.forbidden
+                  : SystemMouseCursors.text,
+              child: Focus(
+                canRequestFocus: !isFicticioCol,
+                onKeyEvent: (node, event) {
+                  if (event is KeyDownEvent) {
+                    final key = event.logicalKey;
+                    if (key == LogicalKeyboardKey.arrowDown &&
+                        originNames.isNotEmpty) {
+                      var targetRow = 0;
+                      while (targetRow < originNames.length &&
+                          (originNames[targetRow].text
+                                  .trim()
+                                  .toLowerCase()
+                                  .startsWith('ficticio') ||
+                              originIds[targetRow].contains('_dummy_'))) {
+                        targetRow++;
                       }
-                    },
-                  );
+                      if (targetRow < originNames.length) {
+                        cellFocusNodes[targetRow][j].requestFocus();
+                      }
+                      return KeyEventResult.handled;
+                    } else if (key == LogicalKeyboardKey.arrowLeft && j > 0) {
+                      var targetCol = j - 1;
+                      while (targetCol >= 0 &&
+                          (destinationNames[targetCol].text
+                                  .trim()
+                                  .toLowerCase()
+                                  .startsWith('ficticio') ||
+                              destinationIds[targetCol].contains('_dummy_'))) {
+                        targetCol--;
+                      }
+                      if (targetCol >= 0) {
+                        destinationFocusNodes[targetCol].requestFocus();
+                      }
+                      return KeyEventResult.handled;
+                    } else if (key == LogicalKeyboardKey.arrowRight &&
+                        j < destinationNames.length - 1) {
+                      var targetCol = j + 1;
+                      while (targetCol < destinationNames.length &&
+                          (destinationNames[targetCol].text
+                                  .trim()
+                                  .toLowerCase()
+                                  .startsWith('ficticio') ||
+                              destinationIds[targetCol].contains('_dummy_'))) {
+                        targetCol++;
+                      }
+                      if (targetCol < destinationNames.length) {
+                        destinationFocusNodes[targetCol].requestFocus();
+                      }
+                      return KeyEventResult.handled;
+                    }
+                  }
+                  return KeyEventResult.ignored;
                 },
+                child: Builder(
+                  builder: (context) {
+                    final hasFocus = Focus.of(context).hasFocus;
+                    return TextField(
+                      controller: destinationNames[j],
+                      focusNode: destinationFocusNodes[j],
+                      readOnly: isFicticioCol,
+                      enabled: !isFicticioCol,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                        color: isFicticioCol
+                            ? colors.onSurfaceVariant.withValues(alpha: 0.45)
+                            : colors.onSecondaryContainer,
+                      ),
+                      decoration: InputDecoration(
+                        isDense: true,
+                        hintText: hasFocus ? '' : 'Destino ${j + 1}',
+                        hintStyle: TextStyle(
+                          color: colors.onSecondaryContainer.withValues(
+                            alpha: 0.38,
+                          ),
+                          fontSize: 11,
+                          fontWeight: FontWeight.normal,
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 4,
+                          vertical: 6,
+                        ),
+                        fillColor: isFicticioCol
+                            ? colors.surfaceContainerHighest.withValues(
+                                alpha: 0.75,
+                              )
+                            : colors.secondaryContainer.withValues(alpha: 0.5),
+                        filled: true,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        disabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: colors.outlineVariant.withValues(alpha: 0.2),
+                          ),
+                        ),
+                      ),
+                      onTap: () {
+                        if (!isFicticioCol &&
+                            destinationNames[j].text.isNotEmpty) {
+                          destinationNames[j].selection = TextSelection(
+                            baseOffset: 0,
+                            extentOffset: destinationNames[j].text.length,
+                          );
+                        }
+                      },
+                    );
+                  },
+                ),
               ),
             ),
           ),
@@ -165,116 +179,140 @@ class AssignmentMatrixGridTable extends StatelessWidget {
       ...List.generate(originNames.length, (i) {
         final isFicticioRow =
             originNames[i].text.trim().toLowerCase().startsWith('ficticio') ||
-            originIds[i].contains('_dummy_');
+            (i < originIds.length && originIds[i].contains('_dummy_'));
         return DataRow(
+          color: isFicticioRow
+              ? WidgetStatePropertyAll(
+                  colors.surfaceContainerHighest.withValues(alpha: 0.35),
+                )
+              : null,
           cells: [
             DataCell(
               SizedBox(
                 width: 90,
-                child: Focus(
-                  canRequestFocus: !isFicticioRow,
-                  onKeyEvent: (node, event) {
-                    if (event is KeyDownEvent) {
-                      final key = event.logicalKey;
-                      if (key == LogicalKeyboardKey.arrowUp && i > 0) {
-                        var targetRow = i - 1;
-                        while (targetRow >= 0 &&
-                            (originNames[targetRow].text
-                                    .trim()
-                                    .toLowerCase()
-                                    .startsWith('ficticio') ||
-                                originIds[targetRow].contains('_dummy_'))) {
-                          targetRow--;
-                        }
-                        if (targetRow >= 0) {
-                          originFocusNodes[targetRow].requestFocus();
-                        }
-                        return KeyEventResult.handled;
-                      } else if (key == LogicalKeyboardKey.arrowDown &&
-                          i < originNames.length - 1) {
-                        var targetRow = i + 1;
-                        while (targetRow < originNames.length &&
-                            (originNames[targetRow].text
-                                    .trim()
-                                    .toLowerCase()
-                                    .startsWith('ficticio') ||
-                                originIds[targetRow].contains('_dummy_'))) {
-                          targetRow++;
-                        }
-                        if (targetRow < originNames.length) {
-                          originFocusNodes[targetRow].requestFocus();
-                        }
-                        return KeyEventResult.handled;
-                      } else if (key == LogicalKeyboardKey.arrowRight &&
-                          destinationNames.isNotEmpty) {
-                        var targetCol = 0;
-                        while (targetCol < destinationNames.length &&
-                            (destinationNames[targetCol].text
-                                    .trim()
-                                    .toLowerCase()
-                                    .startsWith('ficticio') ||
-                                destinationIds[targetCol].contains(
-                                  '_dummy_',
-                                ))) {
-                          targetCol++;
-                        }
-                        if (targetCol < destinationNames.length) {
-                          cellFocusNodes[i][targetCol].requestFocus();
-                        }
-                        return KeyEventResult.handled;
-                      }
-                    }
-                    return KeyEventResult.ignored;
-                  },
-                  child: Builder(
-                    builder: (context) {
-                      final hasFocus = Focus.of(context).hasFocus;
-                      return TextField(
-                        controller: originNames[i],
-                        focusNode: originFocusNodes[i],
-                        readOnly: isFicticioRow,
-                        enabled: !isFicticioRow,
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12,
-                          color: isFicticioRow
-                              ? colors.onSurface.withValues(alpha: 0.4)
-                              : colors.onSurface,
-                        ),
-                        decoration: InputDecoration(
-                          isDense: true,
-                          hintText: hasFocus ? '' : 'Origen ${i + 1}',
-                          hintStyle: TextStyle(
-                            color: colors.onSurfaceVariant.withValues(
-                              alpha: 0.38,
-                            ),
-                            fontSize: 11,
-                            fontWeight: FontWeight.normal,
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 4,
-                            vertical: 6,
-                          ),
-                          fillColor: colors.secondaryContainer.withValues(
-                            alpha: 0.3,
-                          ),
-                          filled: true,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide.none,
-                          ),
-                        ),
-                        onTap: () {
-                          if (!isFicticioRow &&
-                              originNames[i].text.isNotEmpty) {
-                            originNames[i].selection = TextSelection(
-                              baseOffset: 0,
-                              extentOffset: originNames[i].text.length,
-                            );
+                child: MouseRegion(
+                  cursor: isFicticioRow
+                      ? SystemMouseCursors.forbidden
+                      : SystemMouseCursors.text,
+                  child: Focus(
+                    canRequestFocus: !isFicticioRow,
+                    onKeyEvent: (node, event) {
+                      if (event is KeyDownEvent) {
+                        final key = event.logicalKey;
+                        if (key == LogicalKeyboardKey.arrowUp && i > 0) {
+                          var targetRow = i - 1;
+                          while (targetRow >= 0 &&
+                              (originNames[targetRow].text
+                                      .trim()
+                                      .toLowerCase()
+                                      .startsWith('ficticio') ||
+                                  originIds[targetRow].contains('_dummy_'))) {
+                            targetRow--;
                           }
-                        },
-                      );
+                          if (targetRow >= 0) {
+                            originFocusNodes[targetRow].requestFocus();
+                          }
+                          return KeyEventResult.handled;
+                        } else if (key == LogicalKeyboardKey.arrowDown &&
+                            i < originNames.length - 1) {
+                          var targetRow = i + 1;
+                          while (targetRow < originNames.length &&
+                              (originNames[targetRow].text
+                                      .trim()
+                                      .toLowerCase()
+                                      .startsWith('ficticio') ||
+                                  originIds[targetRow].contains('_dummy_'))) {
+                            targetRow++;
+                          }
+                          if (targetRow < originNames.length) {
+                            originFocusNodes[targetRow].requestFocus();
+                          }
+                          return KeyEventResult.handled;
+                        } else if (key == LogicalKeyboardKey.arrowRight &&
+                            destinationNames.isNotEmpty) {
+                          var targetCol = 0;
+                          while (targetCol < destinationNames.length &&
+                              (destinationNames[targetCol].text
+                                      .trim()
+                                      .toLowerCase()
+                                      .startsWith('ficticio') ||
+                                  destinationIds[targetCol].contains(
+                                    '_dummy_',
+                                  ))) {
+                            targetCol++;
+                          }
+                          if (targetCol < destinationNames.length) {
+                            cellFocusNodes[i][targetCol].requestFocus();
+                          }
+                          return KeyEventResult.handled;
+                        }
+                      }
+                      return KeyEventResult.ignored;
                     },
+                    child: Builder(
+                      builder: (context) {
+                        final hasFocus = Focus.of(context).hasFocus;
+                        return TextField(
+                          controller: originNames[i],
+                          focusNode: originFocusNodes[i],
+                          readOnly: isFicticioRow,
+                          enabled: !isFicticioRow,
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                            color: isFicticioRow
+                                ? colors.onSurfaceVariant.withValues(
+                                    alpha: 0.45,
+                                  )
+                                : colors.onSurface,
+                          ),
+                          decoration: InputDecoration(
+                            isDense: true,
+                            hintText: hasFocus ? '' : 'Origen ${i + 1}',
+                            hintStyle: TextStyle(
+                              color: colors.onSurfaceVariant.withValues(
+                                alpha: 0.38,
+                              ),
+                              fontSize: 11,
+                              fontWeight: FontWeight.normal,
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 4,
+                              vertical: 6,
+                            ),
+                            fillColor: isFicticioRow
+                                ? colors.surfaceContainerHighest.withValues(
+                                    alpha: 0.75,
+                                  )
+                                : colors.secondaryContainer.withValues(
+                                    alpha: 0.3,
+                                  ),
+                            filled: true,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide.none,
+                            ),
+                            disabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                color: colors.outlineVariant.withValues(
+                                  alpha: 0.2,
+                                ),
+                              ),
+                            ),
+                          ),
+                          onTap: () {
+                            if (!isFicticioRow &&
+                                originNames[i].text.isNotEmpty) {
+                              originNames[i].selection = TextSelection(
+                                baseOffset: 0,
+                                extentOffset: originNames[i].text.length,
+                              );
+                            }
+                          },
+                        );
+                      },
+                    ),
                   ),
                 ),
               ),

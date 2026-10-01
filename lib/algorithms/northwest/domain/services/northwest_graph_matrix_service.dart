@@ -6,6 +6,7 @@ import '../../../../domain/models/direccion.dart';
 import '../../../../domain/models/grafo.dart';
 import '../../../../domain/models/nodo.dart';
 import '../../../../domain/services/graph_color_generator.dart';
+import '../../../../domain/services/node_name_deduplicator.dart';
 import '../models/northwest_models.dart';
 import 'northwest_problem_extractor.dart';
 
@@ -59,6 +60,18 @@ class NorthwestGraphMatrixService {
         '${connection.nodoOrigenId}|${connection.nodoDestinoId}': connection,
     };
 
+    final deduplicatedNames = NodeNameDeduplicator.deduplicateNameList([
+      ...input.originNames,
+      ...input.destinationNames,
+    ]);
+    final deduplicatedOrigins = deduplicatedNames.sublist(
+      0,
+      input.originNames.length,
+    );
+    final deduplicatedDestinations = deduplicatedNames.sublist(
+      input.originNames.length,
+    );
+
     for (var i = 0; i < input.rowCount; i++) {
       final id = input.originIds[i];
       if (id.contains('_dummy_') ||
@@ -74,7 +87,7 @@ class NorthwestGraphMatrixService {
       );
       nodes[id] = Nodo(
         id: id,
-        nombre: input.originNames[i],
+        nombre: deduplicatedOrigins[i],
         colorValue:
             existing?.colorValue ??
             GraphColorGenerator.generateMaximallyDistinctColor(
@@ -105,7 +118,7 @@ class NorthwestGraphMatrixService {
       );
       nodes[id] = Nodo(
         id: id,
-        nombre: input.destinationNames[j],
+        nombre: deduplicatedDestinations[j],
         colorValue:
             existing?.colorValue ??
             GraphColorGenerator.generateMaximallyDistinctColor(

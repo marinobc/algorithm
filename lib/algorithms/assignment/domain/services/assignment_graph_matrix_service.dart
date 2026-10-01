@@ -5,6 +5,7 @@ import '../../../../domain/models/conexion.dart';
 import '../../../../domain/models/direccion.dart';
 import '../../../../domain/models/grafo.dart';
 import '../../../../domain/models/nodo.dart';
+import '../../../../domain/services/node_name_deduplicator.dart';
 
 class AssignmentMatrixInput {
   final List<String> originIds;
@@ -108,6 +109,18 @@ class AssignmentGraphMatrixService {
       existingConnections['${conn.nodoOrigenId}|${conn.nodoDestinoId}'] = conn;
     }
 
+    final deduplicatedNames = NodeNameDeduplicator.deduplicateNameList([
+      ...input.originNames,
+      ...input.destinationNames,
+    ]);
+    final deduplicatedOrigins = deduplicatedNames.sublist(
+      0,
+      input.originNames.length,
+    );
+    final deduplicatedDestinations = deduplicatedNames.sublist(
+      input.originNames.length,
+    );
+
     for (var i = 0; i < input.originNames.length; i++) {
       final id = input.originIds[i];
       if (id.contains('_dummy_')) {
@@ -125,7 +138,7 @@ class AssignmentGraphMatrixService {
             );
       nodes[id] = Nodo(
         id: id,
-        nombre: input.originNames[i],
+        nombre: deduplicatedOrigins[i],
         colorValue: previous?.colorValue ?? input.defaultOriginColor,
         x: pos.dx,
         y: pos.dy,
@@ -150,7 +163,7 @@ class AssignmentGraphMatrixService {
             );
       nodes[id] = Nodo(
         id: id,
-        nombre: input.destinationNames[j],
+        nombre: deduplicatedDestinations[j],
         colorValue: previous?.colorValue ?? input.defaultDestinationColor,
         x: pos.dx,
         y: pos.dy,
