@@ -2,8 +2,10 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/gestures.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/services.dart';
 
 import '../../algorithms/assignment/providers/assignment_provider.dart';
 import '../../algorithms/core/algorithm_registry.dart';
@@ -136,6 +138,9 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
   @override
   void initState() {
     super.initState();
+    if (kIsWeb) {
+      unawaited(BrowserContextMenu.disableContextMenu());
+    }
     _snapBackController =
         AnimationController(
           vsync: this,
@@ -155,6 +160,9 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
 
   @override
   void dispose() {
+    if (kIsWeb) {
+      unawaited(BrowserContextMenu.enableContextMenu());
+    }
     _longPressTimer?.cancel();
     _nodeHoldTimer?.cancel();
     _singleTapEditTimer?.cancel();
@@ -620,6 +628,38 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
     ref.read(grafoProvider.notifier).moverNodo(nodeId, clamped.x, clamped.y);
   }
 
+  void _onSecondaryTapUp(TapUpDetails details) {
+    final grafo = ref.read(grafoProvider);
+    final worldPos = _screenToWorld(details.localPosition);
+    final hitNodes = GraphHitTester.hitTestAllNodes(
+      worldPos,
+      grafo.nodos.values,
+      scale: _getXYScale(),
+    );
+    if (hitNodes.isEmpty) return;
+
+    _singleTapEditTimer?.cancel();
+    _nodeHoldTimer?.cancel();
+    _longPressTimer?.cancel();
+    if (hitNodes.length == 1) {
+      _showDeleteNodeDialog(hitNodes.first);
+      return;
+    }
+
+    showDialog<void>(
+      context: context,
+      builder: (context) => OverlappingElementsDialog(
+        nodes: hitNodes,
+        connections: const [],
+        nodeMap: grafo.nodos,
+        onSelected: (item) {
+          final nodo = grafo.nodos[item.id];
+          if (nodo != null) _showDeleteNodeDialog(nodo);
+        },
+      ),
+    );
+  }
+
   void _handleTap(Offset worldPos) {
     if (_isZoomLockoutActive) {
       return;
@@ -989,6 +1029,7 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
         onScaleStart: _onScaleStart,
         onScaleUpdate: _onScaleUpdate,
         onScaleEnd: _onScaleEnd,
+        onSecondaryTapUp: _onSecondaryTapUp,
         behavior: HitTestBehavior.opaque,
         child: Container(
           color: palette.canvasBg,
