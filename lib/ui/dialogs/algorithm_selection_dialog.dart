@@ -11,7 +11,9 @@ import '../../algorithms/northwest/domain/services/northwest_problem_extractor.d
 import '../../algorithms/northwest/providers/northwest_provider.dart';
 import '../../application/providers/grafo_provider.dart';
 import '../../domain/services/graph_storage_service.dart';
+import '../../domain/services/sorting_steps.dart';
 import '../screens/graph_editor_screen.dart';
+import '../screens/sorting_visualizer_screen.dart';
 import '../screens/welcome_explanation_screen.dart';
 import '../widgets/algorithm_catalog_illustration.dart';
 import '../widgets/app_toast.dart';
@@ -145,6 +147,24 @@ class AlgorithmSelectionDialog extends StatelessWidget {
           algorithm: northwest,
         ),
       const _AlgorithmCatalogOption(
+        id: 'selection-sort',
+        title: 'Selection Sort',
+        description:
+            'Busca el mínimo y lo intercambia hasta ordenar el conjunto.',
+        accentColor: Color(0xFFFF9100),
+        illustration: AlgorithmCatalogIllustration.selectionSort,
+        sortingAlgorithm: SortingAlgorithm.selection,
+      ),
+      const _AlgorithmCatalogOption(
+        id: 'insertion-sort',
+        title: 'Insertion Sort',
+        description:
+            'Inserta cada elemento en una región que ya está ordenada.',
+        accentColor: Color(0xFF00BFA5),
+        illustration: AlgorithmCatalogIllustration.insertionSort,
+        sortingAlgorithm: SortingAlgorithm.insertion,
+      ),
+      const _AlgorithmCatalogOption(
         id: 'upcoming',
         title: 'Próximamente',
         description: 'Estamos preparando nuevos algoritmos para ampliar las herramientas disponibles.',
@@ -156,6 +176,15 @@ class AlgorithmSelectionDialog extends StatelessWidget {
   }
 
   void _select(BuildContext context, _AlgorithmCatalogOption option) {
+    final sortingAlgorithm = option.sortingAlgorithm;
+    if (sortingAlgorithm != null) {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => SortingVisualizerScreen(algorithm: sortingAlgorithm),
+        ),
+      );
+      return;
+    }
     if (option.id == 'free-mode') {
       ref.read(activeAlgorithmProvider.notifier).clear();
       ref.read(transportationNotifierProvider.notifier).setActive(false);
@@ -281,6 +310,15 @@ class AlgorithmSelectionScreen extends ConsumerWidget {
     WidgetRef ref,
     _AlgorithmCatalogOption option,
   ) {
+    final sortingAlgorithm = option.sortingAlgorithm;
+    if (sortingAlgorithm != null) {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => SortingVisualizerScreen(algorithm: sortingAlgorithm),
+        ),
+      );
+      return;
+    }
     if (option.id == 'free-mode') {
       ref.read(activeAlgorithmProvider.notifier).clear();
     } else {
@@ -346,7 +384,7 @@ class _CatalogHeader extends ConsumerWidget {
               ),
               const SizedBox(height: 5),
               Text(
-                'Elige el algoritmo con el que quieres trabajar en el editor.',
+                'Elige el algoritmo con el que quieres trabajar.',
                 style: TextStyle(color: colors.onSurfaceVariant, fontSize: 15),
               ),
             ],
@@ -582,6 +620,7 @@ class _AlgorithmCatalogOption {
   final AlgorithmCatalogIllustration illustration;
   final bool available;
   final GraphAlgorithm? algorithm;
+  final SortingAlgorithm? sortingAlgorithm;
   const _AlgorithmCatalogOption({
     required this.id,
     required this.title,
@@ -590,5 +629,6 @@ class _AlgorithmCatalogOption {
     required this.illustration,
     this.available = true,
     this.algorithm,
+    this.sortingAlgorithm,
   });
 }
