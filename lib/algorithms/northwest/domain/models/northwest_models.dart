@@ -12,7 +12,7 @@ class TransportationInput {
   final List<String> destinationIds;
   final List<String> originNames;
   final List<String> destinationNames;
-  final List<List<double>> costs;
+  final List<List<double?>> costs;
   final List<double> supplies;
   final List<double> demands;
   final TransportationObjective objective;
@@ -38,7 +38,7 @@ class TransportationInput {
     List<String>? destinationIds,
     List<String>? originNames,
     List<String>? destinationNames,
-    List<List<double>>? costs,
+    List<List<double?>>? costs,
     List<double>? supplies,
     List<double>? demands,
     TransportationObjective? objective,

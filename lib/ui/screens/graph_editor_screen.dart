@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../algorithms/assignment/providers/assignment_provider.dart';
@@ -84,7 +85,17 @@ class _GraphEditorScreenState extends ConsumerState<GraphEditorScreen> {
     final graph = ref.read(grafoProvider);
     final loadedItem = ref.read(loadedGraphItemProvider);
     final graphName = loadedItem?.nombre;
-    GraphShareService.showSaveJpgDialog(context, graph, graphName: graphName);
+    final highlights = ref.read(highlightedElementsProvider);
+    final solutionSummary = ref.read(activeSolutionSummaryProvider);
+    GraphShareService.showSaveJpgDialog(
+      context,
+      graph,
+      graphName: graphName,
+      highlightedNodeIds: highlights.nodeIds,
+      highlightedConnectionIds: highlights.connectionIds,
+      solutionTitle: solutionSummary?.displayTitle,
+      solutionValue: solutionSummary?.formattedZ,
+    );
   }
 
   Future<bool> _promptUnsavedChanges({bool isNewGraph = false}) async {
@@ -422,95 +433,161 @@ class _GraphEditorScreenState extends ConsumerState<GraphEditorScreen> {
         if (didPop) return;
         await _goHome();
       },
-      child: Scaffold(
-        backgroundColor: palette.canvasBg,
-        appBar: AppBar(
-          backgroundColor: colorScheme.surfaceContainerHigh,
-          elevation: 1,
-          leadingWidth: 56,
-          leading: IconButton(
-            icon: const Icon(Icons.home_outlined),
-            tooltip: 'Ir a la página principal',
-            onPressed: _goHome,
-          ),
-          title: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Flexible(
-                child: Text(
-                  titleText,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
+      child: Shortcuts(
+        shortcuts: <ShortcutActivator, Intent>{
+          const SingleActivator(LogicalKeyboardKey.keyZ, control: true):
+              const _UndoIntent(),
+          const SingleActivator(LogicalKeyboardKey.keyZ, meta: true):
+              const _UndoIntent(),
+          const SingleActivator(LogicalKeyboardKey.keyY, control: true):
+              const _RedoIntent(),
+          const SingleActivator(LogicalKeyboardKey.keyY, meta: true):
+              const _RedoIntent(),
+          const SingleActivator(
+            LogicalKeyboardKey.keyZ,
+            control: true,
+            shift: true,
+          ): const _RedoIntent(),
+          const SingleActivator(
+            LogicalKeyboardKey.keyZ,
+            meta: true,
+            shift: true,
+          ): const _RedoIntent(),
+        },
+        child: Actions(
+          actions: <Type, Action<Intent>>{
+            _UndoIntent: CallbackAction<_UndoIntent>(
+              onInvoke: (_) {
+                final notifier = ref.read(grafoProvider.notifier);
+                if (notifier.puedeDeshacer) {
+                  notifier.deshacer();
+                }
+                return null;
+              },
+            ),
+            _RedoIntent: CallbackAction<_RedoIntent>(
+              onInvoke: (_) {
+                final notifier = ref.read(grafoProvider.notifier);
+                if (notifier.puedeRehacer) {
+                  notifier.rehacer();
+                }
+                return null;
+              },
+            ),
+          },
+          child: Focus(
+            autofocus: true,
+            child: Scaffold(
+              backgroundColor: palette.canvasBg,
+              appBar: AppBar(
+                backgroundColor: colorScheme.surfaceContainerHigh,
+                elevation: 1,
+                leadingWidth: 56,
+                leading: IconButton(
+                  icon: const Icon(Icons.home_outlined),
+                  tooltip: 'Ir a la página principal',
+                  onPressed: _goHome,
+                ),
+                title: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Flexible(
+                      child: Text(
+                        titleText,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    if (loadedItem != null)
+                      IconButton(
+                        icon: const Icon(Icons.edit_rounded, size: 16),
+                        tooltip: 'Cambiar Nombre del Grafo',
+                        onPressed: _renameCurrentGraph,
+                      ),
+                  ],
+                ),
+                actions: [
+                  _buildAlgorithmModeBadge(context, activeAlgo),
+                  const SizedBox(width: 8),
+                  Builder(
+                    builder: (menuCtx) => IconButton(
+                      icon: const Icon(Icons.menu_rounded),
+                      tooltip: 'Menú Principal',
+                      onPressed: () {
+                        Scaffold.of(menuCtx).openEndDrawer();
+                      },
+                    ),
                   ),
-                  overflow: TextOverflow.ellipsis,
-                ),
+                  const SizedBox(width: 8),
+                ],
               ),
-              if (loadedItem != null)
-                IconButton(
-                  icon: const Icon(Icons.edit_rounded, size: 16),
-                  tooltip: 'Cambiar Nombre del Grafo',
-                  onPressed: _renameCurrentGraph,
-                ),
-            ],
+              endDrawer: AppDrawer(
+                titleText: titleText,
+                onVaciarGrafo: _onVaciarGrafoSelected,
+                onCargarGraph: _onCargarGraphSelected,
+                onSaveGraph: _saveCurrentGraph,
+                onSelectAlgorithm: _onSelectAlgorithm,
+                onOpenMatrix: _openAdjacencyMatrixModal,
+                onOpenAIChat: _openAIChatModal,
+                onSaveJpg: _saveGraphAsJpg,
+                onOpenTutorial: _openTutorialScreen,
+                onOpenConfig: _openConfigModal,
+              ),
+              body: Stack(
+                children: [
+                  Positioned.fill(child: GraphCanvas(key: _canvasKey)),
+                  if (emptyState != null) Positioned.fill(child: emptyState),
+                  if (canvasControls != null)
+                    Positioned(top: 14, left: 14, child: canvasControls),
+                  Positioned(
+                    top: 12,
+                    left: 12,
+                    right: 12,
+                    child: Align(
+                      alignment: Alignment.topCenter,
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 640),
+                        child: const FloatingAlgorithmCard(),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    bottom: 16 + bottomPadding,
+                    left: 16,
+                    child: UndoRedoCanvasFabs(
+                      onResetView: () {
+                        _canvasKey.currentState?.centrarLienzo(
+                          preserveScale: true,
+                        );
+                      },
+                    ),
+                  ),
+                  Positioned(
+                    bottom: 16 + bottomPadding,
+                    right: 16,
+                    child: const CanvasControlsFabs(),
+                  ),
+                  const Align(
+                    alignment: Alignment.bottomCenter,
+                    child: EditPanel(),
+                  ),
+                ],
+              ),
+            ),
           ),
-          actions: [
-            _buildAlgorithmModeBadge(context, activeAlgo),
-            const SizedBox(width: 8),
-            Builder(
-              builder: (menuCtx) => IconButton(
-                icon: const Icon(Icons.menu_rounded),
-                tooltip: 'Menú Principal',
-                onPressed: () {
-                  Scaffold.of(menuCtx).openEndDrawer();
-                },
-              ),
-            ),
-            const SizedBox(width: 8),
-          ],
-        ),
-        endDrawer: AppDrawer(
-          titleText: titleText,
-          onVaciarGrafo: _onVaciarGrafoSelected,
-          onCargarGraph: _onCargarGraphSelected,
-          onSaveGraph: _saveCurrentGraph,
-          onSelectAlgorithm: _onSelectAlgorithm,
-          onOpenMatrix: _openAdjacencyMatrixModal,
-          onOpenAIChat: _openAIChatModal,
-          onSaveJpg: _saveGraphAsJpg,
-          onOpenTutorial: _openTutorialScreen,
-          onOpenConfig: _openConfigModal,
-        ),
-        body: Stack(
-          children: [
-            Positioned.fill(child: GraphCanvas(key: _canvasKey)),
-            if (emptyState != null) Positioned.fill(child: emptyState),
-            if (canvasControls != null)
-              Positioned(top: 14, left: 14, child: canvasControls),
-            Positioned(
-              top: 12,
-              left: 12,
-              right: 12,
-              child: const FloatingAlgorithmCard(),
-            ),
-            Positioned(
-              bottom: 16 + bottomPadding,
-              left: 16,
-              child: UndoRedoCanvasFabs(
-                onResetView: () {
-                  _canvasKey.currentState?.centrarLienzo(preserveScale: true);
-                },
-              ),
-            ),
-            Positioned(
-              bottom: 16 + bottomPadding,
-              right: 16,
-              child: const CanvasControlsFabs(),
-            ),
-            const Align(alignment: Alignment.bottomCenter, child: EditPanel()),
-          ],
         ),
       ),
     );
   }
+}
+
+class _UndoIntent extends Intent {
+  const _UndoIntent();
+}
+
+class _RedoIntent extends Intent {
+  const _RedoIntent();
 }

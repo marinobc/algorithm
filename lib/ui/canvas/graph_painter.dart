@@ -39,13 +39,13 @@ class GraphPainter extends CustomPainter {
       (connection) => connection.isHighlighted,
     );
 
-    // Dim alternatives while an algorithm solution is active.
+    // Dim alternatives while an algorithm solution is active, preserving complete topology visibility.
     for (final conn in renderModel.connections) {
       EdgeRenderHelper.drawConnection(
         canvas,
         conn,
         palette,
-        opacity: hasAlgorithmPath && !conn.isHighlighted ? 0.18 : 1.0,
+        opacity: hasAlgorithmPath && !conn.isHighlighted ? 0.65 : 1.0,
       );
     }
 

@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../../algorithms/johnson/ui/johnson_launch_button.dart';
 import '../widgets/video_resource_card.dart';
 import '../widgets/web_explanation_navbar.dart';
+import 'widgets/johnson/johnson_hero_section.dart';
+import 'widgets/johnson/johnson_workflow_section.dart';
 
 class JohnsonAlgoScreen extends StatelessWidget {
   const JohnsonAlgoScreen({super.key});
@@ -11,7 +13,6 @@ class JohnsonAlgoScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final width = MediaQuery.of(context).size.width;
 
     return WebExplanationShell(
       activePage: ExplanationWebPage.johnson,
@@ -20,7 +21,7 @@ class JohnsonAlgoScreen extends StatelessWidget {
         child: Column(
           children: [
             // DIVISION 0: Hero Section
-            _buildHeroSection(context, colorScheme, width),
+            const JohnsonHeroSection(),
 
             // DIVISION 1: Concept & Initial Video (Surface Canvas)
             Container(
@@ -94,7 +95,7 @@ class JohnsonAlgoScreen extends StatelessWidget {
                           durationOrAuthor: 'Introducción guiada',
                         ),
                         const SizedBox(height: 48),
-                        _buildWorkflowSection(context, colorScheme, width),
+                        const JohnsonWorkflowSection(),
                         const SizedBox(height: 48),
                         const VideoResourceCard(
                           title: 'Video 3: cálculo de tiempos y holguras',
@@ -179,102 +180,6 @@ class JohnsonAlgoScreen extends StatelessWidget {
             // DIVISION 5: Web Footer
             _buildWebFooter(context, colorScheme),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHeroSection(
-    BuildContext context,
-    ColorScheme colorScheme,
-    double width,
-  ) {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            const Color(0xFF00BFA5).withValues(alpha: 0.25),
-            colorScheme.surface,
-          ],
-        ),
-        border: Border(
-          bottom: BorderSide(
-            color: colorScheme.outlineVariant.withValues(alpha: 0.3),
-          ),
-        ),
-      ),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 1100),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 24.0,
-              vertical: 56.0,
-            ),
-            child: Column(
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: colorScheme.surface,
-                    borderRadius: BorderRadius.circular(30),
-                    border: Border.all(
-                      color: const Color(0xFF00BFA5).withValues(alpha: 0.4),
-                    ),
-                  ),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.alt_route_rounded,
-                        size: 16,
-                        color: Color(0xFF00BFA5),
-                      ),
-                      SizedBox(width: 8),
-                      Text(
-                        'Tiempos de Ida y Regreso',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF00BFA5),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Text(
-                  'Algoritmo de Johnson',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: width > 700 ? 42 : 30,
-                    fontWeight: FontWeight.w900,
-                    color: colorScheme.onSurface,
-                    letterSpacing: -1,
-                  ),
-                ),
-                const SizedBox(height: 14),
-                ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 750),
-                  child: Text(
-                    'Un método intuitivo para calcular tiempos tempranos y tardíos en proyectos. ¡De ida sumamos los máximos y de regreso restamos los mínimos!',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: width > 700 ? 18 : 15,
-                      color: colorScheme.onSurfaceVariant,
-                      height: 1.5,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
         ),
       ),
     );
@@ -477,136 +382,6 @@ class JohnsonAlgoScreen extends StatelessWidget {
       'Ejemplo, implementación y complejidad',
       'En una obra, preparar el terreno, comprar materiales y construir pueden formar caminos distintos. Johnson recorre la red y conserva los máximos de llegada. Con una lista de actividades y sus dependencias, el cálculo se realiza en tiempo lineal O(V + E), donde V son eventos y E conexiones.',
       Icons.code_rounded,
-    );
-  }
-
-  Widget _buildWorkflowSection(
-    BuildContext context,
-    ColorScheme colorScheme,
-    double width,
-  ) {
-    final steps = [
-      {
-        'num': '1',
-        'title': 'Pasada de Ida (De Ida)',
-        'subtitle': 'Sumar y elegir el MÁXIMO',
-        'desc': 'Avanza sumando la duración de cada tarea. En los nodos donde convergen varias actividades antecedoras, escoge siempre el valor máximo.',
-      },
-      {
-        'num': '2',
-        'title': 'Pasada de Regreso (De Regreso)',
-        'subtitle': 'Restar y elegir el MÍNIMO',
-        'desc': 'Retrocede restando las duraciones. En los nodos donde parten o se separan varias actividades hacia adelante, escoge siempre el valor mínimo.',
-      },
-    ];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'REGLAS DE CÁLCULO PASO A PASO',
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w800,
-            letterSpacing: 1.5,
-            color: Color(0xFF00BFA5),
-          ),
-        ),
-        const SizedBox(height: 6),
-        Text(
-          'Las Dos Pasadas del Algoritmo',
-          style: TextStyle(
-            fontSize: 26,
-            fontWeight: FontWeight.bold,
-            color: colorScheme.onSurface,
-          ),
-        ),
-        const SizedBox(height: 24),
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: width >= 800 ? 2 : 1,
-            crossAxisSpacing: 16,
-            mainAxisSpacing: 16,
-            mainAxisExtent: 200,
-          ),
-          itemCount: steps.length,
-          itemBuilder: (context, index) {
-            final item = steps[index];
-            return Container(
-              padding: const EdgeInsets.all(22),
-              decoration: BoxDecoration(
-                color: colorScheme.surfaceContainerLow,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: colorScheme.outlineVariant.withValues(alpha: 0.4),
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        width: 32,
-                        height: 32,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF00BFA5).withValues(alpha: 0.2),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Center(
-                          child: Text(
-                            item['num']!,
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF00BFA5),
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              item['title']!,
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: colorScheme.onSurface,
-                              ),
-                            ),
-                            Text(
-                              item['subtitle']!,
-                              style: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: Color(0xFF00BFA5),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    item['desc']!,
-                    style: TextStyle(
-                      fontSize: 14,
-                      height: 1.45,
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-        ),
-      ],
     );
   }
 

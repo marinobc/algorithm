@@ -8,6 +8,8 @@ import '../screens/assignment_algo_screen.dart';
 import '../screens/contact_screen.dart';
 import '../screens/johnson_algo_screen.dart';
 import '../screens/northwest_algo_screen.dart';
+import '../screens/sorting_algo_screen.dart';
+import '../../domain/services/sorting_steps.dart';
 import '../screens/welcome_explanation_screen.dart';
 import '../screens/what_are_graphs_screen.dart';
 
@@ -17,6 +19,8 @@ enum ExplanationWebPage {
   assignment,
   johnson,
   northwest,
+  selectionSort,
+  insertionSort,
   contact,
 }
 
@@ -45,6 +49,16 @@ class WebExplanationShell extends ConsumerWidget {
         break;
       case ExplanationWebPage.northwest:
         targetScreen = const NorthwestAlgoScreen();
+        break;
+      case ExplanationWebPage.selectionSort:
+        targetScreen = const SortingAlgoScreen(
+          algorithm: SortingAlgorithm.selection,
+        );
+        break;
+      case ExplanationWebPage.insertionSort:
+        targetScreen = const SortingAlgoScreen(
+          algorithm: SortingAlgorithm.insertion,
+        );
         break;
       case ExplanationWebPage.contact:
         targetScreen = const ContactScreen();
@@ -434,6 +448,22 @@ class WebExplanationShell extends ConsumerWidget {
                 label: 'Northwest',
                 page: ExplanationWebPage.northwest,
                 icon: Icons.grid_view_rounded,
+                isDrawer: isDrawer,
+              ),
+              const SizedBox(height: 6),
+              _buildVerticalNavLink(
+                context,
+                label: 'Selection Sort',
+                page: ExplanationWebPage.selectionSort,
+                icon: Icons.sort_rounded,
+                isDrawer: isDrawer,
+              ),
+              const SizedBox(height: 6),
+              _buildVerticalNavLink(
+                context,
+                label: 'Insertion Sort',
+                page: ExplanationWebPage.insertionSort,
+                icon: Icons.low_priority_rounded,
                 isDrawer: isDrawer,
               ),
             ],

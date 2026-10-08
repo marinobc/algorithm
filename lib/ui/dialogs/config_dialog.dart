@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../application/providers/config_provider.dart';
 import '../../domain/models/direccion.dart';
+import '../../domain/models/modo_tipo_nodo.dart';
 import '../theme/app_theme.dart';
 import '../widgets/radio_option_card.dart';
 
@@ -17,7 +17,6 @@ class ConfigScreen extends ConsumerStatefulWidget {
 }
 
 class _ConfigScreenState extends ConsumerState<ConfigScreen> {
-  late TextEditingController _valController;
   late ThemeMode _selectedTheme;
   late Direccion _selectedConnType;
   late bool _mostrarDebug;
@@ -26,28 +25,13 @@ class _ConfigScreenState extends ConsumerState<ConfigScreen> {
   void initState() {
     super.initState();
     final currentConfig = ref.read(configProvider);
-    _valController = TextEditingController(
-      text: currentConfig.valorConexionPorDefecto,
-    );
     _selectedTheme = currentConfig.themeMode;
     _selectedConnType = currentConfig.tipoConexionPorDefecto;
     _mostrarDebug = currentConfig.mostrarBotonesDebug;
   }
 
-  @override
-  void dispose() {
-    _valController.dispose();
-    super.dispose();
-  }
-
   void _autoSaveConfig() {
-    String val = _valController.text.trim();
-    final parsed = double.tryParse(val);
-    if (val.isEmpty || parsed == null || parsed <= 0) {
-      val = '1';
-    }
     final notifier = ref.read(configProvider.notifier);
-    notifier.setValorConexionPorDefecto(val);
     notifier.setTipoConexionPorDefecto(_selectedConnType);
     notifier.setThemeMode(_selectedTheme);
   }
@@ -147,7 +131,7 @@ class _ConfigScreenState extends ConsumerState<ConfigScreen> {
                   ),
                   const SizedBox(height: 20),
 
-                  // Section 2: Default Connection Weight Card (User Input Only)
+                  // Section: Modo de Tipo de Nodo
                   Card(
                     elevation: 1,
                     color: colorScheme.surfaceContainerLow,
@@ -162,16 +146,13 @@ class _ConfigScreenState extends ConsumerState<ConfigScreen> {
                           Row(
                             children: [
                               Icon(
-                                Icons.numbers,
+                                Icons.ads_click_rounded,
                                 color: colorScheme.primary,
-                                size: 22,
                               ),
-                              const SizedBox(width: 10),
+                              const SizedBox(width: 12),
                               Expanded(
                                 child: Text(
-                                  'Valor Inicial para Conexiones',
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
+                                  'Modo de Asignación de Roles de Nodo',
                                   style: TextStyle(
                                     color: colorScheme.onSurface,
                                     fontSize: 15,
@@ -182,28 +163,29 @@ class _ConfigScreenState extends ConsumerState<ConfigScreen> {
                             ],
                           ),
                           const SizedBox(height: 16),
-                          TextField(
-                            controller: _valController,
-                            keyboardType: const TextInputType.numberWithOptions(
-                              decimal: true,
-                            ),
-                            inputFormatters: [
-                              FilteringTextInputFormatter.allow(
-                                RegExp(r'^\d*\.?\d*'),
-                              ),
-                            ],
-                            onChanged: (_) => _autoSaveConfig(),
-                            decoration: InputDecoration(
-                              filled: true,
-                              fillColor: colorScheme.surfaceContainerHighest,
-                              labelText: 'Valor numérico inicial de la arista',
-                              hintText: 'Ej: 1, 10, 50',
-                              prefixIcon: const Icon(Icons.edit_note_rounded),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(14),
-                                borderSide: BorderSide.none,
-                              ),
-                            ),
+                          RadioOptionCard<ModoTipoNodo>(
+                            value: ModoTipoNodo.declarado,
+                            groupValue: ref.watch(configProvider).modoTipoNodo,
+                            title: 'Tipo Declarado',
+                            subtitle: 'Seleccionas explícitamente si el nodo es Origen o Destino al crearlo.',
+                            icon: Icons.touch_app_rounded,
+                            onSelected: (val) {
+                              ref
+                                  .read(configProvider.notifier)
+                                  .setModoTipoNodo(val);
+                            },
+                          ),
+                          RadioOptionCard<ModoTipoNodo>(
+                            value: ModoTipoNodo.detectado,
+                            groupValue: ref.watch(configProvider).modoTipoNodo,
+                            title: 'Tipo Detectado',
+                            subtitle: 'Insertas nodos sin rol previo; se asigna Origen/Destino automáticamente al conectarlos.',
+                            icon: Icons.auto_awesome_rounded,
+                            onSelected: (val) {
+                              ref
+                                  .read(configProvider.notifier)
+                                  .setModoTipoNodo(val);
+                            },
                           ),
                         ],
                       ),

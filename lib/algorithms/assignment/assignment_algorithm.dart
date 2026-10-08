@@ -1,16 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../application/providers/config_provider.dart';
 import '../../application/providers/grafo_provider.dart';
 import '../../domain/models/conexion.dart';
+import '../../domain/models/modo_tipo_nodo.dart';
 import '../../domain/models/nodo.dart';
 import '../../ui/dialogs/connection_value_input_dialog.dart';
+import '../../core/utils/app_logger.dart';
 import '../core/graph_algorithm.dart';
+import '../core/models/algorithm_step.dart';
+import 'domain/models/assignment_models.dart';
 import 'domain/policy/assignment_graph_policy.dart';
 import 'providers/assignment_provider.dart';
 import 'ui/assignment_algorithm_card.dart';
-import 'ui/assignment_bipartite_matrix_screen.dart';
 import 'ui/assignment_canvas_controls.dart';
+import 'ui/assignment_graph_matrix_screen.dart';
 import 'ui/assignment_launch_button.dart';
 
 /// Pluggable GraphAlgorithm implementation for Assignment / Hungarian method.
@@ -79,10 +84,14 @@ El **Algoritmo de Asignación** resuelve problemas de emparejamiento óptimo ent
   }
 
   @override
-  Map<String, dynamic>? newNodeParams(WidgetRef ref) => {
-    'role': ref.read(assignmentActiveRoleProvider),
-    'rol': ref.read(assignmentActiveRoleProvider),
-  };
+  Map<String, dynamic>? newNodeParams(WidgetRef ref) {
+    final modo = ref.read(configProvider).modoTipoNodo;
+    if (modo == ModoTipoNodo.detectado) {
+      return null;
+    }
+    final role = ref.read(assignmentActiveRoleProvider);
+    return {'role': role, 'rol': role};
+  }
 
   @override
   Widget? buildEmptyState(BuildContext context, WidgetRef ref) => null;
@@ -117,7 +126,22 @@ El **Algoritmo de Asignación** resuelve problemas de emparejamiento óptimo ent
     Color roleColor;
     IconData roleIcon;
 
-    if (inD == 0 && outD > 0) {
+    final isExplicitOrigin =
+        nodo.rol == AssignmentRoles.origin || nodo.rol == 'origen';
+    final isExplicitDest =
+        nodo.rol == AssignmentRoles.destination || nodo.rol == 'destino';
+
+    if (isExplicitOrigin) {
+      roleTitle = 'Origen (declarado)';
+      roleDesc = 'Este nodo está configurado explícitamente como Origen.';
+      roleColor = const Color(AssignmentRoles.originColor);
+      roleIcon = Icons.outbox_rounded;
+    } else if (isExplicitDest) {
+      roleTitle = 'Destino (declarado)';
+      roleDesc = 'Este nodo está configurado explícitamente como Destino.';
+      roleColor = const Color(AssignmentRoles.destinationColor);
+      roleIcon = Icons.move_to_inbox_rounded;
+    } else if (inD == 0 && outD > 0) {
       roleTitle = 'Origen (detectado)';
       roleDesc =
           'Este nodo emite $outD ${outD == 1 ? "conexión" : "conexiones"}.';
@@ -189,7 +213,50 @@ El **Algoritmo de Asignación** resuelve problemas de emparejamiento óptimo ent
 
   @override
   Widget? buildMatrixScreen(BuildContext context, WidgetRef ref) {
-    return const AssignmentBipartiteMatrixScreen();
+    AppLogger.i(
+      'AssignmentAlgorithm',
+      'Abriendo la pantalla de matriz editable de Asignación (AssignmentGraphMatrixScreen)',
+    );
+    return const AssignmentGraphMatrixScreen();
+  }
+
+  @override
+  bool get supportsStepByStep => true;
+
+  @override
+  String? get stepByStepUnavailableReason => null;
+
+  @override
+  Widget? buildStepByStepScreen(BuildContext context, WidgetRef ref) => null;
+
+  @override
+  List<AlgorithmStep> getStepByStepList(WidgetRef ref) {
+    final result = ref.read(transportationResultProvider);
+    if (result == null) return const [];
+
+    final steps = <AlgorithmStep>[];
+    for (final step in result.steps) {
+      List<List<String>>? matrixSnapshot;
+      if (step.currentAllocations != null) {
+        matrixSnapshot = step.currentAllocations!
+            .map((row) => row.map((v) => v.toStringAsFixed(1)).toList())
+            .toList();
+      }
+      steps.add(
+        AlgorithmStep(
+          stepNumber: step.stepNumber,
+          title: step.title,
+          description: step.description,
+          formulaLatex: step.formulaLatex,
+          matrixSnapshot: matrixSnapshot,
+          metrics: {
+            'Método': result.method.displayName,
+            'Valor Z': result.totalCost.toStringAsFixed(2),
+          },
+        ),
+      );
+    }
+    return steps;
   }
 
   @override

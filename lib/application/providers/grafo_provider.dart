@@ -3,12 +3,15 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/utils/app_logger.dart';
 import '../../domain/models/atributo.dart';
 import '../../domain/models/conexion.dart';
 import '../../domain/models/direccion.dart';
 import '../../domain/models/grafo.dart';
 import '../../domain/models/nodo.dart';
+import '../../domain/models/modo_tipo_nodo.dart';
 import '../../domain/services/graph_geometry.dart';
+import '../../domain/services/node_name_deduplicator.dart';
 import 'config_provider.dart';
 import 'grafo_undo_tracker.dart';
 
@@ -23,6 +26,7 @@ class GrafoNotifier extends Notifier<Grafo> {
 
   void marcarPuntoGuardado() => _undoTracker.marcarPuntoGuardado(state);
 
+  void recordUndoSnapshot() => _undoTracker.recordUndoState(state);
   void _recordUndoState() => _undoTracker.recordUndoState(state);
 
   bool deshacer() {
@@ -100,14 +104,22 @@ class GrafoNotifier extends Notifier<Grafo> {
     _recordUndoState();
     final clamped = GraphGeometry.clampNodePosition(x, y);
     final nextNumber = state.nodos.length + 1;
-    final nodeName = nombre ?? 'Nodo $nextNumber';
+    final rawName = nombre ?? 'Nodo $nextNumber';
+    final existingNames = state.nodos.values
+        .map((n) => n.nombre ?? '')
+        .toList();
+    final uniqueName = NodeNameDeduplicator.deduplicateName(
+      rawName,
+      existingNames,
+    );
+
     final nodeId =
         'nodo_${DateTime.now().microsecondsSinceEpoch}_${_nodeSeq++}';
     final nodeColor = colorValue ?? generateMaximallyDistinctColor();
 
     final nuevoNodo = Nodo(
       id: nodeId,
-      nombre: nodeName,
+      nombre: uniqueName,
       colorValue: nodeColor,
       x: clamped.x,
       y: clamped.y,
@@ -124,7 +136,20 @@ class GrafoNotifier extends Notifier<Grafo> {
   Nodo agregarNodoInstancia(Nodo nodo) {
     _recordUndoState();
     final clamped = GraphGeometry.clampNodePosition(nodo.x, nodo.y);
-    final clampedNode = nodo.copyWith(x: clamped.x, y: clamped.y);
+    final existingNames = state.nodos.values
+        .where((n) => n.id != nodo.id)
+        .map((n) => n.nombre ?? '')
+        .toList();
+    final uniqueName = NodeNameDeduplicator.deduplicateName(
+      nodo.nombre ?? '',
+      existingNames,
+    );
+
+    final clampedNode = nodo.copyWith(
+      x: clamped.x,
+      y: clamped.y,
+      nombre: uniqueName,
+    );
     final updatedNodos = Map<String, Nodo>.from(state.nodos)
       ..[clampedNode.id] = clampedNode;
     state = state.copyWith(nodos: updatedNodos);
@@ -158,8 +183,18 @@ class GrafoNotifier extends Notifier<Grafo> {
     final nodo = state.nodos[id];
     if (nodo == null) return;
     _recordUndoState();
+
+    String? finalName = nodo.nombre;
+    if (nombre != null) {
+      final existingNames = state.nodos.entries
+          .where((e) => e.key != id)
+          .map((e) => e.value.nombre ?? '')
+          .toList();
+      finalName = NodeNameDeduplicator.deduplicateName(nombre, existingNames);
+    }
+
     final updatedNodo = nodo.copyWith(
-      nombre: nombre ?? nodo.nombre,
+      nombre: finalName,
       colorValue: colorValue ?? nodo.colorValue,
       rol: clearRol ? null : (rol ?? nodo.rol),
       clearRol: clearRol,
@@ -243,14 +278,7 @@ class GrafoNotifier extends Notifier<Grafo> {
       }
     }
 
-    _recordUndoState();
-    final defaultConfigVal = ref.read(configProvider).valorConexionPorDefecto;
-    final validDefaultVal =
-        (defaultConfigVal.isEmpty ||
-            double.tryParse(defaultConfigVal) == null ||
-            (double.tryParse(defaultConfigVal) ?? 0) <= 0)
-        ? '1'
-        : defaultConfigVal;
+    const validDefaultVal = '1';
 
     final defaultAttrs = <AtributoValor>[];
     if (atributos != null && atributos.isNotEmpty) {
@@ -329,7 +357,37 @@ class GrafoNotifier extends Notifier<Grafo> {
 
       final updatedConexiones = Map<String, Conexion>.from(state.conexiones)
         ..[conexionId] = nuevaConexion;
-      state = state.copyWith(conexiones: updatedConexiones);
+
+      final config = ref.read(configProvider);
+      var updatedNodos = state.nodos;
+      if (config.modoTipoNodo == ModoTipoNodo.detectado &&
+          origNode != null &&
+          destNode != null) {
+        var newOrig = origNode;
+        var newDest = destNode;
+        bool nodeChanged = false;
+
+        if (newOrig.rol == null) {
+          newOrig = newOrig.copyWith(rol: 'origen');
+          nodeChanged = true;
+        }
+        if (newDest.rol == null) {
+          newDest = newDest.copyWith(rol: 'destino');
+          nodeChanged = true;
+        }
+
+        if (nodeChanged) {
+          final mutableNodos = Map<String, Nodo>.from(state.nodos);
+          mutableNodos[newOrig.id] = newOrig;
+          mutableNodos[newDest.id] = newDest;
+          updatedNodos = mutableNodos;
+        }
+      }
+
+      state = state.copyWith(
+        nodos: updatedNodos,
+        conexiones: updatedConexiones,
+      );
       return [nuevaConexion];
     }
   }
@@ -408,13 +466,7 @@ class GrafoNotifier extends Notifier<Grafo> {
 
     final now = DateTime.now().microsecondsSinceEpoch;
 
-    final defaultConfigVal = ref.read(configProvider).valorConexionPorDefecto;
-    final validDefaultVal =
-        (defaultConfigVal.isEmpty ||
-            double.tryParse(defaultConfigVal) == null ||
-            (double.tryParse(defaultConfigVal) ?? 0) <= 0)
-        ? '1'
-        : defaultConfigVal;
+    const validDefaultVal = '1';
     final fallbackAttrs = [
       AtributoValor(atributoId: 'attr_valor', valor: validDefaultVal),
     ];
@@ -525,7 +577,32 @@ class GrafoNotifier extends Notifier<Grafo> {
       updatedConexiones.remove(id);
     }
 
-    state = state.copyWith(conexiones: updatedConexiones);
+    final config = ref.read(configProvider);
+    var updatedNodos = state.nodos;
+
+    if (config.modoTipoNodo == ModoTipoNodo.detectado) {
+      final mutableNodos = Map<String, Nodo>.from(state.nodos);
+      bool changed = false;
+
+      for (final node in state.nodos.values) {
+        if (node.rol == null) continue;
+
+        final hasRemainingConns = updatedConexiones.values.any(
+          (c) => c.nodoOrigenId == node.id || c.nodoDestinoId == node.id,
+        );
+
+        if (!hasRemainingConns) {
+          mutableNodos[node.id] = node.copyWith(clearRol: true);
+          changed = true;
+        }
+      }
+
+      if (changed) {
+        updatedNodos = mutableNodos;
+      }
+    }
+
+    state = state.copyWith(nodos: updatedNodos, conexiones: updatedConexiones);
   }
 
   /// Removes an attribute from all connections in the graph.
@@ -542,14 +619,18 @@ class GrafoNotifier extends Notifier<Grafo> {
     state = state.copyWith(conexiones: updatedConexiones);
   }
 
-  /// Empties all nodes and connections from the current graph while preserving history for undo.
+  /// Empties all nodes and connections from the current graph and resets history (new graph).
   void vaciarGrafo() {
-    _recordUndoState();
+    _undoTracker.clear(const Grafo());
     state = const Grafo();
   }
 
   /// Replaces the graph as one undoable operation.
   void reemplazarGrafo(Grafo grafo) {
+    AppLogger.i(
+      'GrafoNotifier',
+      'Reemplazando grafo en el lienzo: ${grafo.nodos.length} nodos, ${grafo.conexiones.length} conexiones. TipoAlgoritmo: ${grafo.tipoAlgoritmo}',
+    );
     _recordUndoState();
     state = grafo;
   }

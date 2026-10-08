@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import '../../../../domain/services/node_name_deduplicator.dart';
 import '../models/assignment_models.dart';
 
 abstract class ITransportationSolver {
@@ -15,14 +16,23 @@ class TransportationSolverHelper {
   /// Preserves bigM penalties for unconnected/impossible edges.
   static List<List<double>> transformForGoal(
     List<List<double>> matrix,
-    OptimizationGoal goal,
-  ) {
+    OptimizationGoal goal, {
+    int origCount = 0,
+    int destCount = 0,
+  }) {
     if (goal == OptimizationGoal.minimize) return matrix;
 
     const bigM = 1e6;
     double maxVal = 0.0;
-    for (final row in matrix) {
-      for (final cell in row) {
+    for (int i = 0; i < matrix.length; i++) {
+      for (int j = 0; j < matrix[i].length; j++) {
+        // Only evaluate real non-dummy cells to find maxVal
+        if (origCount > 0 &&
+            destCount > 0 &&
+            (i >= origCount || j >= destCount)) {
+          continue;
+        }
+        final cell = matrix[i][j];
         if (cell.isFinite && cell < bigM && cell > maxVal) {
           maxVal = cell;
         }
@@ -37,6 +47,12 @@ class TransportationSolverHelper {
         final val = matrix[i][j];
         if (val >= bigM || val.isInfinite) {
           return bigM; // Keep penalty high so Hungarian never chooses missing edges
+        }
+        // Dummy padded rows or columns carry 0 opportunity cost
+        if (origCount > 0 &&
+            destCount > 0 &&
+            (i >= origCount || j >= destCount)) {
+          return 0.0;
         }
         return maxVal - val;
       }),
@@ -74,7 +90,10 @@ class TransportationSolverHelper {
       wasBalanced = true;
       if (totalSupply > totalDemand) {
         final diff = totalSupply - totalDemand;
-        dummyAdded = '0 (Destino)';
+        dummyAdded = NodeNameDeduplicator.deduplicateName(
+          'Ficticio',
+          destLabels,
+        );
         destLabels.add(dummyAdded);
         dem.add(diff);
         for (int i = 0; i < costs.length; i++) {
@@ -82,7 +101,10 @@ class TransportationSolverHelper {
         }
       } else {
         final diff = totalDemand - totalSupply;
-        dummyAdded = '0 (Origen)';
+        dummyAdded = NodeNameDeduplicator.deduplicateName(
+          'Ficticio',
+          origLabels,
+        );
         origLabels.add(dummyAdded);
         supp.add(diff);
         final dummyRow = List<double>.filled(destLabels.length, dummyCost);
@@ -147,7 +169,9 @@ class HungarianAssignmentSolver implements ITransportationSolver {
       origLabels.add(problem.origins[i].nombre ?? problem.origins[i].id);
     }
     while (origLabels.length < n) {
-      origLabels.add('0 (Origen ${origLabels.length + 1})');
+      origLabels.add(
+        NodeNameDeduplicator.deduplicateName('Ficticio', origLabels),
+      );
     }
 
     final destLabels = <String>[];
@@ -157,7 +181,9 @@ class HungarianAssignmentSolver implements ITransportationSolver {
       );
     }
     while (destLabels.length < n) {
-      destLabels.add('0 (Destino ${destLabels.length + 1})');
+      destLabels.add(
+        NodeNameDeduplicator.deduplicateName('Ficticio', destLabels),
+      );
     }
 
     const bigM = 1e6;
@@ -176,70 +202,70 @@ class HungarianAssignmentSolver implements ITransportationSolver {
     );
 
     final bool wasBalancedWithDummy = origCount != destCount;
-    final String? dummyLabelAdded = wasBalancedWithDummy
-        ? (origCount < destCount ? '0 (Origen)' : '0 (Destino)')
-        : null;
+    final String? dummyLabelAdded = wasBalancedWithDummy ? 'Ficticio' : null;
 
     final steps = <StepExplanation>[];
     int stepCounter = 1;
 
     // 2. Goal Adjustment for Maximization vs Minimization
-    final effCosts = TransportationSolverHelper.transformForGoal(costs, goal);
-    steps.add(
-      StepExplanation(
-        stepNumber: stepCounter++,
-        title: 'Paso 1: Matriz de Costos Inicial',
-        description: goal == OptimizationGoal.maximize
-            ? 'Matriz ajustada para maximización.'
-            : 'Matriz inicial de costos.',
-      ),
+    final effCosts = TransportationSolverHelper.transformForGoal(
+      costs,
+      goal,
+      origCount: origCount,
+      destCount: destCount,
     );
-
-    // 3. Step 1: Row Reduction (\alpha_i)
-    final rowReduced = List.generate(n, (i) => List<double>.from(effCosts[i]));
-    final alpha = List<double>.filled(n, 0.0);
-    for (int i = 0; i < n; i++) {
-      double minVal = rowReduced[i].reduce(min);
-      alpha[i] = minVal;
-      for (int j = 0; j < n; j++) {
-        rowReduced[i][j] = max(0.0, rowReduced[i][j] - minVal);
-      }
-    }
     steps.add(
       StepExplanation(
         stepNumber: stepCounter++,
-        title: 'Paso 2: Reducción por Filas (Alpha)',
-        description:
-            'Se resta el mínimo de cada fila a sus elementos (Alpha_i).',
+        title: goal == OptimizationGoal.maximize
+            ? 'Paso 1: Transformación para Maximización (Matriz de Oportunidad)'
+            : 'Paso 1: Matriz de Costos Inicial',
+        description: goal == OptimizationGoal.maximize
+            ? r'Para maximizar, se resta cada valor del valor máximo de la matriz: $c^\prime_{ij} = \max(C) - c_{ij}$. El elemento mayor se convierte en 0 y el resto en costos de oportunidad.'
+            : r'Matriz de costos original $c_{ij}$ para el problema de minimización.',
+        formulaLatex: goal == OptimizationGoal.maximize
+            ? r'c^\prime_{ij} = \max_{u,v}(c_{uv}) - c_{ij}'
+            : r'C = [c_{ij}]_{n \times n}',
         currentAllocations: List.generate(
           n,
-          (r) => List<double>.from(rowReduced[r]),
+          (r) => List<double>.from(effCosts[r]),
         ),
       ),
     );
 
-    // 4. Step 2: Column Reduction (\beta_j)
-    final colReduced = List.generate(
-      n,
-      (i) => List<double>.from(rowReduced[i]),
-    );
-    final beta = List<double>.filled(n, 0.0);
+    // 3. Step 2: Column Reduction (\alpha_j = \min_{i} c_{ij})
+    final alpha = List<double>.filled(n, 0.0);
+    final colMinDetails = <String>[];
     for (int j = 0; j < n; j++) {
       double minVal = double.infinity;
       for (int i = 0; i < n; i++) {
-        if (colReduced[i][j] < minVal) minVal = colReduced[i][j];
+        if (effCosts[i][j] < minVal) minVal = effCosts[i][j];
       }
-      beta[j] = minVal;
-      for (int i = 0; i < n; i++) {
-        colReduced[i][j] = max(0.0, colReduced[i][j] - minVal);
+      alpha[j] = minVal;
+      colMinDetails.add(
+        '\$C_${j + 1}: \\min = ${minVal.toStringAsFixed(1).replaceAll(RegExp(r'\.0$'), '')}\$',
+      );
+    }
+
+    final colReduced = List.generate(n, (i) => List<double>.filled(n, 0.0));
+    for (int i = 0; i < n; i++) {
+      for (int j = 0; j < n; j++) {
+        colReduced[i][j] = max(0.0, effCosts[i][j] - alpha[j]);
       }
     }
+
     steps.add(
       StepExplanation(
         stepNumber: stepCounter++,
-        title: 'Paso 3: Reducción por Columnas (Beta)',
+        title: r'Paso 2: Reducción por Columnas ($\alpha_j = \min_{i} c_{ij}$)',
         description:
-            'Se resta el mínimo de cada columna a sus elementos (Beta_j).',
+            'Se determina el valor mínimo de cada columna \$j\$ y se resta celda por celda:\n\n'
+            '${colMinDetails.join(' ; ')}\n\n'
+            r'Fórmula de sustracción: $c^\prime_{ij} = c_{ij} - \alpha_j$. Toda celda mínima toma valor $0$.',
+        formulaLatex:
+            r'C^\prime = [c_{ij} - \alpha_j]_{n \times n} \quad \implies \quad \boldsymbol{\alpha} = ['
+            '${alpha.map((e) => e.toStringAsFixed(1).replaceAll(RegExp(r'\\.0\$'), '')).join(', ')}]',
+        rowVectorAlpha: List<double>.from(alpha),
         currentAllocations: List.generate(
           n,
           (r) => List<double>.from(colReduced[r]),
@@ -247,10 +273,48 @@ class HungarianAssignmentSolver implements ITransportationSolver {
       ),
     );
 
-    // 5. Step 3: Line Cover & Theta Adjustment until N lines cover all zeros
+    // 4. Step 3: Row Reduction (\beta_i = \min_{j} c'_{ij})
+    final beta = List<double>.filled(n, 0.0);
+    final rowMinDetails = <String>[];
+    for (int i = 0; i < n; i++) {
+      double minVal = colReduced[i].reduce(min);
+      beta[i] = minVal;
+      rowMinDetails.add(
+        '\$R_${i + 1}: \\min = ${minVal.toStringAsFixed(1).replaceAll(RegExp(r'\.0$'), '')}\$',
+      );
+    }
+
+    final rowReduced = List.generate(n, (i) => List<double>.filled(n, 0.0));
+    for (int i = 0; i < n; i++) {
+      for (int j = 0; j < n; j++) {
+        rowReduced[i][j] = max(0.0, colReduced[i][j] - beta[i]);
+      }
+    }
+
+    steps.add(
+      StepExplanation(
+        stepNumber: stepCounter++,
+        title:
+            r'Paso 3: Reducción por Filas ($\beta_i = \min_{j} c^\prime_{ij}$)',
+        description:
+            'Se examina cada fila \$i\$ de la matriz reducida por columnas \$C^\\prime\$ y se extrae su mínimo:\n\n'
+            '${rowMinDetails.join(' ; ')}\n\n'
+            r'Fórmula de sustracción: $c^{\prime\prime}_{ij} = c^\prime_{ij} - \beta_i$.',
+        formulaLatex:
+            r'C^{\prime\prime} = [c^\prime_{ij} - \beta_i]_{n \times n} \quad \implies \quad \boldsymbol{\beta} = ['
+            '${beta.map((e) => e.toStringAsFixed(1).replaceAll(RegExp(r'\\.0\$'), '')).join(', ')}]^T',
+        colVectorBeta: List<double>.from(beta),
+        currentAllocations: List.generate(
+          n,
+          (r) => List<double>.from(rowReduced[r]),
+        ),
+      ),
+    );
+
+    // 9. Line Cover & Theta Adjustment
     final workingMatrix = List.generate(
       n,
-      (i) => List<double>.from(colReduced[i]),
+      (i) => List<double>.from(rowReduced[i]),
     );
     var match = _findMaximumMatching(workingMatrix, n);
 
@@ -290,6 +354,25 @@ class HungarianAssignmentSolver implements ITransportationSolver {
       }
 
       match = _findMaximumMatching(workingMatrix, n);
+
+      steps.add(
+        StepExplanation(
+          stepNumber: stepCounter++,
+          title:
+              'Paso $stepCounter: Cobertura de Ceros y Ajuste por Theta (\$\\theta = ${theta.toStringAsFixed(2)}\$)',
+          description:
+              'Se determinó un cubrimiento mínimo de líneas. El menor elemento no cubierto es \$\\theta = ${theta.toStringAsFixed(2)}\$. Se resta \$\\theta\$ a las celdas no cubiertas y se suma a las intersecciones.',
+          formulaLatex:
+              r'\theta = \min_{(i,j) \notin R_{cov} \cup C_{cov}} c_{ij}',
+          coveredRows: Set<int>.from(coveredRows),
+          coveredCols: Set<int>.from(coveredCols),
+          thetaValue: theta,
+          currentAllocations: List.generate(
+            n,
+            (r) => List<double>.from(workingMatrix[r]),
+          ),
+        ),
+      );
     }
 
     // Guarantee full matching of size n for complete allocation table

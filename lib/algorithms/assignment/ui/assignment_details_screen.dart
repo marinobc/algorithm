@@ -4,12 +4,23 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../ui/theme/app_theme.dart';
 import '../domain/models/assignment_models.dart';
 import '../providers/assignment_provider.dart';
+import 'widgets/assignment_allocation_matrix_table.dart';
+import 'widgets/assignment_step_by_step_widget.dart';
 
-class AssignmentDetailsScreen extends ConsumerWidget {
+class AssignmentDetailsScreen extends ConsumerStatefulWidget {
   const AssignmentDetailsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<AssignmentDetailsScreen> createState() =>
+      _AssignmentDetailsScreenState();
+}
+
+class _AssignmentDetailsScreenState
+    extends ConsumerState<AssignmentDetailsScreen> {
+  bool _showSteps = false;
+
+  @override
+  Widget build(BuildContext context) {
     final result = ref.watch(transportationResultProvider);
     final problem = ref.watch(transportationProblemDataProvider);
     final colorScheme = Theme.of(context).colorScheme;
@@ -126,47 +137,51 @@ class AssignmentDetailsScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 24),
 
-                  // Allocation Matrix Section
-                  Text(
-                    'Matriz Final de Asignaciones Óptimas',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: colorScheme.primary,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Align(
-                    alignment: Alignment.center,
-                    child: Card(
-                      elevation: 1,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      clipBehavior: Clip.antiAlias,
-                      child: _buildAllocationMatrixTable(result, colorScheme),
-                    ),
+                  // Allocation Matrix Table & Chips
+                  AssignmentAllocationMatrixTable(
+                    result: result,
+                    problem: problem,
                   ),
                   const SizedBox(height: 24),
 
-                  // Detailed Assigned Pairs Section
-                  Text(
-                    'Desglose de Pares Asignados',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: colorScheme.primary,
+                  // Step-by-Step Toggle Button inside Solution View
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _showSteps = !_showSteps;
+                        });
+                      },
+                      icon: Icon(
+                        _showSteps
+                            ? Icons.expand_less_rounded
+                            : Icons.auto_awesome_rounded,
+                      ),
+                      label: Text(
+                        _showSteps
+                            ? 'Ocultar paso a paso matemático'
+                            : 'Mostrar paso a paso matemático (Método Húngaro)',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 10),
-                  Wrap(
-                    spacing: 10,
-                    runSpacing: 10,
-                    children: _buildAssignmentChips(
-                      result,
-                      problem,
-                      colorScheme,
-                    ),
+
+                  AnimatedSize(
+                    duration: const Duration(milliseconds: 260),
+                    curve: Curves.easeInOut,
+                    child: _showSteps
+                        ? Padding(
+                            padding: const EdgeInsets.only(top: 20),
+                            child: AssignmentStepByStepWidget(result: result),
+                          )
+                        : const SizedBox.shrink(),
                   ),
                   const SizedBox(height: 24),
                 ],
@@ -176,154 +191,5 @@ class AssignmentDetailsScreen extends ConsumerWidget {
         ),
       ),
     );
-  }
-
-  Widget _buildAllocationMatrixTable(
-    TransportationResult result,
-    ColorScheme colorScheme,
-  ) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: DataTable(
-        columnSpacing: 24,
-        horizontalMargin: 16,
-        headingRowHeight: 42,
-        dataRowMinHeight: 40,
-        dataRowMaxHeight: 44,
-        headingRowColor: WidgetStateProperty.all(
-          colorScheme.surfaceContainerHigh,
-        ),
-        headingTextStyle: TextStyle(
-          fontWeight: FontWeight.bold,
-          fontSize: 12,
-          color: colorScheme.primary,
-        ),
-        columns: [
-          const DataColumn(label: Text('Origen / Destino')),
-          ...result.destinationLabels.map(
-            (label) => DataColumn(label: Text(label)),
-          ),
-        ],
-        rows: List.generate(result.originLabels.length, (i) {
-          final origName = result.originLabels[i];
-          return DataRow(
-            cells: [
-              DataCell(
-                Text(
-                  origName,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 13,
-                  ),
-                ),
-              ),
-              ...List.generate(result.destinationLabels.length, (j) {
-                final alloc = result.allocationMatrix[i][j];
-                final isAllocated = alloc > 0;
-                final cost = result.costMatrix[i][j];
-                final costStr = cost.isFinite ? cost.toStringAsFixed(0) : '-';
-
-                return DataCell(
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: isAllocated
-                          ? colorScheme.primaryContainer
-                          : Colors.transparent,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      isAllocated ? 'Asignado (Costo: $costStr)' : '-',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: isAllocated
-                            ? FontWeight.bold
-                            : FontWeight.normal,
-                        color: isAllocated
-                            ? colorScheme.onPrimaryContainer
-                            : colorScheme.onSurfaceVariant.withValues(
-                                alpha: 0.4,
-                              ),
-                      ),
-                    ),
-                  ),
-                );
-              }),
-            ],
-          );
-        }),
-      ),
-    );
-  }
-
-  List<Widget> _buildAssignmentChips(
-    TransportationResult result,
-    TransportationProblemData problem,
-    ColorScheme colorScheme,
-  ) {
-    final widgets = <Widget>[];
-
-    for (int i = 0; i < result.allocationMatrix.length; i++) {
-      for (int j = 0; j < result.allocationMatrix[i].length; j++) {
-        if (result.allocationMatrix[i][j] > 0) {
-          final isFicticio =
-              i >= problem.origins.length || j >= problem.destinations.length;
-          final origLabel = i < problem.origins.length
-              ? problem.origins[i].nombre
-              : 'Descartado';
-          final destLabel = j < problem.destinations.length
-              ? problem.destinations[j].nombre
-              : 'Descartado';
-          final costVal =
-              (i < problem.costMatrix.length &&
-                  j < problem.costMatrix[i].length)
-              ? problem.costMatrix[i][j]
-              : 0.0;
-
-          final labelText = isFicticio
-              ? '$origLabel -> $destLabel'
-              : '$origLabel -> $destLabel (Costo: ${costVal.toStringAsFixed(0)})';
-
-          widgets.add(
-            RawChip(
-              visualDensity: VisualDensity.compact,
-              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              avatar: Icon(
-                Icons.check_circle_rounded,
-                size: 18,
-                color: isFicticio ? colorScheme.outline : colorScheme.primary,
-              ),
-              label: Text(
-                labelText,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: isFicticio
-                      ? colorScheme.onSurfaceVariant.withValues(alpha: 0.7)
-                      : colorScheme.onSurface,
-                ),
-              ),
-              backgroundColor: isFicticio
-                  ? colorScheme.surfaceContainer
-                  : colorScheme.primaryContainer.withValues(alpha: 0.45),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-                side: BorderSide(
-                  color: isFicticio
-                      ? colorScheme.outlineVariant
-                      : colorScheme.primary.withValues(alpha: 0.5),
-                  width: 1.0,
-                ),
-              ),
-            ),
-          );
-        }
-      }
-    }
-    return widgets;
   }
 }

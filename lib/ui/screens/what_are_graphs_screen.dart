@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 
+import '../dialogs/algorithm_selection_dialog.dart';
 import '../widgets/video_resource_card.dart';
 import '../widgets/web_explanation_navbar.dart';
-import '../dialogs/algorithm_selection_dialog.dart';
 import 'graph_editor_screen.dart';
+import 'widgets/theory/graph_anatomy_section.dart';
+import 'widgets/theory/graph_applications_section.dart';
+import 'widgets/theory/graph_theory_hero_section.dart';
+import 'widgets/theory/graph_types_section.dart';
 
 class WhatAreGraphsScreen extends StatelessWidget {
   const WhatAreGraphsScreen({super.key});
@@ -23,7 +27,6 @@ class WhatAreGraphsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final width = MediaQuery.of(context).size.width;
 
     return WebExplanationShell(
       activePage: ExplanationWebPage.graphs,
@@ -32,7 +35,9 @@ class WhatAreGraphsScreen extends StatelessWidget {
         child: Column(
           children: [
             // Hero Section
-            _buildHeroSection(context, colorScheme, width),
+            GraphTheoryHeroSection(
+              onOpenEditor: () => _navigateToLibrary(context),
+            ),
 
             // Main Content Box
             Center(
@@ -68,16 +73,16 @@ class WhatAreGraphsScreen extends StatelessWidget {
                       const SizedBox(height: 56),
 
                       // 3. Anatomy Section
-                      _buildAnatomySection(context, colorScheme, width),
+                      const GraphAnatomySection(),
                       const SizedBox(height: 48),
 
                       // 3.1 Graph Types (Directed vs Undirected)
-                      _buildGraphTypesSection(context, colorScheme, width),
+                      const GraphTypesSection(),
 
                       const SizedBox(height: 56),
 
                       // 4. Practical Applications & Vocabulary
-                      _buildApplicationsSection(context, colorScheme),
+                      const GraphApplicationsSection(),
                       const SizedBox(height: 48),
                       _buildGraphVocabularySection(context, colorScheme),
 
@@ -105,102 +110,6 @@ class WhatAreGraphsScreen extends StatelessWidget {
             // Web Footer
             _buildWebFooter(context, colorScheme),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHeroSection(
-    BuildContext context,
-    ColorScheme colorScheme,
-    double width,
-  ) {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            colorScheme.secondaryContainer.withValues(alpha: 0.35),
-            colorScheme.surface,
-          ],
-        ),
-        border: Border(
-          bottom: BorderSide(
-            color: colorScheme.outlineVariant.withValues(alpha: 0.3),
-          ),
-        ),
-      ),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 1100),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 24.0,
-              vertical: 56.0,
-            ),
-            child: Column(
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: colorScheme.surface,
-                    borderRadius: BorderRadius.circular(30),
-                    border: Border.all(
-                      color: colorScheme.secondary.withValues(alpha: 0.4),
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.bubble_chart_rounded,
-                        size: 16,
-                        color: colorScheme.secondary,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Visualiza Conexiones y Redes',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: colorScheme.secondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Text(
-                  '¿Qué son los Grafos?',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: width > 700 ? 42 : 30,
-                    fontWeight: FontWeight.w900,
-                    color: colorScheme.onSurface,
-                    letterSpacing: -1,
-                  ),
-                ),
-                const SizedBox(height: 14),
-                ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 750),
-                  child: Text(
-                    'Imagínate un mapa donde las ciudades son puntos y las carreteras los caminos que las unen. ¡Eso es un grafo! Una forma súper intuitiva de representar cómo se conectan las cosas.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: width > 700 ? 18 : 15,
-                      color: colorScheme.onSurfaceVariant,
-                      height: 1.5,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
         ),
       ),
     );
@@ -285,116 +194,6 @@ class WhatAreGraphsScreen extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildApplicationsSection(
-    BuildContext context,
-    ColorScheme colorScheme,
-  ) {
-    final applications = [
-      (
-        'Mapas y transporte',
-        'Las ciudades son nodos y las carreteras son aristas con distancia o tiempo.',
-        Icons.map_outlined,
-      ),
-      (
-        'Internet',
-        'Los dispositivos y servidores se conectan para enviar información por distintas rutas.',
-        Icons.language_rounded,
-      ),
-      (
-        'Recomendaciones',
-        'Las relaciones entre usuarios, productos o contenidos ayudan a encontrar opciones relevantes.',
-        Icons.recommend_rounded,
-      ),
-    ];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'LOS GRAFOS EN LA VIDA REAL',
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w800,
-            letterSpacing: 1.4,
-            color: colorScheme.secondary,
-          ),
-        ),
-        const SizedBox(height: 6),
-        Text(
-          'Una misma idea, muchas aplicaciones',
-          style: TextStyle(
-            fontSize: 26,
-            fontWeight: FontWeight.bold,
-            color: colorScheme.onSurface,
-          ),
-        ),
-        const SizedBox(height: 20),
-        LayoutBuilder(
-          builder: (context, constraints) {
-            final columns = constraints.maxWidth >= 800
-                ? 3
-                : constraints.maxWidth >= 500
-                ? 2
-                : 1;
-            return GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: applications.length,
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: columns,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-                mainAxisExtent: 156,
-              ),
-              itemBuilder: (context, index) {
-                final application = applications[index];
-                return Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: colorScheme.surfaceContainerLow,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: colorScheme.outlineVariant.withValues(alpha: 0.4),
-                    ),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Icon(
-                        application.$3,
-                        color: colorScheme.secondary,
-                        size: 26,
-                      ),
-                      const SizedBox(height: 10),
-                      Text(
-                        application.$1,
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: colorScheme.onSurface,
-                        ),
-                      ),
-                      const SizedBox(height: 5),
-                      Expanded(
-                        child: Text(
-                          application.$2,
-                          style: TextStyle(
-                            fontSize: 13,
-                            height: 1.35,
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            );
-          },
-        ),
-      ],
     );
   }
 
@@ -517,245 +316,6 @@ class WhatAreGraphsScreen extends StatelessWidget {
                 },
               );
             },
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAnatomySection(
-    BuildContext context,
-    ColorScheme colorScheme,
-    double width,
-  ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'ELEMENTOS PRINCIPALES',
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w800,
-            letterSpacing: 1.5,
-            color: colorScheme.secondary,
-          ),
-        ),
-        const SizedBox(height: 6),
-        Text(
-          'Anatomía Básica de un Grafo',
-          style: TextStyle(
-            fontSize: 26,
-            fontWeight: FontWeight.bold,
-            color: colorScheme.onSurface,
-          ),
-        ),
-        const SizedBox(height: 24),
-        LayoutBuilder(
-          builder: (context, constraints) {
-            final isWide = constraints.maxWidth >= 700;
-            return Flex(
-              direction: isWide ? Axis.horizontal : Axis.vertical,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  flex: isWide ? 1 : 0,
-                  child: _buildAnatomyCard(
-                    context,
-                    title: '1. Nodos o Vértices',
-                    icon: Icons.circle_outlined,
-                    color: const Color(0xFF7C4DFF),
-                    description: 'Son las entidades individuales de la red que guardan datos como su nombre o estado.',
-                  ),
-                ),
-                SizedBox(width: isWide ? 16 : 0, height: isWide ? 0 : 16),
-                Expanded(
-                  flex: isWide ? 1 : 0,
-                  child: _buildAnatomyCard(
-                    context,
-                    title: '2. Aristas o Enlaces',
-                    icon: Icons.alt_route_rounded,
-                    color: const Color(0xFF00BFA5),
-                    description: 'Son los enlaces que indican interacción o posibilidad de viaje de un nodo a otro.',
-                  ),
-                ),
-                SizedBox(width: isWide ? 16 : 0, height: isWide ? 0 : 16),
-                Expanded(
-                  flex: isWide ? 1 : 0,
-                  child: _buildAnatomyCard(
-                    context,
-                    title: '3. Pesos o Costos',
-                    icon: Icons.tune_rounded,
-                    color: const Color(0xFFFF5252),
-                    description: 'Es el "costo", la distancia o el tiempo que toma atravesar esa conexión concreta.',
-                  ),
-                ),
-              ],
-            );
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget _buildAnatomyCard(
-    BuildContext context, {
-    required String title,
-    required IconData icon,
-    required Color color,
-    required String description,
-  }) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Container(
-      padding: const EdgeInsets.all(20.0),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: colorScheme.outlineVariant.withValues(alpha: 0.4),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(icon, color: color, size: 24),
-          ),
-          const SizedBox(height: 14),
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 17,
-              fontWeight: FontWeight.bold,
-              color: colorScheme.onSurface,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            description,
-            style: TextStyle(
-              fontSize: 14,
-              height: 1.5,
-              color: colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildGraphTypesSection(
-    BuildContext context,
-    ColorScheme colorScheme,
-    double width,
-  ) {
-    return Container(
-      padding: const EdgeInsets.all(28.0),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHigh,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: colorScheme.outlineVariant.withValues(alpha: 0.4),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'VARIEDAD DE CONEXIONES',
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 1.2,
-              color: colorScheme.secondary,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            '¿Hacia dónde fluyen los datos?',
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-              color: colorScheme.onSurface,
-            ),
-          ),
-          const SizedBox(height: 20),
-          // Directed
-          _buildGraphTypeRow(
-            colorScheme,
-            icon: Icons.arrow_forward_rounded,
-            color: const Color(0xFF7C4DFF),
-            title: 'Grafos Dirigidos (Digrafos)',
-            description: 'Las conexiones tienen un sentido único (como una calle de una sola vía o un mensaje de Twitter donde tú sigues a alguien pero no necesariamente te sigue a ti).',
-          ),
-          const SizedBox(height: 12),
-          // Undirected
-          _buildGraphTypeRow(
-            colorScheme,
-            icon: Icons.swap_horiz_rounded,
-            color: const Color(0xFF00BFA5),
-            title: 'Grafos No Dirigidos',
-            description: 'Las conexiones funcionan en ambos sentidos por igual (como una llamada telefónica o dos amigos en Facebook).',
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildGraphTypeRow(
-    ColorScheme colorScheme, {
-    required IconData icon,
-    required Color color,
-    required String title,
-    required String description,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: colorScheme.surface.withValues(alpha: 0.7),
-        borderRadius: BorderRadius.circular(14),
-        border: Border(left: BorderSide(color: color, width: 3)),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(icon, color: color, size: 18),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                    color: colorScheme.onSurface,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  description,
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: colorScheme.onSurfaceVariant,
-                    height: 1.45,
-                  ),
-                ),
-              ],
-            ),
           ),
         ],
       ),

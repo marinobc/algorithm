@@ -10,10 +10,14 @@ import '../../algorithms/johnson/providers/johnson_provider.dart';
 import '../../algorithms/northwest/domain/services/northwest_problem_extractor.dart';
 import '../../algorithms/northwest/providers/northwest_provider.dart';
 import '../../application/providers/grafo_provider.dart';
+import '../../domain/services/graph_storage_service.dart';
+import '../../domain/services/sorting_steps.dart';
 import '../screens/graph_editor_screen.dart';
+import '../screens/sorting_visualizer_screen.dart';
 import '../screens/welcome_explanation_screen.dart';
 import '../widgets/algorithm_catalog_illustration.dart';
 import '../widgets/app_toast.dart';
+import 'load_graph_dialog.dart';
 
 class AlgorithmSelectionDialog extends StatelessWidget {
   final WidgetRef ref;
@@ -76,9 +80,7 @@ class AlgorithmSelectionDialog extends StatelessWidget {
                       behavior: ScrollConfiguration.of(context)
                           .copyWith(scrollbars: false),
                       child: GridView.builder(
-                        physics: columns == 1
-                            ? const BouncingScrollPhysics()
-                            : const NeverScrollableScrollPhysics(),
+                        physics: const BouncingScrollPhysics(),
                         itemCount: options.length,
                         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: columns,
@@ -147,6 +149,24 @@ class AlgorithmSelectionDialog extends StatelessWidget {
           algorithm: northwest,
         ),
       const _AlgorithmCatalogOption(
+        id: 'selection-sort',
+        title: 'Selection Sort',
+        description:
+            'Busca el mínimo y lo intercambia hasta ordenar el conjunto.',
+        accentColor: Color(0xFFFF9100),
+        illustration: AlgorithmCatalogIllustration.selectionSort,
+        sortingAlgorithm: SortingAlgorithm.selection,
+      ),
+      const _AlgorithmCatalogOption(
+        id: 'insertion-sort',
+        title: 'Insertion Sort',
+        description:
+            'Inserta cada elemento en una región que ya está ordenada.',
+        accentColor: Color(0xFF00BFA5),
+        illustration: AlgorithmCatalogIllustration.insertionSort,
+        sortingAlgorithm: SortingAlgorithm.insertion,
+      ),
+      const _AlgorithmCatalogOption(
         id: 'upcoming',
         title: 'Próximamente',
         description: 'Estamos preparando nuevos algoritmos para ampliar las herramientas disponibles.',
@@ -158,6 +178,15 @@ class AlgorithmSelectionDialog extends StatelessWidget {
   }
 
   void _select(BuildContext context, _AlgorithmCatalogOption option) {
+    final sortingAlgorithm = option.sortingAlgorithm;
+    if (sortingAlgorithm != null) {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => SortingVisualizerScreen(algorithm: sortingAlgorithm),
+        ),
+      );
+      return;
+    }
     if (option.id == 'free-mode') {
       ref.read(activeAlgorithmProvider.notifier).clear();
       ref.read(transportationNotifierProvider.notifier).setActive(false);
@@ -244,9 +273,7 @@ class AlgorithmSelectionScreen extends ConsumerWidget {
                           behavior: ScrollConfiguration.of(context)
                               .copyWith(scrollbars: false),
                           child: GridView.builder(
-                            physics: columns == 1
-                                ? const BouncingScrollPhysics()
-                                : const NeverScrollableScrollPhysics(),
+                            physics: const BouncingScrollPhysics(),
                             itemCount: options.length,
                             gridDelegate:
                                 SliverGridDelegateWithFixedCrossAxisCount(
@@ -285,6 +312,15 @@ class AlgorithmSelectionScreen extends ConsumerWidget {
     WidgetRef ref,
     _AlgorithmCatalogOption option,
   ) {
+    final sortingAlgorithm = option.sortingAlgorithm;
+    if (sortingAlgorithm != null) {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => SortingVisualizerScreen(algorithm: sortingAlgorithm),
+        ),
+      );
+      return;
+    }
     if (option.id == 'free-mode') {
       ref.read(activeAlgorithmProvider.notifier).clear();
     } else {
@@ -302,16 +338,16 @@ class AlgorithmSelectionScreen extends ConsumerWidget {
   }
 }
 
-class _CatalogHeader extends StatelessWidget {
+class _CatalogHeader extends ConsumerWidget {
   final bool canDismiss;
   final VoidCallback onClose;
   const _CatalogHeader({required this.canDismiss, required this.onClose});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colors = Theme.of(context).colorScheme;
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Expanded(
           child: Column(
@@ -350,11 +386,70 @@ class _CatalogHeader extends StatelessWidget {
               ),
               const SizedBox(height: 5),
               Text(
-                'Elige el algoritmo con el que quieres trabajar en el editor.',
+                'Elige el algoritmo con el que quieres trabajar.',
                 style: TextStyle(color: colors.onSurfaceVariant, fontSize: 15),
               ),
             ],
           ),
+        ),
+        FutureBuilder<List<SavedGraphItem>>(
+          future: GraphStorageService.getSavedGraphs(),
+          builder: (context, snapshot) {
+            if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              return const SizedBox.shrink();
+            }
+            return Padding(
+              padding: const EdgeInsets.only(right: 8.0),
+              child: OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                icon: const Icon(Icons.folder_open_rounded, size: 18),
+                label: const Text(
+                  'Cargar Grafo Guardado',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                ),
+                onPressed: () async {
+                  final loadedItem = await LoadGraphDialog.show(context);
+                  if (loadedItem != null && context.mounted) {
+                    final loadedGraph = GraphStorageService.importFromJson(
+                      loadedItem.jsonContent,
+                    );
+                    ref.read(grafoProvider.notifier).cargarGrafo(loadedGraph);
+                    ref
+                        .read(loadedGraphItemProvider.notifier)
+                        .setLoadedItem(loadedItem);
+
+                    final savedAlgoId =
+                        loadedGraph.tipoAlgoritmo ?? loadedItem.tipoAlgoritmo;
+                    if (savedAlgoId != null) {
+                      ref
+                          .read(activeAlgorithmProvider.notifier)
+                          .selectById(savedAlgoId);
+                    } else {
+                      ref.read(activeAlgorithmProvider.notifier).clear();
+                    }
+
+                    if (Navigator.of(context).canPop()) {
+                      Navigator.of(context).pop(true);
+                    } else {
+                      Navigator.of(context).pushReplacement(
+                        MaterialPageRoute(
+                          builder: (_) => const GraphEditorScreen(),
+                        ),
+                      );
+                    }
+                  }
+                },
+              ),
+            );
+          },
         ),
         if (canDismiss)
           IconButton(
@@ -527,6 +622,7 @@ class _AlgorithmCatalogOption {
   final AlgorithmCatalogIllustration illustration;
   final bool available;
   final GraphAlgorithm? algorithm;
+  final SortingAlgorithm? sortingAlgorithm;
   const _AlgorithmCatalogOption({
     required this.id,
     required this.title,
@@ -535,5 +631,6 @@ class _AlgorithmCatalogOption {
     required this.illustration,
     this.available = true,
     this.algorithm,
+    this.sortingAlgorithm,
   });
 }

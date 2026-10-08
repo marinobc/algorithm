@@ -111,29 +111,23 @@ class NorthwestProblemExtractor {
                   connection.nodoDestinoId == destinationId,
             )
             .toList();
-        if (matches.length != 1) {
-          return const NorthwestValidationResult.invalid(
-            'La red debe contener una conexion por cada celda de costos.',
-          );
-        }
-        final raw = matches.single.atributos
-            .where((attribute) => attribute.atributoId == 'attr_valor')
-            .firstOrNull
-            ?.valor;
-        final cost = raw == null ? null : double.tryParse(raw);
-        if (cost == null || !cost.isFinite || cost < 0) {
-          return const NorthwestValidationResult.invalid(
-            'Todos los costos deben ser numeros finitos no negativos.',
-          );
+        var cost = 0.0;
+        if (matches.isNotEmpty) {
+          final raw = matches.first.atributos
+              .where((attribute) => attribute.atributoId == 'attr_valor')
+              .firstOrNull
+              ?.valor;
+          final parsedCost = raw == null ? null : double.tryParse(raw);
+          if (parsedCost == null || !parsedCost.isFinite || parsedCost < 0) {
+            return const NorthwestValidationResult.invalid(
+              'Todos los costos deben ser numeros finitos no negativos.',
+            );
+          }
+          cost = parsedCost;
         }
         row.add(cost);
       }
       costs.add(row);
-    }
-    if (graph.conexiones.length != origins.length * destinations.length) {
-      return const NorthwestValidationResult.invalid(
-        'La red contiene conexiones que no pertenecen a la matriz.',
-      );
     }
 
     var originIds = List<String>.from(originOrder);

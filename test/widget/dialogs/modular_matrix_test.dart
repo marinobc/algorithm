@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nodos/algorithms/assignment/assignment_algorithm.dart';
-import 'package:nodos/algorithms/assignment/ui/assignment_bipartite_matrix_screen.dart';
+import 'package:nodos/algorithms/assignment/ui/assignment_graph_matrix_screen.dart';
 import 'package:nodos/algorithms/core/algorithm_registry.dart';
 import 'package:nodos/algorithms/johnson/johnson_algorithm.dart';
 import 'package:nodos/application/providers/grafo_provider.dart';
@@ -191,15 +191,11 @@ void main() {
         await tester.tap(find.text('Open Matrix'));
         await tester.pumpAndSettle();
 
-        expect(find.byType(AssignmentBipartiteMatrixScreen), findsOneWidget);
-        expect(find.text('Matriz de Costos de Asignación'), findsOneWidget);
-        expect(find.text('Origen 1'), findsOneWidget);
-        expect(find.text('Destino 1'), findsOneWidget);
+        expect(find.byType(AssignmentGraphMatrixScreen), findsOneWidget);
+        expect(find.text('Matriz de costos de asignación'), findsOneWidget);
+        expect(find.text('Origen 1'), findsWidgets);
+        expect(find.text('Destino 1'), findsWidgets);
         expect(find.text('15'), findsWidgets);
-        expect(find.text('Suma Fila'), findsOneWidget);
-        expect(find.text('Grado Fila'), findsOneWidget);
-        expect(find.text('Suma Col.'), findsOneWidget);
-        expect(find.text('Grado Col.'), findsOneWidget);
       },
     );
 
@@ -233,10 +229,11 @@ void main() {
 
         await tester.tap(find.text('Open Matrix'));
         await tester.pump();
+        await tester.pump(const Duration(seconds: 4));
 
         // No matrix screens should be pushed
         expect(find.byType(AdjacencyMatrixScreen), findsNothing);
-        expect(find.byType(AssignmentBipartiteMatrixScreen), findsNothing);
+        expect(find.byType(AssignmentGraphMatrixScreen), findsNothing);
       },
     );
 
@@ -331,12 +328,7 @@ void main() {
         await tester.pumpAndSettle();
 
         final fab = tester.widget<FloatingActionButton>(
-          find.ancestor(
-            of: find.byTooltip(
-              'Agrega un origen y un destino para ver la matriz',
-            ),
-            matching: find.byType(FloatingActionButton),
-          ),
+          find.byKey(const ValueKey('fab_assignment_graph_matrix_key')),
         );
         expect(fab.onPressed, isNull);
       },

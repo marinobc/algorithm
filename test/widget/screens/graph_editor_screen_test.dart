@@ -56,6 +56,7 @@ void main() {
         expect(container.read(activeAlgorithmProvider)?.id, equals('johnson'));
 
         // Clean up widget tree before disposing container
+        await tester.pump(const Duration(seconds: 4));
         await tester.pumpWidget(const SizedBox());
         container.dispose();
       },

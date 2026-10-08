@@ -1,8 +1,8 @@
 class UserGuideText {
   static const String markdownContent = '''
-# Guía de Uso: Editor de Grafos Directo
+# Guía de Uso: Editor de Grafos e Historial Algorítmico
 
-Bienvenido al **Editor de Grafos Directo**. Esta aplicación permite diseñar, manipular y analizar grafos directamente sobre el lienzo sin necesidad de cambiar manualmente de modo.
+Bienvenido al **Editor de Nodos y Grafos**. Esta aplicación permite diseñar, manipular, simular y analizar grafos directamente sobre el lienzo, además de explorar fundamentos teóricos y resolver algoritmos clásicos de la ciencia de computación y la investigación operacional.
 
 ---
 
@@ -11,41 +11,57 @@ Bienvenido al **Editor de Grafos Directo**. Esta aplicación permite diseñar, m
 - **Tocar una zona libre:** Crea un nuevo nodo en las coordenadas seleccionadas.
 - **Arrastrar un nodo:** Presiona y arrastra cualquier nodo para posicionarlo libremente en el espacio 2D.
 - **Conectar nodos:** Arrastra desde un nodo de origen y suelta sobre un nodo destino para crear una arista.
-- **Seleccionar nodo:** Toca un nodo para abrir su panel de propiedades (nombre, color, eliminación).
-- **Seleccionar conexión:** Toca una arista para modificar su dirección, ángulo de bucle, atributos o eliminarla.
-- **Bucle (Self-Loop):** Haz doble toque sobre un nodo para crear una conexión dirigida o no dirigida hacia sí mismo.
-- **Elementos superpuestos:** Si varios elementos coinciden en una coordenada, un menú flotante permite seleccionar exactamente cuál editar.
+- **Seleccionar nodo:** Toca un nodo para abrir su panel inferior de propiedades (nombre, color, rol, eliminación y controles inyectados por el algoritmo activo).
+- **Seleccionar conexión:** Toca una arista para modificar su costo, dirección, curvatura Bézier 2D, atributos o eliminarla.
+- **Bucle (Self-Loop):** Haz doble toque sobre un nodo para crear una auto-conexión orbital de 360°.
+- **Elementos superpuestos:** Si varios elementos coinciden en una coordenada, el modal inteligente te permite elegir exactamente cuál editar.
 
 ---
 
-## 2. Control del Lienzo y Zoom
+## 2. Modos de Asignación de Roles de Nodo
 
-- **Pellizcar con 2 dedos (Móvil):** Acerca o aleja el zoom del lienzo.
-- **Rueda del ratón (Desktop / Web):** Ajusta dinámicamente la escala del espacio de trabajo.
-- **Botón Centrar:** Restablece la cámara al origen del lienzo conservando la escala de zoom.
+Configurable desde la pantalla de **Ajustes**:
 
----
-
-## 3. Modelo de Direcciones y Conexiones
-
-- **Modo de Conexión Predeterminado:** Configurable en los ajustes del sistema (Dirigida o No Dirigida).
-- **Comportamiento Bidireccional:** Conectar dos nodos en ambos sentidos genera un par bidireccional paralelo con controles independientes.
-- **Ángulo de Bucle:** Las conexiones hacia el mismo nodo cuentan con un control deslizante de ángulo para orientar la curva alrededor del nodo.
+- **Tipo Declarado:** Seleccionas explícitamente si el nuevo nodo es `Origen` o `Destino` utilizando la barra de herramientas del lienzo antes de crearlo.
+- **Tipo Detectado:** Insertas nodos sin rol previo. La aplicación detecta y asigna reactivamente el rol `Origen` o `Destino` al trazar conexiones.
+  - *Posicionamiento de valores:* La oferta/demanda de nodos sin conectar aparece justo **debajo del nodo**. Al conectarse, se desplaza a la izquierda (origen) o derecha (destino).
+  - *Reversión automática:* Si eliminas todas las conexiones de un nodo, retorna automáticamente al estado sin rol.
 
 ---
 
-## 4. Validación del Grafo y Matriz de Adyacencia
+## 3. Algoritmos Disponibles y Validaciones en Tiempo Real
 
-- **Requisito de Conectividad:** La matriz de adyacencia ponderada sólo puede visualizarse cuando todos los nodos del grafo forman un componente conexo.
-- **Notificación de Grafo Desconectado:** Si existen nodos o secciones aisladas, el sistema indicará: *Conecta el grafo para poder ver la matriz*.
+- **Modo Libre:** Diseña cualquier estructura de grafos sin restricciones de algoritmo.
+- **Algoritmo de Asignación (Húngaro):**
+  - Aplica políticas de grafo bipartito (partición entre Origen y Destino).
+  - Matriz de costos dedicada con editor interactivo en lote.
+  - Resaltado luminoso en tiempo real de asignaciones óptimas.
+- **Algoritmo de Johnson (Ruta Crítica / CPM - PERT):**
+  - Validación de redes dirigidas acíclicas (DAG) evitando ciclos.
+  - Cálculo de tiempos tempranos, tardíos y holguras con trazado de Ruta Crítica sobre el lienzo.
+- **Esquina Noroeste (Transporte & MODI):**
+  - Resolución de problemas de transporte con auto-balanceo de oferta y demanda mediante filas/columnas ficticias.
 
 ---
 
-## 5. Historial y Menú Principal
+## 4. Navegación Web Educativa y Catálogo
 
-- **Deshacer y Rehacer:** Permite revertir o restaurar cualquier acción (creación, edición, movimiento o borrado).
-- **Guardado Local:** Los grafos se almacenan automáticamente en la biblioteca con sus miniaturas adaptativas.
-- **Exportación:** Permite generar y guardar imágenes de alta resolución en formato JPG.
-- **Asistente Inteligente:** Chat integrado para responder consultas sobre teoría de grafos y estructura del modelo actual.
+- **Botón "Dibujar Rápido" en Encabezado:** Toda pantalla de explicación teórica cuenta con un botón en la cabecera hero para saltar directamente al lienzo de dibujo del algoritmo correspondiente.
+- **Catálogo Desktop & Móvil:** Selecciona algoritmos en una cuadrícula fluida sin barra de desplazamiento visible, navegable con rueda de ratón o pantalla táctil.
+
+---
+
+## 5. Matrices Interactivas y Coordinador
+
+- **Navegación Polimórfica:** El botón de matriz abre automáticamente la vista matricial del algoritmo activo o la matriz de adyacencia general en modo libre.
+- **Edición en Caliente:** Agrega o quita filas y columnas en tiempo real con validación de entradas numéricas en rojo.
+
+---
+
+## 6. Historial, Guardado y Asistente IA
+
+- **Deshacer y Rehacer:** Revierte o restaura cualquier modificación (nodos, aristas, valores o borrado).
+- **Biblioteca y Exportación:** Guardado automático local y exportación de imágenes JPG de alta calidad.
+- **Asistente IA:** Consulta teórica y ayuda en lenguaje natural integrada en el lienzo.
 ''';
 }

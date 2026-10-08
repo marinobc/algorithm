@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 
+import '../dialogs/algorithm_selection_dialog.dart';
 import '../widgets/video_resource_card.dart';
 import '../widgets/web_explanation_navbar.dart';
-import '../dialogs/algorithm_selection_dialog.dart';
 import 'graph_editor_screen.dart';
+import 'widgets/welcome/welcome_basics_section.dart';
+import 'widgets/welcome/welcome_examples_grid.dart';
+import 'widgets/welcome/welcome_footer_section.dart';
+import 'widgets/welcome/welcome_hero_section.dart';
 
 class WelcomeExplanationScreen extends StatefulWidget {
   const WelcomeExplanationScreen({super.key});
@@ -47,8 +51,7 @@ class _WelcomeExplanationScreenState extends State<WelcomeExplanationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+    final colorScheme = Theme.of(context).colorScheme;
     final screenWidth = MediaQuery.of(context).size.width;
 
     return WebExplanationShell(
@@ -59,9 +62,12 @@ class _WelcomeExplanationScreenState extends State<WelcomeExplanationScreen> {
         child: Column(
           children: [
             // Hero Section Banner
-            _buildWebHeroSection(context, colorScheme, screenWidth),
+            WelcomeHeroSection(
+              onOpenEditor: () => _navigateToLibrary(context),
+              onScrollToExamples: _scrollToExamples,
+            ),
 
-            // Main Content Area with Max Width Container
+            // Main Content Area
             Center(
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 1100),
@@ -73,23 +79,7 @@ class _WelcomeExplanationScreenState extends State<WelcomeExplanationScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildExplanationWebSection(context, colorScheme),
-
-                      const SizedBox(height: 56),
-
-                      // Basics & Properties Section
-                      _buildSectionHeader(
-                        context,
-                        badge: 'BASES Y COMPONENTES',
-                        title: 'Partes y propiedades de un algoritmo',
-                        subtitle: 'Identifica qué datos recibe, qué lógica transforma y qué resultado debe entregar.',
-                      ),
-                      const SizedBox(height: 28),
-                      _buildAlgorithmBasicsSection(
-                        context,
-                        colorScheme,
-                        screenWidth,
-                      ),
+                      const WelcomeBasicsSection(),
 
                       const SizedBox(height: 56),
 
@@ -117,12 +107,12 @@ class _WelcomeExplanationScreenState extends State<WelcomeExplanationScreen> {
                       ),
                       const SizedBox(height: 32),
 
-                      // Examples Grid (Responsive 1 to 3 columns)
-                      _buildExamplesGrid(context, screenWidth),
+                      // Examples Grid
+                      const WelcomeExamplesGrid(),
 
                       const SizedBox(height: 60),
 
-                      // Call to Action Banner (Web style banner)
+                      // Call to Action Web Banner
                       _buildCallToActionWebCard(context, colorScheme),
                     ],
                   ),
@@ -131,506 +121,11 @@ class _WelcomeExplanationScreenState extends State<WelcomeExplanationScreen> {
             ),
 
             // Web Footer
-            _buildWebFooter(context, colorScheme),
+            WelcomeFooterSection(
+              onOpenEditor: () => _navigateToLibrary(context),
+            ),
           ],
         ),
-      ),
-    );
-  }
-
-  // --- Web Hero Section ---
-  Widget _buildWebHeroSection(
-    BuildContext context,
-    ColorScheme colorScheme,
-    double width,
-  ) {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            colorScheme.primaryContainer.withValues(alpha: 0.4),
-            colorScheme.surface,
-          ],
-        ),
-        border: Border(
-          bottom: BorderSide(
-            color: colorScheme.outlineVariant.withValues(alpha: 0.3),
-          ),
-        ),
-      ),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 1100),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 24.0,
-              vertical: 60.0,
-            ),
-            child: Column(
-              children: [
-                // Top Web Pill Badge
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: colorScheme.surface,
-                    borderRadius: BorderRadius.circular(30),
-                    border: Border.all(
-                      color: colorScheme.primary.withValues(alpha: 0.3),
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.auto_awesome_rounded,
-                        size: 16,
-                        color: colorScheme.primary,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Aprende Conceptos Fundamentales',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: colorScheme.primary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 24),
-
-                // Main Web Headline
-                Text(
-                  '¿Qué son los Algoritmos y para qué sirven?',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: width > 700 ? 42 : 30,
-                    fontWeight: FontWeight.w900,
-                    color: colorScheme.onSurface,
-                    letterSpacing: -1,
-                    height: 1.25,
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // Web Subhead Description
-                ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 750),
-                  child: Text(
-                    'Descubre la lógica que impulsa la tecnología moderna, optimiza procesos diarios y resuelve los problemas computacionales más complejos.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: width > 700 ? 18 : 15,
-                      color: colorScheme.onSurfaceVariant,
-                      height: 1.5,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 36),
-
-                // Hero CTA Buttons
-                Wrap(
-                  spacing: 16,
-                  runSpacing: 12,
-                  alignment: WrapAlignment.center,
-                  children: [
-                    ElevatedButton.icon(
-                      onPressed: () => _navigateToLibrary(context),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: colorScheme.primary,
-                        foregroundColor: colorScheme.onPrimary,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 28,
-                          vertical: 16,
-                        ),
-                        elevation: 4,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                      ),
-                      icon: const Icon(Icons.rocket_launch_rounded, size: 20),
-                      label: const Text(
-                        'Abrir Editor de Grafos',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    OutlinedButton.icon(
-                      onPressed: _scrollToExamples,
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: colorScheme.primary,
-                        side: BorderSide(
-                          color: colorScheme.primary,
-                          width: 1.5,
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 16,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                      ),
-                      icon: const Icon(Icons.arrow_downward_rounded, size: 20),
-                      label: const Text(
-                        'Ver 3 Ejemplos Prácticos',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  // --- Explanation Web Section ---
-  Widget _buildExplanationWebSection(
-    BuildContext context,
-    ColorScheme colorScheme,
-  ) {
-    return Container(
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHigh,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: colorScheme.outlineVariant.withValues(alpha: 0.5),
-        ),
-      ),
-      padding: const EdgeInsets.all(32.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: colorScheme.primary.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Icon(
-                  Icons.menu_book_rounded,
-                  color: colorScheme.primary,
-                  size: 32,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'CONCEPTO CLAVE',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 1.2,
-                        color: colorScheme.primary,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '¿Qué es un Algoritmo y por qué es fundamental?',
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: colorScheme.onSurface,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          const Divider(height: 1),
-          const SizedBox(height: 24),
-          Text(
-            'Un algoritmo es una secuencia lógica, finita, precisa y ordenada de pasos o instrucciones diseñadas para resolver un problema específico, realizar una tarea bien definida o procesar datos.',
-            style: TextStyle(
-              fontSize: 17,
-              height: 1.6,
-              fontWeight: FontWeight.w500,
-              color: colorScheme.onSurface,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'En el mundo moderno, los algoritmos son el motor detrás del software. Permiten que los sistemas informáticos automaticen tareas complejas, tomen decisiones basadas en datos de manera rápida y eficiente, y ahorren recursos valiosos como tiempo y memoria de procesamiento.',
-            style: TextStyle(
-              fontSize: 15,
-              height: 1.6,
-              color: colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAlgorithmBasicsSection(
-    BuildContext context,
-    ColorScheme colorScheme,
-    double width,
-  ) {
-    final parts = [
-      {
-        'icon': Icons.input_rounded,
-        'title': 'Entrada',
-        'text': 'Los datos iniciales del problema: números, nombres, nodos, costos, tiempos o cualquier información que el algoritmo necesita.',
-        'color': const Color(0xFF00BFA5),
-      },
-      {
-        'icon': Icons.settings_suggest_rounded,
-        'title': 'Proceso',
-        'text': 'La secuencia de pasos: comparar, ordenar, calcular, validar condiciones y transformar los datos con una lógica definida.',
-        'color': const Color(0xFF7C4DFF),
-      },
-      {
-        'icon': Icons.output_rounded,
-        'title': 'Salida',
-        'text': 'El resultado final: una ruta, una asignación, una lista ordenada, una decisión o una respuesta que resuelve el problema.',
-        'color': const Color(0xFFFF5252),
-      },
-    ];
-
-    final properties = [
-      {
-        'icon': Icons.checklist_rounded,
-        'title': 'Preciso',
-        'text': 'Cada instrucción debe entenderse sin ambigüedad.',
-      },
-      {
-        'icon': Icons.flag_rounded,
-        'title': 'Finito',
-        'text': 'Debe terminar después de una cantidad limitada de pasos.',
-      },
-      {
-        'icon': Icons.route_rounded,
-        'title': 'Ordenado',
-        'text': 'Los pasos siguen una secuencia lógica.',
-      },
-      {
-        'icon': Icons.speed_rounded,
-        'title': 'Eficiente',
-        'text': 'Busca ahorrar tiempo, memoria o esfuerzo.',
-      },
-    ];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildResponsiveInfoGrid(
-          context,
-          width,
-          parts
-              .map(
-                (item) => _buildInfoCard(
-                  context,
-                  icon: item['icon'] as IconData,
-                  title: item['title'] as String,
-                  text: item['text'] as String,
-                  accentColor: item['color'] as Color,
-                ),
-              )
-              .toList(),
-        ),
-        const SizedBox(height: 24),
-        _buildPropertiesStrip(context, colorScheme, properties),
-      ],
-    );
-  }
-
-  Widget _buildResponsiveInfoGrid(
-    BuildContext context,
-    double width,
-    List<Widget> children,
-  ) {
-    if (width < 760) {
-      return Column(
-        children: [
-          for (var i = 0; i < children.length; i++) ...[
-            children[i],
-            if (i != children.length - 1) const SizedBox(height: 16),
-          ],
-        ],
-      );
-    }
-
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        for (var i = 0; i < children.length; i++) ...[
-          Expanded(child: children[i]),
-          if (i != children.length - 1) const SizedBox(width: 18),
-        ],
-      ],
-    );
-  }
-
-  Widget _buildInfoCard(
-    BuildContext context, {
-    required IconData icon,
-    required String title,
-    required String text,
-    required Color accentColor,
-  }) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Container(
-      padding: const EdgeInsets.all(22),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: colorScheme.outlineVariant.withValues(alpha: 0.45),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 46,
-            height: 46,
-            decoration: BoxDecoration(
-              color: accentColor.withValues(alpha: 0.14),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Icon(icon, color: accentColor, size: 25),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w800,
-              color: colorScheme.onSurface,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            text,
-            style: TextStyle(
-              fontSize: 14,
-              height: 1.45,
-              color: colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPropertiesStrip(
-    BuildContext context,
-    ColorScheme colorScheme,
-    List<Map<String, Object>> properties,
-  ) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(22),
-      decoration: BoxDecoration(
-        color: colorScheme.primary.withValues(alpha: 0.07),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: colorScheme.primary.withValues(alpha: 0.16)),
-      ),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final width = constraints.maxWidth;
-          final crossAxisCount = width >= 900
-              ? 4
-              : width >= 560
-              ? 2
-              : 1;
-
-          return GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: crossAxisCount,
-              crossAxisSpacing: 14,
-              mainAxisSpacing: 14,
-              mainAxisExtent: 104,
-            ),
-            itemCount: properties.length,
-            itemBuilder: (context, index) {
-              final item = properties[index];
-              return _buildPropertyPill(
-                context,
-                icon: item['icon'] as IconData,
-                title: item['title'] as String,
-                text: item['text'] as String,
-              );
-            },
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildPropertyPill(
-    BuildContext context, {
-    required IconData icon,
-    required String title,
-    required String text,
-  }) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: colorScheme.outlineVariant.withValues(alpha: 0.35),
-        ),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, color: colorScheme.primary, size: 22),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w800,
-                    color: colorScheme.onSurface,
-                  ),
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  text,
-                  style: TextStyle(
-                    fontSize: 12,
-                    height: 1.35,
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -667,7 +162,6 @@ class _WelcomeExplanationScreenState extends State<WelcomeExplanationScreen> {
     );
   }
 
-  // --- Section Header Helper ---
   Widget _buildSectionHeader(
     BuildContext context, {
     required String badge,
@@ -707,176 +201,6 @@ class _WelcomeExplanationScreenState extends State<WelcomeExplanationScreen> {
     );
   }
 
-  // --- Examples Grid (1, 2 or 3 Columns) ---
-  Widget _buildExamplesGrid(BuildContext context, double width) {
-    int crossAxisCount = 1;
-    if (width >= 900) {
-      crossAxisCount = 3;
-    } else if (width >= 600) {
-      crossAxisCount = 2;
-    }
-
-    final examples = [
-      {
-        'number': '01',
-        'title': 'Navegación y Rutas GPS',
-        'subtitle': 'Google Maps, Waze, Logística',
-        'icon': Icons.map_rounded,
-        'color': const Color(0xFF00BFA5),
-        'image': 'https://images.unsplash.com/photo-1524661135-423995f22d0b?w=600&auto=format&fit=crop',
-        'description': 'Al solicitar una ruta en tu teléfono, un algoritmo analiza miles de calles, intersecciones y condiciones de tráfico en vivo para calcular en milisegundos el trayecto óptimo hasta tu destino.',
-      },
-      {
-        'number': '02',
-        'title': 'Búsqueda y Recomendaciones',
-        'subtitle': 'Google, Spotify, Redes Sociales',
-        'icon': Icons.manage_search_rounded,
-        'color': const Color(0xFF7C4DFF),
-        'image': 'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?w=600&auto=format&fit=crop',
-        'description': 'Cuando buscas información o escuchas música, los algoritmos examinan e indexan millones de datos para mostrarte de inmediato los resultados más relevantes según tu contexto e historial.',
-      },
-      {
-        'number': '03',
-        'title': 'Organización y Clasificación',
-        'subtitle': 'Filtros, Precios, Catálogos',
-        'icon': Icons.sort_rounded,
-        'color': const Color(0xFFFF5252),
-        'image': 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&auto=format&fit=crop',
-        'description': 'Desde ordenar contactos o correos electrónicos por fecha hasta estructurar inventarios de tiendas electrónicas, los algoritmos de ordenamiento permiten priorizar datos velozmente.',
-      },
-    ];
-
-    if (crossAxisCount == 1) {
-      return Column(
-        children: examples
-            .map(
-              (e) => Padding(
-                padding: const EdgeInsets.only(bottom: 20.0),
-                child: _buildExampleWebCard(context, e),
-              ),
-            )
-            .toList(),
-      );
-    }
-
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: crossAxisCount,
-        crossAxisSpacing: 20,
-        mainAxisSpacing: 20,
-        mainAxisExtent: 455,
-      ),
-      itemCount: examples.length,
-      itemBuilder: (context, index) {
-        return _buildExampleWebCard(context, examples[index]);
-      },
-    );
-  }
-
-  // --- Example Web Card ---
-  Widget _buildExampleWebCard(BuildContext context, Map<String, dynamic> data) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final accentColor = data['color'] as Color;
-
-    return Container(
-      clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: colorScheme.outlineVariant.withValues(alpha: 0.4),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Card Top Image
-          if (data['image'] != null)
-            AspectRatio(
-              aspectRatio: 16 / 9,
-              child: Image.network(
-                data['image'] as String,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) =>
-                    Container(color: accentColor.withValues(alpha: 0.2)),
-              ),
-            ),
-          Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: accentColor.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Icon(
-                        data['icon'] as IconData,
-                        color: accentColor,
-                        size: 22,
-                      ),
-                    ),
-                    Text(
-                      data['number'] as String,
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w900,
-                        color: accentColor.withValues(alpha: 0.7),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 14),
-                Text(
-                  data['title'] as String,
-                  style: TextStyle(
-                    fontSize: 17,
-                    fontWeight: FontWeight.bold,
-                    color: colorScheme.onSurface,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  data['subtitle'] as String,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: accentColor,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  data['description'] as String,
-                  style: TextStyle(
-                    fontSize: 13,
-                    height: 1.45,
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // --- Call to Action Web Banner ---
   Widget _buildCallToActionWebCard(
     BuildContext context,
     ColorScheme colorScheme,
@@ -940,82 +264,6 @@ class _WelcomeExplanationScreenState extends State<WelcomeExplanationScreen> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  // --- Web Footer ---
-  Widget _buildWebFooter(BuildContext context, ColorScheme colorScheme) {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHigh,
-        border: Border(
-          top: BorderSide(
-            color: colorScheme.outlineVariant.withValues(alpha: 0.3),
-          ),
-        ),
-      ),
-      padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 1100),
-          child: Column(
-            children: [
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  final isCompact = constraints.maxWidth < 480;
-                  return Flex(
-                    direction: isCompact ? Axis.vertical : Axis.horizontal,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: isCompact
-                        ? CrossAxisAlignment.start
-                        : CrossAxisAlignment.center,
-                    children: [
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.hub_rounded,
-                            color: colorScheme.primary,
-                            size: 20,
-                          ),
-                          const SizedBox(width: 8),
-                          Flexible(
-                            child: Text(
-                              'Editor de Nodos y Algoritmos de Grafos',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                color: colorScheme.onSurface,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      if (isCompact) const SizedBox(height: 8),
-                      TextButton.icon(
-                        onPressed: () => _navigateToLibrary(context),
-                        icon: const Icon(Icons.launch_rounded, size: 16),
-                        label: const Text('Editor de Grafos'),
-                      ),
-                    ],
-                  );
-                },
-              ),
-              const SizedBox(height: 16),
-              const Divider(height: 1),
-              const SizedBox(height: 16),
-              Text(
-                '© Guía Educativa de Algoritmos. Diseñado como plataforma de aprendizaje interactivo.',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }

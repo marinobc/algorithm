@@ -7,6 +7,8 @@ enum AlgorithmCatalogIllustration {
   assignment,
   johnson,
   northwest,
+  selectionSort,
+  insertionSort,
   upcoming,
 }
 
@@ -60,8 +62,34 @@ class _AlgorithmCatalogIllustrationPainter extends CustomPainter {
         _drawDirectedGraph(canvas, size, linePaint, nodePaint, mutedNodePaint);
       case AlgorithmCatalogIllustration.northwest:
         _drawBipartiteGraph(canvas, size, linePaint, nodePaint, mutedNodePaint);
+      case AlgorithmCatalogIllustration.selectionSort:
+        _drawSortingStacks(canvas, size, nodePaint, mutedNodePaint, true);
+      case AlgorithmCatalogIllustration.insertionSort:
+        _drawSortingStacks(canvas, size, nodePaint, mutedNodePaint, false);
       case AlgorithmCatalogIllustration.upcoming:
         _drawUpcomingGraph(canvas, size, linePaint, mutedNodePaint);
+    }
+  }
+
+  void _drawSortingStacks(
+    Canvas canvas,
+    Size size,
+    Paint node,
+    Paint muted,
+    bool selection,
+  ) {
+    final levels = selection ? [4, 2, 5, 3, 1] : [2, 4, 1, 3, 5];
+    final step = size.width / 6;
+    final radius = math.min(7.5, step * .24);
+    for (var column = 0; column < levels.length; column++) {
+      final x = step * (column + 1);
+      for (var level = 0; level < levels[column]; level++) {
+        canvas.drawCircle(
+          Offset(x, size.height * .83 - level * radius * 2.35),
+          radius,
+          column == (selection ? 4 : 2) ? node : muted,
+        );
+      }
     }
   }
 

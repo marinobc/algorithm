@@ -2,62 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../application/providers/grafo_provider.dart';
-import '../../../../domain/models/atributo.dart';
-import '../../../../domain/models/conexion.dart';
-import '../../../../domain/models/direccion.dart';
+import '../../../../core/utils/app_logger.dart';
 import '../../../../domain/models/grafo.dart';
-import '../../../../domain/models/nodo.dart';
 import '../../../../ui/widgets/app_toast.dart';
 import '../../../../ui/widgets/matrix/bipartite_matrix_config.dart';
 import '../../../../ui/widgets/matrix/matrix_input_widgets.dart';
-import '../domain/policy/assignment_graph_policy.dart';
+import '../../../../ui/widgets/matrix/universal_matrix_preflight_coordinator.dart';
+import '../domain/services/assignment_graph_matrix_service.dart';
 import '../providers/assignment_provider.dart';
+import 'config/assignment_matrix_config.dart';
+import 'widgets/assignment_matrix_grid_table.dart';
 
-class AssignmentMatrixConfig implements BipartiteMatrixConfig {
-  const AssignmentMatrixConfig();
-
-  @override
-  String get title => 'Matriz de costos de asignación';
-
-  @override
-  String get subtitle => 'Bipartita: Orígenes (Filas) × Destinos (Columnas)';
-
-  @override
-  String get originHeaderTitle => 'Origen / Destino';
-
-  @override
-  String get destinationHeaderTitle => 'Destino';
-
-  @override
-  String get originRole => AssignmentRoles.origin;
-
-  @override
-  String get destinationRole => AssignmentRoles.destination;
-
-  @override
-  int get defaultOriginColor => AssignmentRoles.originColor;
-
-  @override
-  int get defaultDestinationColor => AssignmentRoles.destinationColor;
-
-  @override
-  String get costAttributeId => 'attr_valor';
-
-  @override
-  String get costCellHint => 'Costo';
-
-  @override
-  String get defaultTypeAlgorithm => 'assignment';
-
-  @override
-  bool get hasSuppliesAndDemands => false;
-
-  @override
-  bool get hasFictitiousBalancing => false;
-
-  @override
-  String get idPrefix => 'asg';
-}
+export 'config/assignment_matrix_config.dart';
 
 /// Dedicated matrix input and editing screen for Assignment / Hungarian method.
 class AssignmentGraphMatrixScreen extends ConsumerStatefulWidget {
@@ -88,7 +44,10 @@ class _AssignmentGraphMatrixScreenState
 
   List<TextEditingController> _originNames = [];
   List<TextEditingController> _destinationNames = [];
+  List<FocusNode> _originFocusNodes = [];
+  List<FocusNode> _destinationFocusNodes = [];
   List<List<TextEditingController>> _costs = [];
+  List<List<FocusNode>> _cellFocusNodes = [];
   List<String> _originIds = [];
   List<String> _destinationIds = [];
 
@@ -119,6 +78,15 @@ class _AssignmentGraphMatrixScreenState
     ]) {
       controller.dispose();
     }
+    for (final fn in _originFocusNodes) {
+      fn.dispose();
+    }
+    for (final fn in _destinationFocusNodes) {
+      fn.dispose();
+    }
+    for (final fn in _cellFocusNodes.expand((row) => row)) {
+      fn.dispose();
+    }
   }
 
   void _markDirty() {
@@ -144,107 +112,236 @@ class _AssignmentGraphMatrixScreenState
         .toList();
 
     if (origins.isNotEmpty && destinations.isNotEmpty) {
-      _originCount.text = '${origins.length}';
-      _destinationCount.text = '${destinations.length}';
-      _originIds = origins.map((n) => n.id).toList();
-      _destinationIds = destinations.map((n) => n.id).toList();
+      final preflight = UniversalMatrixPreflightCoordinator.calculateBalancing(
+        config: widget.config,
+        realOriginIds: origins.map((n) => n.id).toList(),
+        realOriginNames: origins.map((n) => n.nombre ?? n.id).toList(),
+        realDestinationIds: destinations.map((n) => n.id).toList(),
+        realDestinationNames: destinations
+            .map((n) => n.nombre ?? n.id)
+            .toList(),
+      );
 
-      _originNames = origins
-          .map((n) => _createController(n.nombre ?? n.id))
+      final rows = preflight.originNames.length;
+      final cols = preflight.destinationNames.length;
+
+      _originCount.text = '$rows';
+      _destinationCount.text = '$cols';
+      _originIds = preflight.originIds;
+      _destinationIds = preflight.destinationIds;
+
+      _originNames = preflight.originNames
+          .map((name) => _createController(name))
           .toList();
-      _destinationNames = destinations
-          .map((n) => _createController(n.nombre ?? n.id))
+      _destinationNames = preflight.destinationNames
+          .map((name) => _createController(name))
           .toList();
+
+      _originFocusNodes = List.generate(rows, (_) => FocusNode());
+      _destinationFocusNodes = List.generate(cols, (_) => FocusNode());
 
       _costs = List.generate(
-        origins.length,
-        (i) => List.generate(destinations.length, (j) {
-          final costStr = _findConnectionCost(
+        rows,
+        (i) => List.generate(cols, (j) {
+          if (i >= origins.length || j >= destinations.length) {
+            return _createController('0');
+          }
+          final costStr = AssignmentGraphMatrixService.findConnectionCost(
             graph,
             origins[i].id,
             destinations[j].id,
+            widget.config.costAttributeId,
           );
           return _createController(costStr ?? '');
         }),
       );
+      _cellFocusNodes = List.generate(
+        rows,
+        (i) => List.generate(cols, (_) => FocusNode()),
+      );
     } else {
-      // Do not auto insert table when empty; wait for user to input dimensions
       _disposeMatrixControllers();
       _originNames = [];
       _destinationNames = [];
+      _originFocusNodes = [];
+      _destinationFocusNodes = [];
       _costs = [];
+      _cellFocusNodes = [];
       _originIds = [];
       _destinationIds = [];
     }
     _isDirty = false;
   }
 
-  String? _findConnectionCost(
-    Grafo graph,
-    String originId,
-    String destinationId,
-  ) {
-    for (final conn in graph.conexiones.values) {
-      if (conn.nodoOrigenId == originId &&
-          conn.nodoDestinoId == destinationId) {
-        for (final attr in conn.atributos) {
-          if (attr.atributoId == widget.config.costAttributeId) {
-            return attr.valor;
-          }
-        }
-        if (conn.atributos.isNotEmpty) return conn.atributos.first.valor;
+  void _resize(int rows, int columns, {bool isInitial = false}) {
+    final realOriginIndices = <int>[];
+    for (var i = 0; i < _originIds.length; i++) {
+      if (!_originIds[i].contains('_dummy_')) {
+        realOriginIndices.add(i);
       }
     }
-    return null;
-  }
+    final realDestIndices = <int>[];
+    for (var j = 0; j < _destinationIds.length; j++) {
+      if (!_destinationIds[j].contains('_dummy_')) {
+        realDestIndices.add(j);
+      }
+    }
 
-  void _resize(int rows, int columns, {bool isInitial = false}) {
+    final realRowsCount = rows;
+    final realColsCount = columns;
+
     final oldOriginNames = _originNames;
     final oldDestinationNames = _destinationNames;
+    final oldOriginFocusNodes = _originFocusNodes;
+    final oldDestinationFocusNodes = _destinationFocusNodes;
     final oldCosts = _costs;
     final stamp = DateTime.now().microsecondsSinceEpoch;
 
-    _originNames = List.generate(
-      rows,
-      (index) => index < oldOriginNames.length
-          ? oldOriginNames[index]
-          : _createController(_originLabel(index)),
+    final rawOriginNames = List.generate(
+      realRowsCount,
+      (index) => index < realOriginIndices.length
+          ? oldOriginNames[realOriginIndices[index]].text
+          : _originLabel(index),
     );
-    _destinationNames = List.generate(
-      columns,
-      (index) => index < oldDestinationNames.length
-          ? oldDestinationNames[index]
-          : _createController('D${index + 1}'),
+    final rawDestinationNames = List.generate(
+      realColsCount,
+      (index) => index < realDestIndices.length
+          ? oldDestinationNames[realDestIndices[index]].text
+          : 'D${index + 1}',
     );
-    _costs = List.generate(
-      rows,
-      (i) => List.generate(
-        columns,
-        (j) => i < oldCosts.length && j < oldCosts[i].length
-            ? oldCosts[i][j]
-            : _createController(),
-      ),
-    );
-    _originIds = List.generate(
-      rows,
-      (index) => index < _originIds.length
-          ? _originIds[index]
+    final rawOriginIds = List.generate(
+      realRowsCount,
+      (index) => index < realOriginIndices.length
+          ? _originIds[realOriginIndices[index]]
           : '${widget.config.idPrefix}_origin_${stamp}_$index',
     );
-    _destinationIds = List.generate(
-      columns,
-      (index) => index < _destinationIds.length
-          ? _destinationIds[index]
+    final rawDestinationIds = List.generate(
+      realColsCount,
+      (index) => index < realDestIndices.length
+          ? _destinationIds[realDestIndices[index]]
           : '${widget.config.idPrefix}_destination_${stamp}_$index',
     );
 
+    final preflight = UniversalMatrixPreflightCoordinator.calculateBalancing(
+      config: widget.config,
+      realOriginIds: rawOriginIds,
+      realOriginNames: rawOriginNames,
+      realDestinationIds: rawDestinationIds,
+      realDestinationNames: rawDestinationNames,
+    );
+
+    final totalRows = preflight.originNames.length;
+    final totalCols = preflight.destinationNames.length;
+
+    _originNames = List.generate(totalRows, (i) {
+      final realIdx = i < realOriginIndices.length ? realOriginIndices[i] : -1;
+      return realIdx >= 0 && realIdx < oldOriginNames.length
+          ? oldOriginNames[realIdx]
+          : _createController(preflight.originNames[i]);
+    });
+    _destinationNames = List.generate(totalCols, (j) {
+      final realIdx = j < realDestIndices.length ? realDestIndices[j] : -1;
+      return realIdx >= 0 && realIdx < oldDestinationNames.length
+          ? oldDestinationNames[realIdx]
+          : _createController(preflight.destinationNames[j]);
+    });
+    _originIds = preflight.originIds;
+    _destinationIds = preflight.destinationIds;
+
+    _originFocusNodes = List.generate(
+      totalRows,
+      (i) =>
+          i < realOriginIndices.length &&
+              realOriginIndices[i] < oldOriginFocusNodes.length
+          ? oldOriginFocusNodes[realOriginIndices[i]]
+          : FocusNode(),
+    );
+    _destinationFocusNodes = List.generate(
+      totalCols,
+      (j) =>
+          j < realDestIndices.length &&
+              realDestIndices[j] < oldDestinationFocusNodes.length
+          ? oldDestinationFocusNodes[realDestIndices[j]]
+          : FocusNode(),
+    );
+
+    _costs = List.generate(
+      totalRows,
+      (i) => List.generate(totalCols, (j) {
+        final isDummyRow = _originIds[i].contains('_dummy_');
+        final isDummyCol = _destinationIds[j].contains('_dummy_');
+        if (isDummyRow || isDummyCol) {
+          return _createController('0');
+        }
+        final oldRowIdx = i < realOriginIndices.length
+            ? realOriginIndices[i]
+            : -1;
+        final oldColIdx = j < realDestIndices.length ? realDestIndices[j] : -1;
+        if (oldRowIdx >= 0 &&
+            oldColIdx >= 0 &&
+            oldRowIdx < oldCosts.length &&
+            oldColIdx < oldCosts[oldRowIdx].length) {
+          return oldCosts[oldRowIdx][oldColIdx];
+        }
+        return _createController();
+      }),
+    );
+
+    final oldFocusNodes = _cellFocusNodes;
+    _cellFocusNodes = List.generate(
+      totalRows,
+      (i) => List.generate(totalCols, (j) {
+        final oldRowIdx = i < realOriginIndices.length
+            ? realOriginIndices[i]
+            : -1;
+        final oldColIdx = j < realDestIndices.length ? realDestIndices[j] : -1;
+        if (oldRowIdx >= 0 &&
+            oldColIdx >= 0 &&
+            oldRowIdx < oldFocusNodes.length &&
+            oldColIdx < oldFocusNodes[oldRowIdx].length) {
+          return oldFocusNodes[oldRowIdx][oldColIdx];
+        }
+        return FocusNode();
+      }),
+    );
+
+    final keptOriginNames = _originNames.toSet();
+    for (final ctrl in oldOriginNames) {
+      if (!keptOriginNames.contains(ctrl)) ctrl.dispose();
+    }
+    final keptDestNames = _destinationNames.toSet();
+    for (final ctrl in oldDestinationNames) {
+      if (!keptDestNames.contains(ctrl)) ctrl.dispose();
+    }
+    final keptCosts = _costs.expand((r) => r).toSet();
+    for (final ctrl in oldCosts.expand((r) => r)) {
+      if (!keptCosts.contains(ctrl)) ctrl.dispose();
+    }
+    final keptOriginFn = _originFocusNodes.toSet();
+    for (final fn in oldOriginFocusNodes) {
+      if (!keptOriginFn.contains(fn)) fn.dispose();
+    }
+    final keptDestFn = _destinationFocusNodes.toSet();
+    for (final fn in oldDestinationFocusNodes) {
+      if (!keptDestFn.contains(fn)) fn.dispose();
+    }
+    final keptCellFn = _cellFocusNodes.expand((r) => r).toSet();
+    for (final fn in oldFocusNodes.expand((r) => r)) {
+      if (!keptCellFn.contains(fn)) fn.dispose();
+    }
+
     setState(() {
-      _originCount.text = '$rows';
-      _destinationCount.text = '$columns';
+      _originCount.text = '$realRowsCount';
+      _destinationCount.text = '$realColsCount';
       _error = null;
       if (!isInitial) _isDirty = true;
     });
   }
+
+  int get _realRowCount =>
+      _originIds.where((id) => !id.contains('_dummy_')).length;
+  int get _realColCount =>
+      _destinationIds.where((id) => !id.contains('_dummy_')).length;
 
   String _originLabel(int index) {
     if (index < 26) return String.fromCharCode(65 + index);
@@ -252,35 +349,39 @@ class _AssignmentGraphMatrixScreenState
   }
 
   void _addRow() {
-    if (_originNames.length >= _maxDimension) {
+    final currentReal = _realRowCount;
+    if (currentReal >= _maxDimension) {
       _setError('El máximo de filas es $_maxDimension.');
       return;
     }
-    _resize(_originNames.length + 1, _destinationNames.length);
+    _resize(currentReal + 1, _realColCount);
   }
 
   void _removeRow() {
-    if (_originNames.length <= 1) {
+    final currentReal = _realRowCount;
+    if (currentReal <= 1) {
       _setError('Debe haber al menos 1 fila.');
       return;
     }
-    _resize(_originNames.length - 1, _destinationNames.length);
+    _resize(currentReal - 1, _realColCount);
   }
 
   void _addColumn() {
-    if (_destinationNames.length >= _maxDimension) {
+    final currentReal = _realColCount;
+    if (currentReal >= _maxDimension) {
       _setError('El máximo de columnas es $_maxDimension.');
       return;
     }
-    _resize(_originNames.length, _destinationNames.length + 1);
+    _resize(_realRowCount, currentReal + 1);
   }
 
   void _removeColumn() {
-    if (_destinationNames.length <= 1) {
+    final currentReal = _realColCount;
+    if (currentReal <= 1) {
       _setError('Debe haber al menos 1 columna.');
       return;
     }
-    _resize(_originNames.length, _destinationNames.length - 1);
+    _resize(_realRowCount, currentReal - 1);
   }
 
   Future<void> _clearMatrix() async {
@@ -332,7 +433,7 @@ class _AssignmentGraphMatrixScreenState
       return;
     }
 
-    if (rows < _originNames.length || columns < _destinationNames.length) {
+    if (rows < _realRowCount || columns < _realColCount) {
       final confirmed = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
@@ -380,15 +481,19 @@ class _AssignmentGraphMatrixScreenState
       return false;
     }
 
-    final costs = <List<double>>[];
+    final costs = <List<double?>>[];
     for (var i = 0; i < _originNames.length; i++) {
-      final row = <double>[];
+      final row = <double?>[];
       for (var j = 0; j < _destinationNames.length; j++) {
         final raw = _costs[i][j].text.trim();
+        if (raw.isEmpty) {
+          row.add(null);
+          continue;
+        }
         final parsed = double.tryParse(raw);
         if (parsed == null || !parsed.isFinite || parsed < 0) {
           _setError(
-            'El costo en ${originNames[i]} -> ${destinationNames[j]} debe ser un número no negativo.',
+            'El costo en ${originNames[i]} -> ${destinationNames[j]} debe ser un número no negativo o estar vacío (sin conexión).',
           );
           return false;
         }
@@ -398,80 +503,29 @@ class _AssignmentGraphMatrixScreenState
     }
 
     final current = ref.read(grafoProvider);
-    final nodes = <String, Nodo>{};
-    final connections = <String, Conexion>{};
+    final input = AssignmentMatrixInput(
+      originIds: _originIds,
+      destinationIds: _destinationIds,
+      originNames: originNames,
+      destinationNames: destinationNames,
+      costs: costs,
+      originRole: widget.config.originRole,
+      destinationRole: widget.config.destinationRole,
+      defaultOriginColor: widget.config.defaultOriginColor,
+      defaultDestinationColor: widget.config.defaultDestinationColor,
+      costAttributeId: widget.config.costAttributeId,
+      defaultTypeAlgorithm: widget.config.defaultTypeAlgorithm,
+      idPrefix: widget.config.idPrefix,
+    );
 
-    final existingConnections = <String, Conexion>{};
-    for (final conn in current.conexiones.values) {
-      existingConnections['${conn.nodoOrigenId}|${conn.nodoDestinoId}'] = conn;
-    }
+    final graph = AssignmentGraphMatrixService.buildGraphFromInput(
+      current,
+      input,
+    );
 
-    for (var i = 0; i < _originNames.length; i++) {
-      final id = _originIds[i];
-      final previous = current.nodos[id];
-      final pos = previous != null
-          ? Offset(previous.x, previous.y)
-          : _positionForNewNode(current, widget.config.originRole, i, 120);
-      nodes[id] = Nodo(
-        id: id,
-        nombre: originNames[i],
-        colorValue: previous?.colorValue ?? widget.config.defaultOriginColor,
-        x: pos.dx,
-        y: pos.dy,
-        rol: widget.config.originRole,
-      );
-    }
-
-    for (var j = 0; j < _destinationNames.length; j++) {
-      final id = _destinationIds[j];
-      final previous = current.nodos[id];
-      final pos = previous != null
-          ? Offset(previous.x, previous.y)
-          : _positionForNewNode(current, widget.config.destinationRole, j, 480);
-      nodes[id] = Nodo(
-        id: id,
-        nombre: destinationNames[j],
-        colorValue:
-            previous?.colorValue ?? widget.config.defaultDestinationColor,
-        x: pos.dx,
-        y: pos.dy,
-        rol: widget.config.destinationRole,
-      );
-    }
-
-    final stamp = DateTime.now().microsecondsSinceEpoch;
-    for (var i = 0; i < _originNames.length; i++) {
-      for (var j = 0; j < _destinationNames.length; j++) {
-        final originId = _originIds[i];
-        final destinationId = _destinationIds[j];
-        final existing = existingConnections['$originId|$destinationId'];
-        final id =
-            existing?.id ?? '${widget.config.idPrefix}_conn_${stamp}_${i}_$j';
-        connections[id] = Conexion(
-          id: id,
-          nodoOrigenId: originId,
-          nodoDestinoId: destinationId,
-          colorValue: existing?.colorValue ?? nodes[originId]!.colorValue,
-          direccion: Direccion.unidireccional,
-          atributos: [
-            AtributoValor(
-              atributoId: widget.config.costAttributeId,
-              valor: _format(costs[i][j]),
-            ),
-          ],
-          curvatura: existing?.curvatura,
-          loopAngle: existing?.loopAngle,
-          offsetControlX: existing?.offsetControlX,
-          offsetControlY: existing?.offsetControlY,
-        );
-      }
-    }
-
-    final graph = Grafo(
-      nodos: nodes,
-      conexiones: connections,
-      atributosGlobales: current.atributosGlobales,
-      tipoAlgoritmo: widget.config.defaultTypeAlgorithm,
+    AppLogger.i(
+      'AssignmentGraphMatrixScreen',
+      'Matriz de Asignación procesada: ${graph.nodos.length} nodos, ${graph.conexiones.length} conexiones. Aplicando reemplazarGrafo...',
     );
 
     ref.read(transportationNotifierProvider.notifier).setActive(false);
@@ -490,41 +544,6 @@ class _AssignmentGraphMatrixScreenState
 
     Navigator.of(context).pop();
     return true;
-  }
-
-  Offset _positionForNewNode(
-    Grafo graph,
-    String role,
-    int index,
-    double fallbackX,
-  ) {
-    final roleNodes =
-        graph.nodos.values.where((node) => node.rol == role).toList()
-          ..sort((a, b) => a.y.compareTo(b.y));
-    if (roleNodes.isNotEmpty) {
-      final averageX =
-          roleNodes.map((node) => node.x).reduce((a, b) => a + b) /
-          roleNodes.length;
-      final nextY =
-          roleNodes.last.y +
-          110 +
-          (index - roleNodes.length).clamp(0, _maxDimension) * 110;
-      return Offset(averageX, nextY);
-    }
-    final graphNodes = graph.nodos.values.toList();
-    if (graphNodes.isEmpty) {
-      return Offset(fallbackX, 120 + index * 110);
-    }
-    final averageX =
-        graphNodes.map((node) => node.x).reduce((a, b) => a + b) /
-        graphNodes.length;
-    final averageY =
-        graphNodes.map((node) => node.y).reduce((a, b) => a + b) /
-        graphNodes.length;
-    return Offset(
-      averageX + (role == widget.config.originRole ? -180 : 180),
-      averageY + index * 110,
-    );
   }
 
   Future<bool> _confirmUnsavedChanges() async {
@@ -605,8 +624,8 @@ class _AssignmentGraphMatrixScreenState
             children: [
               MatrixDimensionBar(
                 hasMatrix: hasMatrix,
-                rowCount: _originNames.length,
-                columnCount: _destinationNames.length,
+                rowCount: _realRowCount,
+                columnCount: _realColCount,
                 maxDimension: _maxDimension,
                 rowsInputController: _originCount,
                 colsInputController: _destinationCount,
@@ -648,7 +667,18 @@ class _AssignmentGraphMatrixScreenState
                                   scrollDirection: Axis.horizontal,
                                   child: Padding(
                                     padding: const EdgeInsets.all(16),
-                                    child: _buildMatrixTable(colors),
+                                    child: AssignmentMatrixGridTable(
+                                      config: widget.config,
+                                      originNames: _originNames,
+                                      destinationNames: _destinationNames,
+                                      originFocusNodes: _originFocusNodes,
+                                      destinationFocusNodes:
+                                          _destinationFocusNodes,
+                                      costs: _costs,
+                                      cellFocusNodes: _cellFocusNodes,
+                                      originIds: _originIds,
+                                      destinationIds: _destinationIds,
+                                    ),
                                   ),
                                 ),
                               )
@@ -712,158 +742,4 @@ class _AssignmentGraphMatrixScreenState
       ),
     );
   }
-
-  Widget _buildMatrixTable(ColorScheme colors) {
-    final columns = <DataColumn>[
-      DataColumn(
-        label: Text(
-          widget.config.originHeaderTitle,
-          style: TextStyle(
-            color: colors.onSecondaryContainer,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
-      ...List.generate(_destinationNames.length, (j) {
-        return DataColumn(
-          label: SizedBox(
-            width: 80,
-            child: Focus(
-              child: Builder(
-                builder: (context) {
-                  final hasFocus = Focus.of(context).hasFocus;
-                  return TextField(
-                    controller: _destinationNames[j],
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
-                      color: colors.onSecondaryContainer,
-                    ),
-                    decoration: InputDecoration(
-                      isDense: true,
-                      hintText: hasFocus ? '' : 'Destino ${j + 1}',
-                      hintStyle: TextStyle(
-                        color: colors.onSecondaryContainer.withValues(
-                          alpha: 0.38,
-                        ),
-                        fontSize: 11,
-                        fontWeight: FontWeight.normal,
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 4,
-                        vertical: 6,
-                      ),
-                      fillColor: colors.secondaryContainer.withValues(
-                        alpha: 0.5,
-                      ),
-                      filled: true,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
-                      ),
-                    ),
-                    onTap: () {
-                      if (_destinationNames[j].text.isNotEmpty) {
-                        _destinationNames[j].selection = TextSelection(
-                          baseOffset: 0,
-                          extentOffset: _destinationNames[j].text.length,
-                        );
-                      }
-                    },
-                  );
-                },
-              ),
-            ),
-          ),
-        );
-      }),
-    ];
-
-    final rows = <DataRow>[
-      ...List.generate(_originNames.length, (i) {
-        return DataRow(
-          cells: [
-            DataCell(
-              SizedBox(
-                width: 90,
-                child: Focus(
-                  child: Builder(
-                    builder: (context) {
-                      final hasFocus = Focus.of(context).hasFocus;
-                      return TextField(
-                        controller: _originNames[i],
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12,
-                          color: colors.onSurface,
-                        ),
-                        decoration: InputDecoration(
-                          isDense: true,
-                          hintText: hasFocus ? '' : 'Origen ${i + 1}',
-                          hintStyle: TextStyle(
-                            color: colors.onSurfaceVariant.withValues(
-                              alpha: 0.38,
-                            ),
-                            fontSize: 11,
-                            fontWeight: FontWeight.normal,
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 4,
-                            vertical: 6,
-                          ),
-                          fillColor: colors.secondaryContainer.withValues(
-                            alpha: 0.3,
-                          ),
-                          filled: true,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide.none,
-                          ),
-                        ),
-                        onTap: () {
-                          if (_originNames[i].text.isNotEmpty) {
-                            _originNames[i].selection = TextSelection(
-                              baseOffset: 0,
-                              extentOffset: _originNames[i].text.length,
-                            );
-                          }
-                        },
-                      );
-                    },
-                  ),
-                ),
-              ),
-            ),
-            ...List.generate(_destinationNames.length, (j) {
-              return DataCell(
-                MatrixCellInput(
-                  controller: _costs[i][j],
-                  hint: widget.config.costCellHint,
-                ),
-              );
-            }),
-          ],
-        );
-      }),
-    ];
-
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(16),
-      child: DataTable(
-        clipBehavior: Clip.antiAlias,
-        headingRowColor: WidgetStatePropertyAll(colors.secondaryContainer),
-        dataRowMaxHeight: 52,
-        dataRowMinHeight: 48,
-        horizontalMargin: 12,
-        columnSpacing: 12,
-        columns: columns,
-        rows: rows,
-      ),
-    );
-  }
-
-  static String _format(double value) => value == value.roundToDouble()
-      ? value.toInt().toString()
-      : value.toStringAsFixed(2);
 }

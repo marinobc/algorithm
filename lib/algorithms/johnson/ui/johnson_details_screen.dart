@@ -2,14 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../ui/theme/app_theme.dart';
-import '../domain/models/johnson_models.dart';
 import '../providers/johnson_provider.dart';
+import 'widgets/johnson_schedule_table.dart';
+import 'widgets/johnson_step_by_step_widget.dart';
 
-class JohnsonDetailsScreen extends ConsumerWidget {
+class JohnsonDetailsScreen extends ConsumerStatefulWidget {
   const JohnsonDetailsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<JohnsonDetailsScreen> createState() =>
+      _JohnsonDetailsScreenState();
+}
+
+class _JohnsonDetailsScreenState extends ConsumerState<JohnsonDetailsScreen> {
+  bool _showSteps = false;
+
+  @override
+  Widget build(BuildContext context) {
     final result = ref.watch(johnsonResultProvider);
     final colorScheme = Theme.of(context).colorScheme;
     final palette = NeumorphicPalette.of(context);
@@ -33,7 +42,7 @@ class JohnsonDetailsScreen extends ConsumerWidget {
             Icon(Icons.timeline_rounded, color: colorScheme.primary, size: 24),
             const SizedBox(width: 10),
             const Text(
-              'Johnson',
+              'Johnson / Ruta Crítica (CPM)',
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
           ],
@@ -170,49 +179,46 @@ class JohnsonDetailsScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 24),
 
-                  // Node Early / Late / Slack DataTable
-                  Text(
-                    'Tabla de Tiempos y Holguras por Nodo',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: colorScheme.primary,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Align(
-                    alignment: Alignment.center,
-                    child: Card(
-                      elevation: 1,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      clipBehavior: Clip.antiAlias,
-                      child: _buildNodeDataTable(result, colorScheme),
-                    ),
-                  ),
+                  // Node Early / Late / Slack & Edge DataTables
+                  JohnsonScheduleTable(result: result),
                   const SizedBox(height: 24),
 
-                  // Connections & Activities Breakdown
-                  Text(
-                    'Desglose de Conexiones / Actividades',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: colorScheme.primary,
+                  // Step-by-Step Toggle Button inside Solution View
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _showSteps = !_showSteps;
+                        });
+                      },
+                      icon: Icon(
+                        _showSteps
+                            ? Icons.expand_less_rounded
+                            : Icons.auto_awesome_rounded,
+                      ),
+                      label: Text(
+                        _showSteps ? 'Ocultar paso a paso matemático' : 'Mostrar paso a paso matemático (Algoritmo de Johnson)',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  Align(
-                    alignment: Alignment.center,
-                    child: Card(
-                      elevation: 1,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      clipBehavior: Clip.antiAlias,
-                      child: _buildEdgesTable(result, colorScheme),
-                    ),
+
+                  AnimatedSize(
+                    duration: const Duration(milliseconds: 260),
+                    curve: Curves.easeInOut,
+                    child: _showSteps
+                        ? Padding(
+                            padding: const EdgeInsets.only(top: 20),
+                            child: JohnsonStepByStepWidget(result: result),
+                          )
+                        : const SizedBox.shrink(),
                   ),
                   const SizedBox(height: 24),
                 ],
@@ -220,215 +226,6 @@ class JohnsonDetailsScreen extends ConsumerWidget {
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildNodeDataTable(JohnsonResult result, ColorScheme colorScheme) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: DataTable(
-        columnSpacing: 28,
-        horizontalMargin: 16,
-        headingRowHeight: 42,
-        dataRowMinHeight: 40,
-        dataRowMaxHeight: 44,
-        headingRowColor: WidgetStateProperty.all(
-          colorScheme.surfaceContainerHigh,
-        ),
-        headingTextStyle: TextStyle(
-          fontWeight: FontWeight.bold,
-          fontSize: 12,
-          color: colorScheme.primary,
-        ),
-        columns: const [
-          DataColumn(label: Text('Nodo')),
-          DataColumn(label: Text('Tiempo Temprano (E)')),
-          DataColumn(label: Text('Tiempo Tardío (L)')),
-          DataColumn(label: Text('Holgura (H)')),
-          DataColumn(label: Text('Estado')),
-        ],
-        rows: result.nodeResults.map((nr) {
-          final isCritical = nr.isCritical;
-          return DataRow(
-            color: WidgetStateProperty.resolveWith<Color?>((states) {
-              if (isCritical) {
-                return colorScheme.errorContainer.withValues(alpha: 0.25);
-              }
-              return null;
-            }),
-            cells: [
-              DataCell(
-                Text(
-                  nr.nodeName,
-                  style: TextStyle(
-                    fontWeight: isCritical
-                        ? FontWeight.bold
-                        : FontWeight.normal,
-                    fontSize: 13,
-                  ),
-                ),
-              ),
-              DataCell(
-                Text(
-                  nr.earlyTime
-                      .toStringAsFixed(2)
-                      .replaceAll(RegExp(r'\.00$'), ''),
-                  style: const TextStyle(fontSize: 13),
-                ),
-              ),
-              DataCell(
-                Text(
-                  nr.lateTime
-                      .toStringAsFixed(2)
-                      .replaceAll(RegExp(r'\.00$'), ''),
-                  style: const TextStyle(fontSize: 13),
-                ),
-              ),
-              DataCell(
-                Text(
-                  nr.slack.toStringAsFixed(2).replaceAll(RegExp(r'\.00$'), ''),
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: isCritical
-                        ? FontWeight.bold
-                        : FontWeight.normal,
-                    color: isCritical ? colorScheme.error : null,
-                  ),
-                ),
-              ),
-              DataCell(
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 3,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isCritical
-                        ? colorScheme.errorContainer
-                        : colorScheme.surfaceContainerHigh,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    isCritical ? 'CRÍTICO' : 'Normal',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                      color: isCritical
-                          ? colorScheme.onErrorContainer
-                          : colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          );
-        }).toList(),
-      ),
-    );
-  }
-
-  Widget _buildEdgesTable(JohnsonResult result, ColorScheme colorScheme) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: DataTable(
-        columnSpacing: 32,
-        horizontalMargin: 16,
-        headingRowHeight: 42,
-        dataRowMinHeight: 40,
-        dataRowMaxHeight: 44,
-        headingRowColor: WidgetStateProperty.all(
-          colorScheme.surfaceContainerHigh,
-        ),
-        headingTextStyle: TextStyle(
-          fontWeight: FontWeight.bold,
-          fontSize: 12,
-          color: colorScheme.primary,
-        ),
-        columns: const [
-          DataColumn(label: Text('Conexión (Origen -> Destino)')),
-          DataColumn(label: Text('Duración / Peso')),
-          DataColumn(label: Text('Estado en Ruta')),
-        ],
-        rows: result.edgeResults.map((edge) {
-          final isCritical = edge.isCritical;
-          final sourceNode = result.nodeResults.firstWhere(
-            (n) => n.nodeId == edge.sourceId,
-            orElse: () => JohnsonNodeResult(
-              nodeId: edge.sourceId,
-              nodeName: edge.sourceId,
-              earlyTime: 0,
-              lateTime: 0,
-              slack: 0,
-              isCritical: false,
-            ),
-          );
-          final targetNode = result.nodeResults.firstWhere(
-            (n) => n.nodeId == edge.targetId,
-            orElse: () => JohnsonNodeResult(
-              nodeId: edge.targetId,
-              nodeName: edge.targetId,
-              earlyTime: 0,
-              lateTime: 0,
-              slack: 0,
-              isCritical: false,
-            ),
-          );
-
-          return DataRow(
-            color: WidgetStateProperty.resolveWith<Color?>((states) {
-              if (isCritical) {
-                return colorScheme.errorContainer.withValues(alpha: 0.25);
-              }
-              return null;
-            }),
-            cells: [
-              DataCell(
-                Text(
-                  '${sourceNode.nodeName} -> ${targetNode.nodeName}',
-                  style: TextStyle(
-                    fontWeight: isCritical
-                        ? FontWeight.bold
-                        : FontWeight.normal,
-                    fontSize: 13,
-                  ),
-                ),
-              ),
-              DataCell(
-                Text(
-                  edge.duration
-                      .toStringAsFixed(2)
-                      .replaceAll(RegExp(r'\.00$'), ''),
-                  style: const TextStyle(fontSize: 13),
-                ),
-              ),
-              DataCell(
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 3,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isCritical
-                        ? colorScheme.errorContainer
-                        : colorScheme.surfaceContainerHigh,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    isCritical ? 'Ruta Crítica' : 'Arista Normal',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                      color: isCritical
-                          ? colorScheme.onErrorContainer
-                          : colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          );
-        }).toList(),
       ),
     );
   }

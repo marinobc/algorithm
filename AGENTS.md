@@ -67,6 +67,34 @@ AppToast.show(
 
 ---
 
+## 2.1 Sistema de Logging y Consola (`AppLogger`)
+
+> [!CAUTION]
+> **PROHIBIDO** utilizar declaraciones directas de `print(...)` o `debugPrint(...)` en el código de producción.
+
+### Uso Obligatorio de `AppLogger`
+Todo registro de depuración, información, advertencia o error en la consola debe realizarse utilizando la clase [`AppLogger`](lib/core/utils/app_logger.dart):
+
+```dart
+import 'package:nodos/core/utils/app_logger.dart';
+
+// Logs de información y eventos de flujo
+AppLogger.i('NombreModulo', 'Descripción clara del evento ejecutado.');
+
+// Logs de depuración detallados
+AppLogger.d('NombreModulo', 'Estado del objeto: $objeto');
+
+// Logs de advertencia o errores
+AppLogger.w('NombreModulo', 'El cálculo superó el umbral esperado.');
+AppLogger.e('NombreModulo', 'Error al procesar la matriz', error, stackTrace);
+```
+
+### Reglas para Agentes y Desarrolladores al Agregar Logs:
+1. **Instrucciones del Usuario sobre Prints/Logs:** Cuando un usuario solicite agregar un log o `print` de prueba (ej. *"agrega un print aquí"*), el agente o desarrollador **DEBE utilizar siempre `AppLogger`** (`AppLogger.d` o `AppLogger.i`) en lugar de `print(...)`.
+2. **Comunicación Transparente al Usuario:** Tras responder o aplicar el cambio, el agente **debe informar explícitamente al usuario** que se utilizó `AppLogger` en lugar de un `print` crudo debido a la política del proyecto en `AGENTS.md`, explicando la razón para evitar malentendidos sobre el cumplimiento del requerimiento.
+
+---
+
 ## 3. Diálogos, Menús y Flujos de Navegación
 
 ### Menús y Paneles Flotantes
@@ -143,7 +171,10 @@ Para la creación y edición fluida de matrices en cualquier algoritmo o diálog
      - Cursor prohibido (`SystemMouseCursors.forbidden`) y estilo opaco para celdas deshabilitadas o celdas prohibidas (e.g., diagonales o asignaciones imposibles).
 3. **`BipartiteMatrixConfig`** ([`lib/ui/widgets/matrix/bipartite_matrix_config.dart`](lib/ui/widgets/matrix/bipartite_matrix_config.dart)):
    - Contrato abstracto de configuración para pantallas matriciales bipartitas y de costos/transporte.
-   - Permite declarar de forma limpia: títulos de cabecera, etiquetas de roles (Origen/Destino), soporte para oferta/demanda ($a_i$ y $b_j$), columnas/filas de balanceo ficticio y atributos de costo asociados.
+   - Permite declarar de forma limpia: títulos de cabecera, etiquetas de roles (Origen/Destino), soporte para oferta/demanda ($a_i$ y $b_j$), columnas/filas de balanceo ficticio (`hasFictitiousBalancing`) y atributos de costo asociados.
+4. **Reglas de Balanceo Ficticio e Interacción Matricial:**
+   - **Elementos Ficticios (Solo Lectura y Desconectados de Canvas):** Las filas/columnas ficticias generadas cuando `hasFictitiousBalancing == true` son puramente auxiliares para la resolución matricial en memoria. Se renderizan como celdas deshabilitadas (`readOnly`) con valor por defecto `0`. **No deben instanciar nodos ni conexiones físicas en el lienzo del grafo (Canvas).**
+   - **Navegación Teclado Universal (Flechas Direcciónales):** La navegación por teclado (Arriba/Abajo/Izquierda/Derecha y Tab/Shift+Tab) entre celdas de matriz se maneja de forma centralizada. Cuando se editan celdas, dejar una celda en blanco equivale a eliminar o omitir la conexión en el lienzo, asegurando sincronización entre vista matricial y grafo.
 
 ---
 
@@ -238,20 +269,20 @@ ref.read(grafoProvider.notifier).actualizarConexion(
 
 Para algoritmos donde los nodos tienen pesos, demandas, ofertas o roles específicos:
 
-1. **Inicialización y Rol en la Política:**
-   En `GraphAlgorithmPolicy.prepareNewNode`, asigna los atributos por defecto o roles del nodo recién creado:
+1. **Inicialización y Rol en la Política (`ModoTipoNodo`):**
+   En `GraphAlgorithmPolicy.prepareNewNode`, considera si la configuración activa utiliza `ModoTipoNodo.declarado` o `ModoTipoNodo.detectado`:
+   - **`declarado`:** Asigna el rol recibido en `params['role']` (`origen` o `destino`).
+   - **`detectado`:** Deja el rol en `null` (o sin asignar) para que el lienzo posicione la etiqueta de valor debajo del nodo. El rol se detectará y asignará reactivamente al trazar una conexión en `GrafoNotifier.agregarConexion`. Si se desconectan todas las aristas de un nodo, `GrafoNotifier.eliminarConexion` restablecerá automáticamente su rol a `null`.
    ```dart
    @override
    Nodo prepareNewNode(Grafo grafo, double x, double y, {String? nombre, int? colorValue, Map<String, dynamic>? params}) {
+     final role = params?['role'] as String?;
      return Nodo(
        id: 'node_${DateTime.now().millisecondsSinceEpoch}',
        x: x,
        y: y,
        nombre: nombre ?? 'Nodo',
-       rol: 'oferta', // o rol asignado
-       atributos: const [
-         AtributoValor(atributoId: 'capacidad_produccion', valor: '100'),
-       ],
+       rol: role, // null si es en ModoTipoNodo.detectado
      );
    }
    ```
