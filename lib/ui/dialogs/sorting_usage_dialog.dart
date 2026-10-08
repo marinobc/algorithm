@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../domain/services/base_sorting_algorithm.dart';
-import '../../domain/services/sorting_steps.dart';
 
 class SortingUsageDialog extends StatelessWidget {
   final BaseSortingAlgorithm algorithm;
