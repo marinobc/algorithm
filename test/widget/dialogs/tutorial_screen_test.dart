@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nodos/ui/dialogs/tutorial_screen.dart';
 import 'package:nodos/ui/text/user_guide_text.dart';
@@ -6,7 +7,7 @@ import 'package:nodos/ui/text/user_guide_text.dart';
 void main() {
   group('TutorialScreen Widget Tests', () {
     Widget buildSubject() {
-      return const MaterialApp(home: TutorialScreen());
+      return const ProviderScope(child: MaterialApp(home: TutorialScreen()));
     }
 
     testWidgets('renders Markdown widget with tutorial content', (
@@ -55,13 +56,15 @@ void main() {
 
     testWidgets('close button pops the route', (tester) async {
       await tester.pumpWidget(
-        MaterialApp(
-          home: Builder(
-            builder: (ctx) => ElevatedButton(
-              onPressed: () => Navigator.of(
-                ctx,
-              ).push(MaterialPageRoute(builder: (_) => const TutorialScreen())),
-              child: const Text('Open'),
+        ProviderScope(
+          child: MaterialApp(
+            home: Builder(
+              builder: (ctx) => ElevatedButton(
+                onPressed: () => Navigator.of(ctx).push(
+                  MaterialPageRoute(builder: (_) => const TutorialScreen()),
+                ),
+                child: const Text('Open'),
+              ),
             ),
           ),
         ),

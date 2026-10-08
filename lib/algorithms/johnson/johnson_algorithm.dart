@@ -38,6 +38,34 @@ class JohnsonAlgorithm implements GraphAlgorithm {
   Color get themeColor => const Color(0xFF00BFA5);
 
   @override
+  String get userGuideMarkdown => r'''
+# Guía de Uso: Algoritmo de Johnson / CPM (Ruta Crítica)
+
+El **Algoritmo de Johnson / CPM** analiza redes de proyectos para calcular la **Ruta Crítica** y determinar los márgenes de tiempo (holguras) de cada actividad.
+
+---
+
+## 1. Reglas de Red y Topología
+- **Red Dirigida Acíclica (DAG):** Las conexiones representan relaciones de precedencia entre eventos o tareas y deben ser estrictamente dirigidas.
+- **Prohibición de Ciclos:** Las redes de actividades no pueden contener ciclos. Si se detecta un bucle, el validador indicará la inconsistencia.
+- **Nodos de Inicio y Fin:** La red debe tener un origen claro y una meta final conectada.
+
+---
+
+## 2. Tiempos de Actividad y Holguras
+- **Duración de Actividades:** Cada arista posee la duración estimada de la tarea ($d_{ij} \\ge 0$).
+- **Pasada Hacia Adelante (Early Start / Finish):** Calcula las fechas más tempranas de inicio ($ES$) y finalización ($EF$).
+- **Pasada Hacia Atrás (Late Start / Finish):** Calcula las fechas más tardías de inicio ($LS$) y finalización ($LF$).
+- **Holguras ($ST$ y $SL$):** Identifica el margen de tiempo libre de cada actividad.
+
+---
+
+## 3. Identificación de la Ruta Crítica
+- Las actividades con **Holgura Total = 0** constituyen la Ruta Crítica del proyecto.
+- Todas las aristas pertenecientes a la Ruta Crítica se resaltan brillante y animadamente sobre el lienzo, indicando el tiempo total mínimo de ejecución del proyecto.
+''';
+
+  @override
   GraphAlgorithmPolicy get policy => const JohnsonGraphPolicy();
 
   @override

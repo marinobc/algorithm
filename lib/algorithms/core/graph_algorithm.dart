@@ -6,6 +6,7 @@ import '../../domain/models/direccion.dart';
 import '../../domain/models/grafo.dart';
 import '../../domain/models/nodo.dart';
 import '../../ui/dialogs/connection_value_input_dialog.dart';
+import '../../ui/text/user_guide_text.dart';
 
 /// Result returned when evaluating whether a graph mutation is permitted
 /// under the active algorithm's policy.
@@ -97,6 +98,10 @@ abstract class GraphAlgorithm {
 
   /// Accent color theme for the algorithm UI elements.
   Color get themeColor;
+
+  /// Dedicated markdown content for this algorithm's user guide.
+  /// Defaults to general user guide if not overridden.
+  String get userGuideMarkdown => UserGuideText.markdownContent;
 
   /// Drawing policy and constraints governing this algorithm.
   GraphAlgorithmPolicy get policy;

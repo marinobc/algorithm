@@ -1,21 +1,38 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../algorithms/core/algorithm_registry.dart';
 import '../text/user_guide_text.dart';
 
 typedef TutorialDialog = TutorialScreen;
 
-class TutorialScreen extends StatelessWidget {
+class TutorialScreen extends ConsumerStatefulWidget {
   const TutorialScreen({super.key});
+
+  @override
+  ConsumerState<TutorialScreen> createState() => _TutorialScreenState();
+}
+
+class _TutorialScreenState extends ConsumerState<TutorialScreen> {
+  int _selectedTab = 0; // 0: Algorithm Guide (if active), 1: General Guide
 
   @override
   Widget build(BuildContext context) {
     debugPrint('[TutorialScreen] Building TutorialScreen widget...');
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final activeAlgo = ref.watch(activeAlgorithmProvider);
 
-    final guideContent = UserGuideText.markdownContent.trim();
-    final bool hasContent = guideContent.isNotEmpty;
+    final String algorithmGuide = activeAlgo?.userGuideMarkdown.trim() ?? '';
+    final String generalGuide = UserGuideText.markdownContent.trim();
+
+    final bool hasActiveAlgo = activeAlgo != null && algorithmGuide.isNotEmpty;
+    final String currentContent = (hasActiveAlgo && _selectedTab == 0)
+        ? algorithmGuide
+        : generalGuide;
+
+    final bool hasContent = currentContent.isNotEmpty;
 
     final styleSheet = MarkdownStyleSheet.fromTheme(theme).copyWith(
       h1: theme.textTheme.headlineSmall?.copyWith(
@@ -65,7 +82,11 @@ class TutorialScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: colorScheme.surface,
       appBar: AppBar(
-        title: const Text('Guía de Uso'),
+        title: Text(
+          hasActiveAlgo && _selectedTab == 0
+              ? 'Guía de Uso: ${activeAlgo.name}'
+              : 'Guía de Uso General',
+        ),
         centerTitle: false,
         backgroundColor: colorScheme.surfaceContainerHigh,
         elevation: 1,
@@ -77,53 +98,89 @@ class TutorialScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: hasContent
-          ? SingleChildScrollView(
-              key: const ValueKey('tutorial_scroll_view'),
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
-              child: Container(
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  color: colorScheme.surfaceContainerLow,
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(
-                    color: colorScheme.outlineVariant.withValues(alpha: 0.5),
-                  ),
-                ),
-                child: MarkdownBody(
-                  key: const ValueKey('tutorial_markdown'),
-                  data: guideContent,
-                  selectable: true,
-                  styleSheet: styleSheet,
-                  softLineBreak: true,
-                ),
-              ),
-            )
-          : Center(
-              child: Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.warning_amber_rounded,
-                      size: 48,
-                      color: colorScheme.error,
+      body: Column(
+        children: [
+          if (hasActiveAlgo)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+              child: Center(
+                child: SegmentedButton<int>(
+                  segments: [
+                    ButtonSegment<int>(
+                      value: 0,
+                      icon: Icon(activeAlgo.icon, size: 18),
+                      label: Text('Guía ${activeAlgo.shortName}'),
                     ),
-                    const SizedBox(height: 12),
-                    const Text(
-                      'Error: No se pudo cargar el contenido del tutorial.',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      textAlign: TextAlign.center,
+                    const ButtonSegment<int>(
+                      value: 1,
+                      icon: Icon(Icons.menu_book_rounded, size: 18),
+                      label: Text('Guía General App'),
                     ),
                   ],
+                  selected: {_selectedTab},
+                  onSelectionChanged: (newSelection) {
+                    setState(() {
+                      _selectedTab = newSelection.first;
+                    });
+                  },
                 ),
               ),
             ),
+          Expanded(
+            child: hasContent
+                ? SingleChildScrollView(
+                    key: const ValueKey('tutorial_scroll_view'),
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
+                    child: Container(
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: colorScheme.surfaceContainerLow,
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(
+                          color: colorScheme.outlineVariant.withValues(
+                            alpha: 0.5,
+                          ),
+                        ),
+                      ),
+                      child: MarkdownBody(
+                        key: const ValueKey('tutorial_markdown'),
+                        data: currentContent,
+                        selectable: true,
+                        styleSheet: styleSheet,
+                        softLineBreak: true,
+                      ),
+                    ),
+                  )
+                : Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.warning_amber_rounded,
+                            size: 48,
+                            color: colorScheme.error,
+                          ),
+                          const SizedBox(height: 12),
+                          const Text(
+                            'Error: No se pudo cargar el contenido del tutorial.',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+          ),
+        ],
+      ),
       bottomNavigationBar: SafeArea(
         child: Container(
           padding: const EdgeInsets.all(16.0),

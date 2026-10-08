@@ -39,6 +39,33 @@ class AssignmentAlgorithm implements GraphAlgorithm {
   Color get themeColor => const Color(0xFF7C4DFF);
 
   @override
+  String get userGuideMarkdown => r'''
+# Guía de Uso: Algoritmo de Asignación (Método Húngaro)
+
+El **Algoritmo de Asignación** resuelve problemas de emparejamiento óptimo entre dos conjuntos de elementos (Recursos $\\rightarrow$ Tareas, Orígenes $\\rightarrow$ Destinos) minimizando el costo total o maximizando la efectividad.
+
+---
+
+## 1. Reglas de Topología y Dibujo
+- **Grafo Bipartito:** Los nodos se dividen en dos roles: **Orígenes** (color violeta) y **Destinos** (color turquesa/verde).
+- **Flujo Unidireccional:** Las conexiones deben ir estrictamente desde un nodo Origen hacia un nodo Destino.
+- **Sin Ciclos ni Auto-bucles:** No se permiten bucles en un mismo nodo ni conexiones entre nodos del mismo rol.
+
+---
+
+## 2. Captura de Costos y Matriz Bipartita
+- **Costos de Conexión:** Cada arista posee un valor numérico correspondiente al costo $C_{ij}$ de asignar el origen $i$ al destino $j$.
+- **Pantalla Matricial:** Presiona el botón de **Matriz** para alternar entre el lienzo y la vista de matriz interactiva.
+- **Balanceo Automático:** Si el número de orígenes y destinos no coincide, el solucionador añade automáticamente variables ficticias con costo cero para balancear la matriz.
+
+---
+
+## 3. Visualización de Resultados
+- Al activar el cálculo, las asignaciones óptimas seleccionadas por el Algoritmo Húngaro se resaltarán dinámicamente con un brillo fluorescente en el lienzo.
+- La tarjeta flotante mostrará la suma total del costo mínimo y el desglose de cada par asignado.
+''';
+
+  @override
   GraphAlgorithmPolicy get policy => const AssignmentGraphPolicy();
 
   @override

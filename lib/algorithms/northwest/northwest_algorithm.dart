@@ -38,6 +38,32 @@ class NorthwestAlgorithm implements GraphAlgorithm {
   Color get themeColor => const Color(0xFFE54872);
 
   @override
+  String get userGuideMarkdown => r'''
+# Guía de Uso: Algoritmo Esquina Noroeste (Transporte)
+
+El **Algoritmo de Esquina Noroeste** determina una solución básica factible inicial para modelos de transporte y distribución de mercancías, combinándose con el **Método MODI** para alcanzar la solución óptima.
+
+---
+
+## 1. Definición de Red, Oferta y Demanda
+- **Fuentes / Orígenes (Oferta $a_i$):** Nodos que producen o proveen bienes. Se ingresa la capacidad de oferta en las propiedades del nodo.
+- **Destinos (Demanda $b_j$):** Nodos que reciben o consumen bienes. Se ingresa la demanda requerida en las propiedades del nodo.
+- **Costos Unitarios de Transporte ($c_{ij}$):** El valor de cada arista indica el costo de transportar 1 unidad desde el origen $i$ al destino $j$.
+
+---
+
+## 2. Matriz de Transporte y Control de Balanceo
+- **Pantalla Matricial Integrada:** Ofrece la vista completa de la tabla de transporte con controles dinámicos $+ / -$ para agregar filas u orígenes en caliente.
+- **Verificación de Balanceo:** Si la oferta total no coincide con la demanda total ($\\sum a_i \\neq \\sum b_j$), el sistema balancea la tabla insertando un nodo ficticio de costo $0$.
+
+---
+
+## 3. Algoritmo Esquina Noroeste y Criterio MODI
+- **Asignación Inicial:** Comienza en la celda $(1,1)$ (Esquina Noroeste) asignando el máximo número de unidades posibles y desplazándose a la derecha o abajo según se satisfagan capacidades.
+- **Optimización MODI:** Calcula los multiplicadores $u_i$ y $v_j$ para evaluar celdas no básicas y optimizar el costo total del transporte.
+''';
+
+  @override
   GraphAlgorithmPolicy get policy => const NorthwestGraphPolicy();
 
   @override
