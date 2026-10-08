@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
 
+import '../../domain/services/base_sorting_algorithm.dart';
 import '../../domain/services/sorting_steps.dart';
 
 class SortingUsageDialog extends StatelessWidget {
-  final SortingAlgorithm algorithm;
+  final BaseSortingAlgorithm algorithm;
 
   const SortingUsageDialog({super.key, required this.algorithm});
 
-  static Future<void> show(BuildContext context, SortingAlgorithm algorithm) {
+  static Future<void> show(
+    BuildContext context,
+    BaseSortingAlgorithm algorithm,
+  ) {
     return showDialog<void>(
       context: context,
       builder: (_) => SortingUsageDialog(algorithm: algorithm),
@@ -17,8 +21,8 @@ class SortingUsageDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-    final isSelection = algorithm == SortingAlgorithm.selection;
-    final title = isSelection ? 'Selection Sort' : 'Insertion Sort';
+    final isSelection = algorithm.id == 'selection';
+    final title = algorithm.name;
     final size = MediaQuery.sizeOf(context);
 
     return Dialog(

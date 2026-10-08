@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:nodos/domain/services/sorting_registry.dart';
 import 'package:nodos/domain/services/sorting_steps.dart';
 import 'package:nodos/ui/dialogs/algorithm_selection_dialog.dart';
 import 'package:nodos/ui/dialogs/sorting_usage_dialog.dart';
@@ -14,7 +15,7 @@ Finder input(String label) => find.byWidgetPredicate(
 );
 
 void main() {
-  for (final algorithm in SortingAlgorithm.values) {
+  for (final algorithm in SortingRegistry.registeredAlgorithms) {
     testWidgets(
       '${algorithm.name} opens its own usage guide on a narrow screen',
       (tester) async {
@@ -38,7 +39,7 @@ void main() {
         expect(find.text('3. Controla la animación'), findsOneWidget);
         expect(
           find.textContaining(
-            algorithm == SortingAlgorithm.selection
+            algorithm.id == 'selection'
                 ? 'i es la posición que se ordena'
                 : 'KEY se eleva',
           ),
@@ -136,7 +137,7 @@ void main() {
       tester
           .widget<SortingVisualizerScreen>(find.byType(SortingVisualizerScreen))
           .algorithm,
-      SortingAlgorithm.selection,
+      SortingRegistry.selection,
     );
     await tester.tap(find.byTooltip('Volver'));
     await tester.pumpAndSettle();
@@ -146,7 +147,7 @@ void main() {
       tester
           .widget<SortingVisualizerScreen>(find.byType(SortingVisualizerScreen))
           .algorithm,
-      SortingAlgorithm.insertion,
+      SortingRegistry.insertion,
     );
   });
 
@@ -161,7 +162,7 @@ void main() {
       ProviderScope(
         child: MaterialApp(
           theme: AppTheme.lightTheme,
-          home: const SortingAlgoScreen(algorithm: SortingAlgorithm.selection),
+          home: const SortingAlgoScreen(algorithm: SortingRegistry.selection),
         ),
       ),
     );
@@ -191,7 +192,7 @@ void main() {
         child: MaterialApp(
           theme: AppTheme.darkTheme,
           home: const SortingVisualizerScreen(
-            algorithm: SortingAlgorithm.selection,
+            algorithm: SortingRegistry.selection,
           ),
         ),
       ),
@@ -229,7 +230,7 @@ void main() {
         child: MaterialApp(
           theme: AppTheme.lightTheme,
           home: const SortingVisualizerScreen(
-            algorithm: SortingAlgorithm.insertion,
+            algorithm: SortingRegistry.insertion,
           ),
         ),
       ),
@@ -255,7 +256,7 @@ void main() {
         child: MaterialApp(
           theme: AppTheme.darkTheme,
           home: const SortingVisualizerScreen(
-            algorithm: SortingAlgorithm.selection,
+            algorithm: SortingRegistry.selection,
           ),
         ),
       ),
@@ -283,7 +284,7 @@ void main() {
         child: MaterialApp(
           theme: AppTheme.lightTheme,
           home: const SortingVisualizerScreen(
-            algorithm: SortingAlgorithm.insertion,
+            algorithm: SortingRegistry.insertion,
           ),
         ),
       ),

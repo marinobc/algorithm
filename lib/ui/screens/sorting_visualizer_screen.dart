@@ -12,10 +12,12 @@ import '../dialogs/sorting_usage_dialog.dart';
 import '../widgets/sorting_pin_visualizer.dart';
 import 'welcome_explanation_screen.dart';
 
+import '../../domain/services/base_sorting_algorithm.dart';
+
 enum _InputMode { manual, random }
 
 class SortingVisualizerScreen extends ConsumerStatefulWidget {
-  final SortingAlgorithm algorithm;
+  final BaseSortingAlgorithm algorithm;
 
   const SortingVisualizerScreen({super.key, required this.algorithm});
 
@@ -42,22 +44,9 @@ class _SortingVisualizerScreenState
   double _speed = 1;
   bool _playing = false;
 
-  String get _title => widget.algorithm == SortingAlgorithm.selection
-      ? 'Selection Sort'
-      : 'Insertion Sort';
+  String get _title => widget.algorithm.name;
 
-  String _phaseLabel(SortingPhase phase) => switch (phase) {
-    SortingPhase.ready => 'LISTO',
-    SortingPhase.current => 'POSICIÓN ACTUAL',
-    SortingPhase.comparing => 'COMPARANDO',
-    SortingPhase.minimum => 'NUEVO MÍNIMO',
-    SortingPhase.swapping => 'INTERCAMBIO',
-    SortingPhase.sorted => 'REGIÓN ORDENADA',
-    SortingPhase.key => 'ELEMENTO CLAVE',
-    SortingPhase.shifting => 'DESPLAZAMIENTO',
-    SortingPhase.inserting => 'INSERCIÓN',
-    SortingPhase.finished => 'TERMINADO',
-  };
+  String _phaseLabel(SortingPhase phase) => widget.algorithm.formatPhase(phase);
 
   @override
   void initState() {
@@ -113,7 +102,7 @@ class _SortingVisualizerScreenState
     _stopPlayback();
     _motion.value = 1;
     setState(() {
-      _timeline = SortingTimeline.build(widget.algorithm, values);
+      _timeline = widget.algorithm.buildTimeline(values);
       _stepIndex = 0;
       _fromIndex = 0;
     });
@@ -576,7 +565,7 @@ class _SortingVisualizerScreenState
     final colors = Theme.of(context).colorScheme;
     final timeline = _timeline;
     final step = timeline?.steps[_stepIndex];
-    final isSelection = widget.algorithm == SortingAlgorithm.selection;
+    final isSelection = widget.algorithm.id == 'selection';
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

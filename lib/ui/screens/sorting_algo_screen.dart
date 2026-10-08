@@ -1,26 +1,24 @@
 import 'package:flutter/material.dart';
 
-import '../../domain/services/sorting_steps.dart';
+import '../../domain/services/base_sorting_algorithm.dart';
 import '../widgets/sorting_pin_visualizer.dart';
 import '../widgets/web_explanation_navbar.dart';
 import 'sorting_visualizer_screen.dart';
 
 class SortingAlgoScreen extends StatelessWidget {
-  final SortingAlgorithm algorithm;
+  final BaseSortingAlgorithm algorithm;
 
   const SortingAlgoScreen({super.key, required this.algorithm});
 
-  bool get _selection => algorithm == SortingAlgorithm.selection;
+  bool get _selection => algorithm.id == 'selection';
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-    final title = _selection ? 'Selection Sort' : 'Insertion Sort';
-    final accent = _selection
-        ? const Color(0xFFFF9100)
-        : const Color(0xFF00BFA5);
+    final title = algorithm.name;
+    final accent = algorithm.accentColor;
     final example = _selection ? [8, 3, 6, 2] : [3, 7, 4, 9];
-    final initial = SortingTimeline.build(algorithm, example).steps.first;
+    final initial = algorithm.buildTimeline(example).steps.first;
 
     return WebExplanationShell(
       activePage: _selection

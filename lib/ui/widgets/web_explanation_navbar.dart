@@ -9,6 +9,7 @@ import '../screens/contact_screen.dart';
 import '../screens/johnson_algo_screen.dart';
 import '../screens/northwest_algo_screen.dart';
 import '../screens/sorting_algo_screen.dart';
+import '../../domain/services/sorting_registry.dart';
 import '../../domain/services/sorting_steps.dart';
 import '../screens/welcome_explanation_screen.dart';
 import '../screens/what_are_graphs_screen.dart';
@@ -52,12 +53,12 @@ class WebExplanationShell extends ConsumerWidget {
         break;
       case ExplanationWebPage.selectionSort:
         targetScreen = const SortingAlgoScreen(
-          algorithm: SortingAlgorithm.selection,
+          algorithm: SortingRegistry.selection,
         );
         break;
       case ExplanationWebPage.insertionSort:
         targetScreen = const SortingAlgoScreen(
-          algorithm: SortingAlgorithm.insertion,
+          algorithm: SortingRegistry.insertion,
         );
         break;
       case ExplanationWebPage.contact:

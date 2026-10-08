@@ -10,8 +10,9 @@ import '../../algorithms/johnson/providers/johnson_provider.dart';
 import '../../algorithms/northwest/domain/services/northwest_problem_extractor.dart';
 import '../../algorithms/northwest/providers/northwest_provider.dart';
 import '../../application/providers/grafo_provider.dart';
+import '../../domain/services/base_sorting_algorithm.dart';
 import '../../domain/services/graph_storage_service.dart';
-import '../../domain/services/sorting_steps.dart';
+import '../../domain/services/sorting_registry.dart';
 import '../screens/graph_editor_screen.dart';
 import '../screens/sorting_visualizer_screen.dart';
 import '../screens/welcome_explanation_screen.dart';
@@ -155,7 +156,7 @@ class AlgorithmSelectionDialog extends StatelessWidget {
             'Busca el mínimo y lo intercambia hasta ordenar el conjunto.',
         accentColor: Color(0xFFFF9100),
         illustration: AlgorithmCatalogIllustration.selectionSort,
-        sortingAlgorithm: SortingAlgorithm.selection,
+        sortingAlgorithm: SortingRegistry.selection,
       ),
       const _AlgorithmCatalogOption(
         id: 'insertion-sort',
@@ -164,7 +165,7 @@ class AlgorithmSelectionDialog extends StatelessWidget {
             'Inserta cada elemento en una región que ya está ordenada.',
         accentColor: Color(0xFF00BFA5),
         illustration: AlgorithmCatalogIllustration.insertionSort,
-        sortingAlgorithm: SortingAlgorithm.insertion,
+        sortingAlgorithm: SortingRegistry.insertion,
       ),
       const _AlgorithmCatalogOption(
         id: 'upcoming',
@@ -622,7 +623,7 @@ class _AlgorithmCatalogOption {
   final AlgorithmCatalogIllustration illustration;
   final bool available;
   final GraphAlgorithm? algorithm;
-  final SortingAlgorithm? sortingAlgorithm;
+  final BaseSortingAlgorithm? sortingAlgorithm;
   const _AlgorithmCatalogOption({
     required this.id,
     required this.title,
