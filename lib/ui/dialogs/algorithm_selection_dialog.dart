@@ -47,14 +47,16 @@ class AlgorithmSelectionDialog extends StatelessWidget {
     final options = _options(registered);
     final colors = Theme.of(context).colorScheme;
 
+    final isMobile = MediaQuery.of(context).size.width < 600;
+
     return Dialog(
-      insetPadding: const EdgeInsets.all(20),
+      insetPadding: EdgeInsets.all(isMobile ? 12 : 20),
       backgroundColor: colors.surface,
       clipBehavior: Clip.antiAlias,
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 1280, maxHeight: 780),
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(28, 24, 28, 28),
+          padding: EdgeInsets.all(isMobile ? 16 : 28),
           child: Column(
             children: [
               _CatalogHeader(

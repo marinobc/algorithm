@@ -19,6 +19,7 @@ class JohnsonLaunchButton extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     const accentColor = Color(0xFF00BFA5);
+    final isMobile = MediaQuery.of(context).size.width < 600;
 
     return ElevatedButton.icon(
       onPressed: () {
@@ -36,13 +37,21 @@ class JohnsonLaunchButton extends ConsumerWidget {
         backgroundColor: Colors.white,
         foregroundColor: accentColor,
         elevation: 3,
-        padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 14),
+        padding: EdgeInsets.symmetric(
+          horizontal: isMobile ? 16 : 26,
+          vertical: isMobile ? 12 : 14,
+        ),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
-      icon: Icon(icon, size: 20),
+      icon: Icon(icon, size: isMobile ? 18 : 20),
       label: Text(
         label,
-        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(
+          fontWeight: FontWeight.bold,
+          fontSize: isMobile ? 13 : 14,
+        ),
       ),
     );
   }
