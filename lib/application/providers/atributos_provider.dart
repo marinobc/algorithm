@@ -21,7 +21,12 @@ class AtributosNotifier extends Notifier<List<Atributo>> {
   }
 
   void eliminarAtributo(String id) {
-    state = state.where((a) => a.id != id).toList();
+    final updated = state.where((a) => a.id != id).toList();
+    if (updated.isEmpty) {
+      state = const [Atributo(id: 'attr_valor', nombre: 'Valor')];
+    } else {
+      state = updated;
+    }
   }
 
   void reset() {

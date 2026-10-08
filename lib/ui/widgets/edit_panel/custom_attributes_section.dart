@@ -77,9 +77,19 @@ class CustomAttributesSection extends StatelessWidget {
                   ),
                 ),
                 IconButton(
-                  icon: Icon(Icons.delete_outline, color: colorScheme.error),
-                  onPressed: () => onDeleteAttribute(attr),
+                  icon: const Icon(Icons.close_rounded),
+                  tooltip: 'Borrar valor',
+                  onPressed: () {
+                    getAttrController(attr.id).clear();
+                    onValueChanged();
+                  },
                 ),
+                if (atributosGlobales.length > 1)
+                  IconButton(
+                    icon: Icon(Icons.delete_outline, color: colorScheme.error),
+                    tooltip: 'Borrará todos los valores del atributo',
+                    onPressed: () => onDeleteAttribute(attr),
+                  ),
               ],
             ),
           ),
@@ -116,14 +126,10 @@ class CustomAttributesSection extends StatelessWidget {
     return TextField(
       controller: controller,
       onTap: () {
-        if (isNumeric) {
-          controller.clear();
-        } else {
-          controller.selection = TextSelection(
-            baseOffset: 0,
-            extentOffset: controller.text.length,
-          );
-        }
+        controller.selection = TextSelection(
+          baseOffset: 0,
+          extentOffset: controller.text.length,
+        );
       },
       style: TextStyle(color: colorScheme.onSurface, fontSize: 14),
       onChanged: onChanged,
