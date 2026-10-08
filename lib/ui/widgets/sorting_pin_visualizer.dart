@@ -158,8 +158,6 @@ class _SortingPinsPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final baseY = size.height - 38;
-    final pinWidth = (slotWidth * 0.58).clamp(12.0, 48.0);
-    final maxPinHeight = math.min(size.height - 106, pinWidth * 4.2);
     final maxAbsolute = values.fold<int>(
       0,
       (maxValue, value) => math.max(maxValue, value.abs()),
@@ -168,14 +166,21 @@ class _SortingPinsPainter extends CustomPainter {
     final minPositive = positive.isEmpty ? 1 : positive.reduce(math.min);
     final useLog = maxAbsolute > minPositive * 20;
 
+    // Apply Flutter Animation skill: Curves.easeInOutCubic for smooth physics translation
+    final curvedProgress = Curves.easeInOutCubic.transform(progress);
+
     final baselinePaint = Paint()
       ..color = colors.outlineVariant
       ..strokeWidth = 1;
     canvas.drawLine(Offset(0, baseY), Offset(size.width, baseY), baselinePaint);
     if (current.sortedCount > 0) {
+      final prevSorted = previous.sortedCount.toDouble();
+      final currSorted = current.sortedCount.toDouble();
+      final animSorted =
+          prevSorted + (currSorted - prevSorted) * curvedProgress;
       canvas.drawLine(
         Offset(0, baseY + 3),
-        Offset(current.sortedCount * slotWidth, baseY + 3),
+        Offset(animSorted * slotWidth, baseY + 3),
         Paint()
           ..color = colors.secondary
           ..strokeWidth = 3,
@@ -185,21 +190,48 @@ class _SortingPinsPainter extends CustomPainter {
     for (var id = 0; id < values.length; id++) {
       final previousX = (previous.slots[id] + 0.5) * slotWidth;
       final currentX = (current.slots[id] + 0.5) * slotWidth;
-      final x = previousX + (currentX - previousX) * progress;
+      // Physics-driven spatial interpolation
+      final x = previousX + (currentX - previousX) * curvedProgress;
+
       final wasRaised = previous.keyId == id && previous.keyRaised;
       final isRaised = current.keyId == id && current.keyRaised;
-      final lift =
-          ((wasRaised ? 1.0 : 0.0) +
-              ((isRaised ? 1.0 : 0.0) - (wasRaised ? 1.0 : 0.0)) * progress) *
-          28;
+      final liftProgress =
+          (wasRaised ? 1.0 : 0.0) +
+          ((isRaised ? 1.0 : 0.0) - (wasRaised ? 1.0 : 0.0)) * curvedProgress;
+
+      // Calculate parabolic arc lift (up-and-over motion) when a pin changes horizontal slot position
+      final deltaSlots = (current.slots[id] - previous.slots[id]).abs();
+      final arcHeight = deltaSlots > 0
+          ? math.sin(curvedProgress * math.pi) *
+                math.min(42.0, deltaSlots * 22.0)
+          : 0.0;
+
+      final totalLift = (liftProgress * 28) + arcHeight;
+
       final ratio = maxAbsolute == 0
           ? 0.0
           : useLog
           ? math.log(1 + values[id].abs()) / math.log(1 + maxAbsolute)
           : values[id].abs() / maxAbsolute;
-      final pinHeight = maxPinHeight * (0.3 + 0.7 * ratio);
-      final color = _colorFor(id);
-      _paintPin(canvas, Offset(x, baseY - lift), pinWidth, pinHeight, color);
+
+      // Scale height and width proportionally according to bowling.svg aspect ratio (39.54 / 114.06)
+      final maxAvailableHeight = math.min(size.height - 106, slotWidth * 2.88);
+      final pinHeight = maxAvailableHeight * (0.35 + 0.65 * ratio);
+      final pinWidth = pinHeight * (39.54 / 114.06);
+
+      // Smooth color morphing between previous and current step states using Color.lerp
+      final prevColor = _colorForStep(id, previous);
+      final currColor = _colorForStep(id, current);
+      final color =
+          Color.lerp(prevColor, currColor, curvedProgress) ?? currColor;
+
+      _paintPin(
+        canvas,
+        Offset(x, baseY - totalLift),
+        pinWidth,
+        pinHeight,
+        color,
+      );
 
       _paintText(
         canvas,
@@ -215,7 +247,7 @@ class _SortingPinsPainter extends CustomPainter {
         _paintText(
           canvas,
           marker,
-          Offset(x, math.max(4, baseY - pinHeight - lift - 17)),
+          Offset(x, math.max(4, baseY - pinHeight - totalLift - 17)),
           slotWidth - 2,
           color,
           math.min(11, slotWidth * 0.34),
@@ -234,48 +266,78 @@ class _SortingPinsPainter extends CustomPainter {
   ) {
     canvas.save();
     canvas.translate(base.dx - width / 2, base.dy - height);
-    canvas.scale(width, height);
-    final silhouette = Path()
-      ..moveTo(0.5, 0)
-      ..cubicTo(0.31, 0, 0.28, 0.12, 0.31, 0.19)
-      ..cubicTo(0.34, 0.28, 0.43, 0.33, 0.37, 0.4)
-      ..cubicTo(0.31, 0.49, 0.17, 0.57, 0.15, 0.81)
-      ..quadraticBezierTo(0.13, 0.94, 0.17, 1)
-      ..lineTo(0.83, 1)
-      ..quadraticBezierTo(0.87, 0.94, 0.85, 0.81)
-      ..cubicTo(0.83, 0.57, 0.69, 0.49, 0.63, 0.4)
-      ..cubicTo(0.57, 0.33, 0.66, 0.28, 0.69, 0.19)
-      ..cubicTo(0.72, 0.12, 0.69, 0, 0.5, 0)
+    // Scale proportionally to preserve SVG aspect ratio (39.54 x 114.06)
+    canvas.scale(width / 39.54, height / 114.06);
+
+    // Exact vector silhouette from assets/icons/bowling.svg
+    final topHead = Path()
+      ..moveTo(12.42, 24.21)
+      ..lineTo(27.36, 24.21)
+      ..cubicTo(27.53, 17.13, 31.78, 9.3, 27.15, 3.34)
+      ..cubicTo(24.11, -0.2, 18.05, -1.32, 14.39, 1.92)
+      ..cubicTo(7.42, 7.99, 11.62, 16.59, 12.42, 24.21)
       ..close();
-    canvas.drawPath(silhouette, Paint()..color = color);
-    canvas.drawPath(
-      silhouette,
-      Paint()
-        ..color = colors.onSurface.withValues(alpha: 0.55)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 0.025,
-    );
+
+    final upperNeck = Path()
+      ..moveTo(12.58, 36.15)
+      ..lineTo(26.81, 36.15)
+      ..cubicTo(26.67, 33.96, 26.72, 31.61, 26.88, 29.22)
+      ..lineTo(12.66, 29.22)
+      ..cubicTo(12.69, 31.74, 12.66, 34.13, 12.58, 36.15)
+      ..close();
+
+    final bodyBase = Path()
+      ..moveTo(28.13, 42.78)
+      ..lineTo(11.73, 42.78)
+      ..cubicTo(2.81, 61.82, -9.37, 80.45, 11.51, 114.06)
+      ..lineTo(28.48, 114.06)
+      ..cubicTo(48.81, 78.18, 36.45, 60.61, 28.13, 42.78)
+      ..close();
+
+    final redStripe1 = Path()
+      ..moveTo(12.42, 24.21)
+      ..lineTo(12.66, 29.22)
+      ..lineTo(26.88, 29.22)
+      ..lineTo(27.36, 24.21)
+      ..close();
+
+    final redStripe2 = Path()
+      ..moveTo(12.58, 36.15)
+      ..lineTo(11.73, 42.78)
+      ..lineTo(28.13, 42.78)
+      ..lineTo(26.81, 36.15)
+      ..close();
+
+    final mainPaint = Paint()..color = color;
+    final strokePaint = Paint()
+      ..color = colors.onSurface.withValues(alpha: 0.45)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.0;
+
+    canvas.drawPath(topHead, mainPaint);
+    canvas.drawPath(topHead, strokePaint);
+    canvas.drawPath(upperNeck, mainPaint);
+    canvas.drawPath(upperNeck, strokePaint);
+    canvas.drawPath(bodyBase, mainPaint);
+    canvas.drawPath(bodyBase, strokePaint);
+
     final stripeColor = color == colors.error
-        ? colors.onError.withValues(alpha: 0.85)
-        : colors.error.withValues(alpha: 0.85);
-    for (final y in [0.27, 0.32]) {
-      canvas.drawRRect(
-        RRect.fromRectAndRadius(
-          Rect.fromLTWH(0.36, y, 0.28, 0.025),
-          const Radius.circular(0.01),
-        ),
-        Paint()..color = stripeColor,
-      );
-    }
+        ? colors.onError.withValues(alpha: 0.9)
+        : colors.error.withValues(alpha: 0.9);
+    final stripePaint = Paint()..color = stripeColor;
+
+    canvas.drawPath(redStripe1, stripePaint);
+    canvas.drawPath(redStripe2, stripePaint);
+
     canvas.restore();
   }
 
-  Color _colorFor(int id) {
-    if (current.keyId == id) return colors.tertiary;
-    if (current.comparingId == id) return colors.error;
-    if (current.minimumId == id) return colors.primary;
-    if (current.currentId == id) return colors.primary;
-    if (current.slots[id] < current.sortedCount) return colors.secondary;
+  Color _colorForStep(int id, SortingStep step) {
+    if (step.keyId == id) return colors.tertiary;
+    if (step.comparingId == id) return colors.error;
+    if (step.minimumId == id) return colors.primary;
+    if (step.currentId == id) return colors.primary;
+    if (step.slots[id] < step.sortedCount) return colors.secondary;
     return const Color(0xFFF8F7FB);
   }
 
