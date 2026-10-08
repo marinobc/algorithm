@@ -29,11 +29,6 @@ class ContactScreen extends StatelessWidget {
       email: 'eduardo.apaza@ucb.edu.bo',
       imagePath: 'assets/images/Eduardo.webp',
     ),
-    TeamMemberData(
-      name: 'Saire Marino Barroso Calle',
-      email: 'saire.barroso@ucb.edu.bo',
-      imagePath: 'assets/images/Marino.webp',
-    ),
   ];
 
   @override
@@ -96,8 +91,8 @@ class ContactScreen extends StatelessWidget {
                 LayoutBuilder(
                   builder: (context, constraints) {
                     final maxWidth = constraints.maxWidth;
-                    if (maxWidth > 850) {
-                      // Desktop/Web View: 3 Columns
+                    if (maxWidth > 580) {
+                      // Desktop/Tablet View: 2 Columns
                       return Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: teamMembers
@@ -116,41 +111,6 @@ class ContactScreen extends StatelessWidget {
                               ),
                             )
                             .toList(),
-                      );
-                    } else if (maxWidth > 580) {
-                      // Tablet View: 2 Top, 1 Bottom Centered
-                      return Column(
-                        children: [
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Expanded(
-                                child: _buildTeamMemberCard(
-                                  context,
-                                  teamMembers[0],
-                                  isCompact: false,
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: _buildTeamMemberCard(
-                                  context,
-                                  teamMembers[1],
-                                  isCompact: false,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 20),
-                          ConstrainedBox(
-                            constraints: const BoxConstraints(maxWidth: 420),
-                            child: _buildTeamMemberCard(
-                              context,
-                              teamMembers[2],
-                              isCompact: false,
-                            ),
-                          ),
-                        ],
                       );
                     } else {
                       // Mobile View: Single Column Stacked
