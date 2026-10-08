@@ -494,9 +494,7 @@ class _GraphEditorScreenState extends ConsumerState<GraphEditorScreen> {
               child: const FloatingAlgorithmCard(),
             ),
             Positioned(
-              bottom:
-                  (edicion.itemSeleccionadoId != null ? 240 : 16) +
-                  bottomPadding,
+              bottom: 16 + bottomPadding,
               left: 16,
               child: UndoRedoCanvasFabs(
                 onResetView: () {
@@ -505,9 +503,7 @@ class _GraphEditorScreenState extends ConsumerState<GraphEditorScreen> {
               ),
             ),
             Positioned(
-              bottom:
-                  (edicion.itemSeleccionadoId != null ? 240 : 16) +
-                  bottomPadding,
+              bottom: 16 + bottomPadding,
               right: 16,
               child: const CanvasControlsFabs(),
             ),
