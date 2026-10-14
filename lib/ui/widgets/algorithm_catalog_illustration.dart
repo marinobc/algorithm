@@ -9,6 +9,8 @@ enum AlgorithmCatalogIllustration {
   northwest,
   selectionSort,
   insertionSort,
+  shellSort,
+  mergeSort,
   upcoming,
 }
 
@@ -65,6 +67,10 @@ class _AlgorithmCatalogIllustrationPainter extends CustomPainter {
       case AlgorithmCatalogIllustration.selectionSort:
         _drawSortingStacks(canvas, size, nodePaint, mutedNodePaint, true);
       case AlgorithmCatalogIllustration.insertionSort:
+        _drawSortingStacks(canvas, size, nodePaint, mutedNodePaint, false);
+      case AlgorithmCatalogIllustration.shellSort:
+        _drawSortingStacks(canvas, size, nodePaint, mutedNodePaint, true);
+      case AlgorithmCatalogIllustration.mergeSort:
         _drawSortingStacks(canvas, size, nodePaint, mutedNodePaint, false);
       case AlgorithmCatalogIllustration.upcoming:
         _drawUpcomingGraph(canvas, size, linePaint, mutedNodePaint);

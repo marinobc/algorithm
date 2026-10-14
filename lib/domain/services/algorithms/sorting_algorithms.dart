@@ -34,3 +34,31 @@ class InsertionSortAlgorithm extends BaseSortingAlgorithm {
     return SortingTimeline.build(SortingAlgorithm.insertion, input);
   }
 }
+
+class ShellSortAlgorithm extends BaseSortingAlgorithm {
+  const ShellSortAlgorithm()
+    : super(
+        id: 'shell',
+        name: 'Shell Sort',
+        description: 'Ordena por inserción con incrementos de Knuth.',
+        accentColor: const Color(0xFF008C9E),
+      );
+
+  @override
+  SortingTimeline buildTimeline(List<int> input) =>
+      SortingTimeline.build(SortingAlgorithm.shell, input);
+}
+
+class MergeSortAlgorithm extends BaseSortingAlgorithm {
+  const MergeSortAlgorithm()
+    : super(
+        id: 'merge',
+        name: 'Merge Sort',
+        description: 'Divide el conjunto y fusiona mitades ordenadas.',
+        accentColor: const Color(0xFFE17237),
+      );
+
+  @override
+  SortingTimeline buildTimeline(List<int> input) =>
+      SortingTimeline.build(SortingAlgorithm.merge, input);
+}

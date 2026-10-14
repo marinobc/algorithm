@@ -136,6 +136,12 @@ void main() {
       );
       await tester.pumpAndSettle();
 
+      final grid = find.descendant(
+        of: find.byType(AlgorithmSelectionDialog),
+        matching: find.byType(GridView),
+      );
+      await tester.drag(grid, const Offset(0, -700));
+      await tester.pumpAndSettle();
       final proximamenteText = find.text('Próximamente').first;
       final card = tester.widget<InkWell>(
         find

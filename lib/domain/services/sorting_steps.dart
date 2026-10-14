@@ -1,4 +1,7 @@
-enum SortingAlgorithm { selection, insertion }
+part 'algorithms/shell_sort_steps.dart';
+part 'algorithms/merge_sort_steps.dart';
+
+enum SortingAlgorithm { selection, insertion, shell, merge }
 
 enum SortingPhase {
   ready,
@@ -11,6 +14,50 @@ enum SortingPhase {
   shifting,
   inserting,
   finished,
+  gap,
+  splitting,
+  mergeComparing,
+  mergeWriting,
+  merged,
+  mergeFocus,
+}
+
+enum SortingMergeStage { ready, division, left, right, fusion, result }
+
+class SortingMergeState {
+  final SortingMergeStage stage;
+  final int rootMiddle;
+  final List<int> rootLeftIds;
+  final List<int> rootRightIds;
+  final bool leftReady;
+  final bool rightReady;
+  final int start;
+  final int middle;
+  final int end;
+  final List<int> leftIds;
+  final List<int> rightIds;
+  final List<int> outputIds;
+  final int leftConsumed;
+  final int rightConsumed;
+  final int? selectedId;
+
+  const SortingMergeState({
+    required this.stage,
+    required this.rootMiddle,
+    required this.rootLeftIds,
+    required this.rootRightIds,
+    required this.leftReady,
+    required this.rightReady,
+    required this.start,
+    required this.middle,
+    required this.end,
+    required this.leftIds,
+    required this.rightIds,
+    required this.outputIds,
+    this.leftConsumed = 0,
+    this.rightConsumed = 0,
+    this.selectedId,
+  });
 }
 
 class SortingStep {
@@ -27,6 +74,9 @@ class SortingStep {
   final int insertions;
   final int durationMs;
   final String message;
+  final int? gap;
+  final int writes;
+  final SortingMergeState? mergeState;
 
   const SortingStep({
     required this.slots,
@@ -42,6 +92,9 @@ class SortingStep {
     required this.insertions,
     required this.durationMs,
     required this.message,
+    this.gap,
+    this.writes = 0,
+    this.mergeState,
   });
 }
 
@@ -57,6 +110,8 @@ class SortingTimeline {
   });
 
   static SortingTimeline build(SortingAlgorithm algorithm, List<int> input) {
+    if (algorithm == SortingAlgorithm.shell) return buildShellTimeline(input);
+    if (algorithm == SortingAlgorithm.merge) return buildMergeTimeline(input);
     final values = List<int>.unmodifiable(input);
     final order = List<int>.generate(values.length, (index) => index);
     final slots = List<double>.generate(

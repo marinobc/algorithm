@@ -32,16 +32,24 @@ class _TutorialScreenState extends ConsumerState<TutorialScreen> {
         : generalGuide;
 
     final bool hasContent = currentContent.isNotEmpty;
+    final accent = hasActiveAlgo && _selectedTab == 0
+        ? activeAlgo.themeColor
+        : colorScheme.primary;
+    final sections = currentContent.split(RegExp(r'\n---\s*\n'));
+    final introduction = sections.first.replaceFirst(
+      RegExp(r'^# [^\n]+\n*'),
+      '',
+    );
 
     final styleSheet = MarkdownStyleSheet.fromTheme(theme).copyWith(
       h1: theme.textTheme.headlineSmall?.copyWith(
         fontWeight: FontWeight.bold,
-        color: colorScheme.primary,
+        color: accent,
         height: 1.4,
       ),
       h2: theme.textTheme.titleMedium?.copyWith(
         fontWeight: FontWeight.bold,
-        color: colorScheme.secondary,
+        color: accent,
         height: 1.4,
       ),
       h3: theme.textTheme.titleSmall?.copyWith(
@@ -54,7 +62,7 @@ class _TutorialScreenState extends ConsumerState<TutorialScreen> {
       ),
       code: theme.textTheme.bodyMedium?.copyWith(
         backgroundColor: colorScheme.surfaceContainerHigh,
-        color: colorScheme.primary,
+        color: accent,
         fontFamily: 'monospace',
       ),
       codeblockDecoration: BoxDecoration(
@@ -69,7 +77,7 @@ class _TutorialScreenState extends ConsumerState<TutorialScreen> {
       blockquoteDecoration: BoxDecoration(
         color: colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(8),
-        border: Border(left: BorderSide(color: colorScheme.primary, width: 4)),
+        border: Border(left: BorderSide(color: accent, width: 4)),
       ),
       horizontalRuleDecoration: BoxDecoration(
         border: Border(
@@ -132,24 +140,117 @@ class _TutorialScreenState extends ConsumerState<TutorialScreen> {
                 ? SingleChildScrollView(
                     key: const ValueKey('tutorial_scroll_view'),
                     physics: const AlwaysScrollableScrollPhysics(),
-                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
-                    child: Container(
-                      padding: const EdgeInsets.all(24),
-                      decoration: BoxDecoration(
-                        color: colorScheme.surfaceContainerLow,
-                        borderRadius: BorderRadius.circular(24),
-                        border: Border.all(
-                          color: colorScheme.outlineVariant.withValues(
-                            alpha: 0.5,
-                          ),
+                    padding: const EdgeInsets.fromLTRB(16, 20, 16, 40),
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 860),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(22),
+                              decoration: BoxDecoration(
+                                color: accent.withValues(alpha: 0.09),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: accent.withValues(alpha: 0.25),
+                                ),
+                              ),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Icon(
+                                    hasActiveAlgo && _selectedTab == 0
+                                        ? activeAlgo.icon
+                                        : Icons.menu_book_rounded,
+                                    color: accent,
+                                    size: 30,
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          hasActiveAlgo && _selectedTab == 0
+                                              ? activeAlgo.name
+                                              : 'Editor de grafos',
+                                          style: theme.textTheme.titleLarge
+                                              ?.copyWith(
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                        ),
+                                        const SizedBox(height: 10),
+                                        MarkdownBody(
+                                          key: const ValueKey(
+                                            'tutorial_markdown',
+                                          ),
+                                          data: introduction,
+                                          selectable: true,
+                                          styleSheet: styleSheet,
+                                          softLineBreak: true,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                            for (
+                              var index = 1;
+                              index < sections.length;
+                              index++
+                            )
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 12),
+                                child: Container(
+                                  padding: const EdgeInsets.all(20),
+                                  decoration: BoxDecoration(
+                                    color: colorScheme.surfaceContainerLow,
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(
+                                      color: colorScheme.outlineVariant,
+                                    ),
+                                  ),
+                                  child: Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Container(
+                                        width: 32,
+                                        height: 32,
+                                        alignment: Alignment.center,
+                                        decoration: BoxDecoration(
+                                          color: accent.withValues(alpha: 0.12),
+                                          borderRadius: BorderRadius.circular(
+                                            6,
+                                          ),
+                                        ),
+                                        child: Text(
+                                          index.toString().padLeft(2, '0'),
+                                          style: TextStyle(
+                                            color: accent,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 16),
+                                      Expanded(
+                                        child: MarkdownBody(
+                                          data: sections[index].trim(),
+                                          selectable: true,
+                                          styleSheet: styleSheet,
+                                          softLineBreak: true,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                          ],
                         ),
-                      ),
-                      child: MarkdownBody(
-                        key: const ValueKey('tutorial_markdown'),
-                        data: currentContent,
-                        selectable: true,
-                        styleSheet: styleSheet,
-                        softLineBreak: true,
                       ),
                     ),
                   )

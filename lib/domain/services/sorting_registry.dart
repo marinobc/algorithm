@@ -7,10 +7,14 @@ import 'base_sorting_algorithm.dart';
 class SortingRegistry {
   static const BaseSortingAlgorithm selection = SelectionSortAlgorithm();
   static const BaseSortingAlgorithm insertion = InsertionSortAlgorithm();
+  static const BaseSortingAlgorithm shell = ShellSortAlgorithm();
+  static const BaseSortingAlgorithm merge = MergeSortAlgorithm();
 
   static final List<BaseSortingAlgorithm> registeredAlgorithms = [
     selection,
     insertion,
+    shell,
+    merge,
   ];
 
   static BaseSortingAlgorithm? findById(String? id) {
