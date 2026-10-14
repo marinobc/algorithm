@@ -11,6 +11,10 @@ class SortingPinVisualizer extends StatefulWidget {
   final Animation<double> progress;
   final bool followPlayback;
 
+  /// Reserva espacio vertical para que el pino clave (Insertion Sort) pueda
+  /// elevarse por encima de todos los demás sin salirse del lienzo.
+  final bool reserveLiftSpace;
+
   const SortingPinVisualizer({
     super.key,
     required this.values,
@@ -18,6 +22,7 @@ class SortingPinVisualizer extends StatefulWidget {
     required this.current,
     required this.progress,
     this.followPlayback = false,
+    this.reserveLiftSpace = false,
   });
 
   @override
@@ -128,6 +133,7 @@ class _SortingPinVisualizerState extends State<SortingPinVisualizer> {
                   progress: widget.progress.value,
                   slotWidth: _slotWidth,
                   colors: colors,
+                  reserveLiftSpace: widget.reserveLiftSpace,
                 ),
               ),
             ),
@@ -145,6 +151,12 @@ class _SortingPinsPainter extends CustomPainter {
   final double progress;
   final double slotWidth;
   final ColorScheme colors;
+  final bool reserveLiftSpace;
+
+  // Separación mínima entre la base del pino clave elevado y la cabeza del
+  // pino más alto, y espacio para la etiqueta "KEY" sobre el pino elevado.
+  static const double _keyClearanceGap = 18.0;
+  static const double _markerSpace = 26.0;
 
   const _SortingPinsPainter({
     required this.values,
@@ -153,6 +165,7 @@ class _SortingPinsPainter extends CustomPainter {
     required this.progress,
     required this.slotWidth,
     required this.colors,
+    this.reserveLiftSpace = false,
   });
 
   @override
@@ -187,11 +200,49 @@ class _SortingPinsPainter extends CustomPainter {
       );
     }
 
+    // Scale height and width proportionally according to bowling.svg aspect ratio (39.54 / 114.06)
+    var maxAvailableHeight = math.min(size.height - 106, slotWidth * 2.88);
+    if (reserveLiftSpace) {
+      // El pino clave se eleva por encima del más alto: hace falta espacio
+      // para "pino + hueco + pino + etiqueta" sobre la línea base.
+      final cap = (baseY - _keyClearanceGap - _markerSpace) / 2;
+      maxAvailableHeight = math.min(maxAvailableHeight, math.max(40.0, cap));
+    }
+
+    double pinHeightFor(int id) {
+      final ratio = maxAbsolute == 0
+          ? 0.0
+          : useLog
+          ? math.log(1 + values[id].abs()) / math.log(1 + maxAbsolute)
+          : values[id].abs() / maxAbsolute;
+      return maxAvailableHeight * (0.35 + 0.65 * ratio);
+    }
+
+    var tallestPin = 0.0;
     for (var id = 0; id < values.length; id++) {
+      tallestPin = math.max(tallestPin, pinHeightFor(id));
+    }
+
+    // Mientras exista un pino clave, el resto se desliza por el suelo y el
+    // clave viaja por arriba: así nunca se cruzan.
+    final insertionMode = previous.keyId != null || current.keyId != null;
+
+    // El pino clave se dibuja al final para quedar siempre por encima.
+    final paintOrder = <int>[
+      for (var id = 0; id < values.length; id++)
+        if (id != previous.keyId && id != current.keyId) id,
+      for (var id = 0; id < values.length; id++)
+        if (id == previous.keyId || id == current.keyId) id,
+    ];
+
+    for (final id in paintOrder) {
       final previousX = (previous.slots[id] + 0.5) * slotWidth;
       final currentX = (current.slots[id] + 0.5) * slotWidth;
       // Physics-driven spatial interpolation
       final x = previousX + (currentX - previousX) * curvedProgress;
+
+      final pinHeight = pinHeightFor(id);
+      final pinWidth = pinHeight * (39.54 / 114.06);
 
       final wasRaised = previous.keyId == id && previous.keyRaised;
       final isRaised = current.keyId == id && current.keyRaised;
@@ -199,25 +250,22 @@ class _SortingPinsPainter extends CustomPainter {
           (wasRaised ? 1.0 : 0.0) +
           ((isRaised ? 1.0 : 0.0) - (wasRaised ? 1.0 : 0.0)) * curvedProgress;
 
-      // Calculate parabolic arc lift (up-and-over motion) when a pin changes horizontal slot position
+      // Altura a la que el pino clave libera por completo a los demás pinos,
+      // sin salirse por el borde superior del lienzo.
+      final keyLift = math.min(
+        tallestPin + _keyClearanceGap,
+        math.max(28.0, baseY - pinHeight - _markerSpace),
+      );
+
+      // Arco parabólico (subir y pasar por encima) solo cuando no hay pino
+      // clave: p. ej. el intercambio de Selection Sort.
       final deltaSlots = (current.slots[id] - previous.slots[id]).abs();
-      final arcHeight = deltaSlots > 0
+      final arcHeight = !insertionMode && deltaSlots > 0
           ? math.sin(curvedProgress * math.pi) *
                 math.min(42.0, deltaSlots * 22.0)
           : 0.0;
 
-      final totalLift = (liftProgress * 28) + arcHeight;
-
-      final ratio = maxAbsolute == 0
-          ? 0.0
-          : useLog
-          ? math.log(1 + values[id].abs()) / math.log(1 + maxAbsolute)
-          : values[id].abs() / maxAbsolute;
-
-      // Scale height and width proportionally according to bowling.svg aspect ratio (39.54 / 114.06)
-      final maxAvailableHeight = math.min(size.height - 106, slotWidth * 2.88);
-      final pinHeight = maxAvailableHeight * (0.35 + 0.65 * ratio);
-      final pinWidth = pinHeight * (39.54 / 114.06);
+      final totalLift = (liftProgress * keyLift) + arcHeight;
 
       // Smooth color morphing between previous and current step states using Color.lerp
       final prevColor = _colorForStep(id, previous);
@@ -382,5 +430,6 @@ class _SortingPinsPainter extends CustomPainter {
       oldDelegate.current != current ||
       oldDelegate.progress != progress ||
       oldDelegate.slotWidth != slotWidth ||
-      oldDelegate.colors != colors;
+      oldDelegate.colors != colors ||
+      oldDelegate.reserveLiftSpace != reserveLiftSpace;
 }

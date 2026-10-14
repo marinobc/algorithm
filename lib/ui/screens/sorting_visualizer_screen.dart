@@ -471,6 +471,7 @@ class _SortingVisualizerScreenState
                     current: step!,
                     progress: _motion,
                     followPlayback: _playing,
+                    reserveLiftSpace: widget.algorithm.id == 'insertion',
                   ),
           ),
         ),
