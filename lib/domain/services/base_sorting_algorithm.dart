@@ -31,5 +31,11 @@ abstract class BaseSortingAlgorithm {
     SortingPhase.shifting => 'DESPLAZAMIENTO',
     SortingPhase.inserting => 'INSERCIÓN',
     SortingPhase.finished => 'TERMINADO',
+    SortingPhase.gap => 'NUEVO GAP',
+    SortingPhase.splitting => 'DIVIDIENDO',
+    SortingPhase.mergeComparing => 'COMPARANDO MITADES',
+    SortingPhase.mergeWriting => 'FUSIONANDO',
+    SortingPhase.merged => 'TRAMO FUSIONADO',
+    SortingPhase.mergeFocus => 'CAMBIO DE FOCO',
   };
 }

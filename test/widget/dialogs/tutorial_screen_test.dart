@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:nodos/algorithms/assignment/assignment_algorithm.dart';
+import 'package:nodos/algorithms/core/algorithm_registry.dart';
+import 'package:nodos/algorithms/johnson/johnson_algorithm.dart';
+import 'package:nodos/algorithms/northwest/northwest_algorithm.dart';
 import 'package:nodos/ui/dialogs/tutorial_screen.dart';
 import 'package:nodos/ui/text/user_guide_text.dart';
 
@@ -55,6 +59,35 @@ void main() {
       expect(find.byKey(const ValueKey('tutorial_close_btn')), findsOneWidget);
       expect(find.text('Entendido, volver al lienzo'), findsOneWidget);
     });
+
+    for (final algorithm in [
+      const AssignmentAlgorithm(),
+      const JohnsonAlgorithm(),
+      const NorthwestAlgorithm(),
+    ]) {
+      testWidgets('shows the structured guide for ${algorithm.name}', (
+        tester,
+      ) async {
+        final container = ProviderContainer();
+        addTearDown(container.dispose);
+        container
+            .read(activeAlgorithmProvider.notifier)
+            .selectAlgorithm(algorithm);
+
+        await tester.pumpWidget(
+          UncontrolledProviderScope(
+            container: container,
+            child: const MaterialApp(home: TutorialScreen()),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(tester.takeException(), isNull);
+        expect(find.text(algorithm.name), findsWidgets);
+        expect(find.text('01'), findsOneWidget);
+        expect(find.byKey(const ValueKey('tutorial_markdown')), findsOneWidget);
+      });
+    }
 
     testWidgets('close button pops the route', (tester) async {
       await tester.pumpWidget(

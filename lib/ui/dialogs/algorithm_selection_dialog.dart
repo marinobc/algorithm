@@ -168,6 +168,22 @@ class AlgorithmSelectionDialog extends StatelessWidget {
         sortingAlgorithm: SortingRegistry.insertion,
       ),
       const _AlgorithmCatalogOption(
+        id: 'shell-sort',
+        title: 'Shell Sort',
+        description: 'Ordena subsecuencias con incrementos de Knuth.',
+        accentColor: Color(0xFF008C9E),
+        illustration: AlgorithmCatalogIllustration.shellSort,
+        sortingAlgorithm: SortingRegistry.shell,
+      ),
+      const _AlgorithmCatalogOption(
+        id: 'merge-sort',
+        title: 'Merge Sort',
+        description: 'Divide el conjunto y fusiona mitades ordenadas.',
+        accentColor: Color(0xFFE17237),
+        illustration: AlgorithmCatalogIllustration.mergeSort,
+        sortingAlgorithm: SortingRegistry.merge,
+      ),
+      const _AlgorithmCatalogOption(
         id: 'upcoming',
         title: 'Próximamente',
         description: 'Estamos preparando nuevos algoritmos para ampliar las herramientas disponibles.',

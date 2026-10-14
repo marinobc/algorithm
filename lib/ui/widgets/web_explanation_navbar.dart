@@ -21,6 +21,8 @@ enum ExplanationWebPage {
   northwest,
   selectionSort,
   insertionSort,
+  shellSort,
+  mergeSort,
   contact,
 }
 
@@ -58,6 +60,16 @@ class WebExplanationShell extends ConsumerWidget {
       case ExplanationWebPage.insertionSort:
         targetScreen = const SortingAlgoScreen(
           algorithm: SortingRegistry.insertion,
+        );
+        break;
+      case ExplanationWebPage.shellSort:
+        targetScreen = const SortingAlgoScreen(
+          algorithm: SortingRegistry.shell,
+        );
+        break;
+      case ExplanationWebPage.mergeSort:
+        targetScreen = const SortingAlgoScreen(
+          algorithm: SortingRegistry.merge,
         );
         break;
       case ExplanationWebPage.contact:
@@ -464,6 +476,22 @@ class WebExplanationShell extends ConsumerWidget {
                 label: 'Insertion Sort',
                 page: ExplanationWebPage.insertionSort,
                 icon: Icons.low_priority_rounded,
+                isDrawer: isDrawer,
+              ),
+              const SizedBox(height: 6),
+              _buildVerticalNavLink(
+                context,
+                label: 'Shell Sort',
+                page: ExplanationWebPage.shellSort,
+                icon: Icons.space_bar_rounded,
+                isDrawer: isDrawer,
+              ),
+              const SizedBox(height: 6),
+              _buildVerticalNavLink(
+                context,
+                label: 'Merge Sort',
+                page: ExplanationWebPage.mergeSort,
+                icon: Icons.call_merge_rounded,
                 isDrawer: isDrawer,
               ),
             ],
