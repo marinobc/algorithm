@@ -17,6 +17,7 @@ enum SortingPhase {
   gap,
   splitting,
   mergeComparing,
+  mergeCopying,
   mergeWriting,
   merged,
   mergeFocus,
@@ -40,6 +41,11 @@ class SortingMergeState {
   final int leftConsumed;
   final int rightConsumed;
   final int? selectedId;
+  final List<int> arrayIds;
+  final List<int?> auxIds;
+  final int? i;
+  final int? j;
+  final int? k;
 
   const SortingMergeState({
     required this.stage,
@@ -54,6 +60,11 @@ class SortingMergeState {
     required this.leftIds,
     required this.rightIds,
     required this.outputIds,
+    required this.arrayIds,
+    required this.auxIds,
+    this.i,
+    this.j,
+    this.k,
     this.leftConsumed = 0,
     this.rightConsumed = 0,
     this.selectedId,
@@ -76,6 +87,7 @@ class SortingStep {
   final String message;
   final int? gap;
   final int writes;
+  final int auxCopies;
   final SortingMergeState? mergeState;
 
   const SortingStep({
@@ -94,6 +106,7 @@ class SortingStep {
     required this.message,
     this.gap,
     this.writes = 0,
+    this.auxCopies = 0,
     this.mergeState,
   });
 }

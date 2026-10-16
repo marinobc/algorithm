@@ -28,7 +28,7 @@ class MergeSortVisualizer extends StatefulWidget {
 
 class _MergeSortVisualizerState extends State<MergeSortVisualizer> {
   final _scrollController = ScrollController();
-  double _slotWidth = 58;
+  double _slotWidth = SortingVisualTokens.compactSlotWidth;
   double _viewportWidth = 0;
 
   @override
@@ -249,11 +249,113 @@ class _MergeSortVisualizerState extends State<MergeSortVisualizer> {
               ],
             ),
           ),
+        if (state.stage != SortingMergeStage.ready &&
+            state.stage != SortingMergeStage.result)
+          LayoutBuilder(
+            builder: (context, constraints) => Padding(
+              padding: const EdgeInsets.fromLTRB(12, 1, 12, 7),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    height: 34,
+                    child: Text(
+                      switch (widget.current.phase) {
+                        SortingPhase.mergeCopying =>
+                          'Copiando posiciones ${state.start + 1}–${state.end} a aux[]',
+                        SortingPhase.mergeComparing =>
+                          'Comparando ${widget.values[widget.current.currentId!]} con ${widget.values[widget.current.comparingId!]}',
+                        SortingPhase.mergeWriting =>
+                          'Escribiendo ${widget.values[state.selectedId!]} en a[${state.k! + 1}]',
+                        SortingPhase.merged =>
+                          'Posiciones ${state.start + 1}–${state.end} ordenadas internamente',
+                        _ =>
+                          'Procesando posiciones ${state.start + 1}–${state.end}',
+                      },
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: colors.onSurface,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  SizedBox(
+                    height: constraints.maxWidth < 540 ? 48 : 30,
+                    child: Wrap(
+                      spacing: 11,
+                      runSpacing: 2,
+                      children: [
+                        Text(
+                          'lo ${state.start + 1} · mid ${state.middle} · hi ${state.end}',
+                          style: TextStyle(
+                            color: colors.onSurfaceVariant,
+                            fontSize: 11,
+                          ),
+                        ),
+                        if (state.i != null)
+                          Text(
+                            state.i! < state.middle
+                                ? 'i ${state.i! + 1} · izquierda'
+                                : 'i · agotada',
+                            style: const TextStyle(
+                              color: SortingVisualTokens.current,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        if (state.j != null)
+                          Text(
+                            state.j! < state.end
+                                ? 'j ${state.j! + 1} · derecha'
+                                : 'j · agotada',
+                            style: const TextStyle(
+                              color: SortingVisualTokens.compared,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        if (state.k != null && state.k! < state.end)
+                          Text(
+                            'k ${state.k! + 1} · destino',
+                            style: const TextStyle(
+                              color: SortingVisualTokens.minimum,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  Visibility(
+                    visible:
+                        widget.current.phase == SortingPhase.mergeComparing ||
+                        widget.current.phase == SortingPhase.mergeWriting,
+                    maintainSize: true,
+                    maintainAnimation: true,
+                    maintainState: true,
+                    child: Text(
+                      'En a[], las posiciones pendientes conservan su valor anterior.',
+                      style: TextStyle(
+                        color: colors.onSurfaceVariant,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         Expanded(
           child: LayoutBuilder(
             builder: (context, constraints) {
               final count = math.max(widget.values.length, 1);
-              final width = math.max(constraints.maxWidth, count * 58.0 + 32);
+              final width = math.max(
+                constraints.maxWidth,
+                count * SortingVisualTokens.compactSlotWidth + 32,
+              );
               _slotWidth = (width - 32) / count;
               _viewportWidth = constraints.maxWidth;
               final hasOverflow = width > constraints.maxWidth + 1;
@@ -280,6 +382,7 @@ class _MergeSortVisualizerState extends State<MergeSortVisualizer> {
                               ),
                         slotWidth: _slotWidth,
                         colors: colors,
+                        bottomInset: hasOverflow ? 46 : 20,
                       ),
                     ),
                   ),
@@ -311,6 +414,7 @@ class _MergePainter extends CustomPainter {
   final double progress;
   final double slotWidth;
   final ColorScheme colors;
+  final double bottomInset;
   late final int maxAbsolute = values.fold<int>(
     0,
     (maximum, value) => math.max(maximum, value.abs()),
@@ -327,32 +431,22 @@ class _MergePainter extends CustomPainter {
     required this.progress,
     required this.slotWidth,
     required this.colors,
+    required this.bottomInset,
   });
 
   SortingMergeState get state => current.mergeState!;
   SortingMergeState get before => previous.mergeState!;
   double x(int position) => 16 + (position + 0.5) * slotWidth;
-  double mainX(int position) =>
-      x(position) + (position < state.rootMiddle ? -8 : 8);
 
   @override
   void paint(Canvas canvas, Size size) {
-    final h = size.height;
-    final topY = switch (state.stage) {
-      SortingMergeStage.division => h * 0.58,
-      SortingMergeStage.fusion => h * 0.37,
-      _ => h * 0.28,
-    };
-    final localY = h * 0.59;
-    final outputY = state.stage == SortingMergeStage.fusion
-        ? h * 0.84
-        : h * 0.88;
-    final rootPinHeight = switch (state.stage) {
-      SortingMergeStage.division => h * 0.32,
-      SortingMergeStage.fusion => h * 0.25,
-      _ => h * 0.19,
-    };
-    final localPinHeight = h * 0.18;
+    final h = math.max(0.0, size.height - bottomInset);
+    final topY = h * 0.22;
+    final localY = h * 0.55;
+    final outputY = h * 0.89;
+    final contextPinHeight = h * 0.11;
+    final localPinHeight = h * 0.11;
+    final outputPinHeight = h * 0.11;
     final moving =
         current.phase == SortingPhase.mergeWriting &&
         state.selectedId != null &&
@@ -381,7 +475,7 @@ class _MergePainter extends CustomPainter {
           canvas,
           i,
           Offset(x(i), h * 0.76),
-          h * 0.42,
+          h * 0.45,
           SortingVisualTokens.neutral,
         );
       }
@@ -411,50 +505,65 @@ class _MergePainter extends CustomPainter {
           canvas,
           ids[i],
           Offset.lerp(from, to, progress)!,
-          h * 0.42,
+          h * 0.45,
           SortingVisualTokens.ordered,
         );
       }
       return;
     }
 
-    final mainLeft = state.rootLeftIds;
-    final mainRight = state.rootRightIds;
-    final splitX = 16 + state.rootMiddle * slotWidth;
-    canvas.drawLine(Offset(12, topY), Offset(size.width - 12, topY), baseLine);
-    canvas.drawLine(
-      Offset(splitX, h * 0.05),
-      Offset(splitX, topY + 20),
-      baseLine,
+    _label(
+      canvas,
+      'a[] · arreglo principal / contexto',
+      size.width / 2,
+      h * 0.025,
+      colors.onSurface,
+      12,
+      FontWeight.w700,
     );
-    for (var i = 0; i < mainLeft.length; i++) {
-      _mainPin(
+    final activeStart = state.start;
+    final activeEnd = state.end;
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTRB(
+          16 + activeStart * slotWidth,
+          h * 0.10,
+          16 + activeEnd * slotWidth,
+          topY + 14,
+        ),
+        const Radius.circular(4),
+      ),
+      Paint()
+        ..color = colors.primary.withValues(alpha: 0.34)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1,
+    );
+    canvas.drawLine(Offset(12, topY), Offset(size.width - 12, topY), baseLine);
+    final visibleArray = moving ? before.arrayIds : state.arrayIds;
+    for (var position = 0; position < visibleArray.length; position++) {
+      _pin(
         canvas,
-        mainLeft[i],
-        i,
-        topY,
-        rootPinHeight,
-        isLeft: true,
-        moving: moving,
+        visibleArray[position],
+        Offset(x(position), topY),
+        contextPinHeight,
+        position >= activeStart && position < activeEnd
+            ? SortingVisualTokens.current
+            : SortingVisualTokens.neutral,
+        opacity: position >= activeStart && position < activeEnd ? 1 : 0.65,
       );
     }
-    for (var i = 0; i < mainRight.length; i++) {
-      _mainPin(
-        canvas,
-        mainRight[i],
-        state.rootMiddle + i,
-        topY,
-        rootPinHeight,
-        isLeft: false,
-        moving: moving,
-      );
-    }
+    final splitX = 16 + state.middle * slotWidth;
+    canvas.drawLine(
+      Offset(splitX, h * 0.10),
+      Offset(splitX, topY + 12),
+      Paint()..color = colors.primary.withValues(alpha: 0.28),
+    );
     if (state.stage == SortingMergeStage.division) {
       _label(
         canvas,
-        'Dos mitades pendientes de ordenar',
+        'Mitades separadas: izquierda y derecha aún pendientes',
         size.width / 2,
-        h * 0.76,
+        h * 0.65,
         colors.onSurfaceVariant,
         13,
         FontWeight.w600,
@@ -472,7 +581,7 @@ class _MergePainter extends CustomPainter {
         canvas,
         caption,
         size.width / 2,
-        h * 0.44,
+        h * 0.63,
         colors.onSurfaceVariant,
         13,
         FontWeight.w600,
@@ -480,58 +589,57 @@ class _MergePainter extends CustomPainter {
       return;
     }
 
-    if (state.stage != SortingMergeStage.fusion) {
-      _label(
+    _label(
+      canvas,
+      current.phase == SortingPhase.splitting
+          ? 'a[] · submitades del tramo ${state.start + 1}–${state.end}'
+          : 'aux[] · copia temporal para fusionar',
+      size.width / 2,
+      h * 0.34,
+      colors.onSurface,
+      12,
+      FontWeight.w700,
+    );
+    canvas.drawLine(
+      Offset(12, localY),
+      Offset(size.width - 12, localY),
+      baseLine,
+    );
+    canvas.drawLine(
+      Offset(splitX, h * 0.38),
+      Offset(splitX, localY + 14),
+      Paint()..color = colors.primary.withValues(alpha: 0.28),
+    );
+    for (var i = 0; i < state.leftIds.length; i++) {
+      _sourcePin(
         canvas,
-        'Tramo ${state.start + 1}–${state.end}: submitades',
-        size.width / 2,
-        h * 0.39,
-        colors.onSurface,
-        12,
-        FontWeight.w700,
+        state.leftIds[i],
+        state.start + i,
+        i < state.leftConsumed,
+        localY,
+        localPinHeight,
       );
-      canvas.drawLine(
-        Offset(12, localY),
-        Offset(size.width - 12, localY),
-        baseLine,
-      );
-      canvas.drawLine(
-        Offset(16 + state.middle * slotWidth, h * 0.44),
-        Offset(16 + state.middle * slotWidth, localY + 14),
-        baseLine,
-      );
-      for (var i = 0; i < state.leftIds.length; i++) {
-        _sourcePin(
-          canvas,
-          state.leftIds[i],
-          state.start + i,
-          i < state.leftConsumed,
-          localY,
-          localPinHeight,
-          moving,
-        );
-      }
-      for (var i = 0; i < state.rightIds.length; i++) {
-        _sourcePin(
-          canvas,
-          state.rightIds[i],
-          state.middle + i,
-          i < state.rightConsumed,
-          localY,
-          localPinHeight,
-          moving,
-        );
-      }
     }
+    for (var i = 0; i < state.rightIds.length; i++) {
+      _sourcePin(
+        canvas,
+        state.rightIds[i],
+        state.middle + i,
+        i < state.rightConsumed,
+        localY,
+        localPinHeight,
+      );
+    }
+    if (current.phase == SortingPhase.splitting) return;
 
-    final outputLabel = state.stage == SortingMergeStage.fusion
-        ? 'Salida: fusión final'
-        : 'Salida del tramo ${state.start + 1}–${state.end}';
+    final completedWrites = state.outputIds.length - (moving ? 1 : 0);
+    final outputLabel =
+        'a[] · tramo ampliado ${state.start + 1}–${state.end} · $completedWrites de ${state.end - state.start} escrituras visibles';
     _label(
       canvas,
       outputLabel,
       size.width / 2,
-      state.stage == SortingMergeStage.fusion ? h * 0.51 : h * 0.65,
+      h * 0.68,
       colors.onSurface,
       12,
       FontWeight.w700,
@@ -541,17 +649,39 @@ class _MergePainter extends CustomPainter {
       Offset(size.width - 12, outputY),
       baseLine,
     );
-    for (var i = 0; i < state.outputIds.length; i++) {
-      final id = state.outputIds[i];
-      if (moving && id == state.selectedId && i == state.outputIds.length - 1) {
-        continue;
-      }
+    for (var i = state.start; i < state.end; i++) {
+      final written = i - state.start < state.outputIds.length;
+      final targetMoving = moving && i == state.k;
+      final id = visibleArray[i];
       _pin(
         canvas,
         id,
-        Offset(x(state.start + i), outputY),
-        state.stage == SortingMergeStage.fusion ? h * 0.25 : localPinHeight,
-        SortingVisualTokens.current,
+        Offset(x(i), outputY),
+        outputPinHeight,
+        written && !targetMoving
+            ? SortingVisualTokens.current
+            : SortingVisualTokens.neutral,
+        opacity: written && !targetMoving ? 1 : 0.55,
+      );
+      canvas.drawLine(
+        Offset(x(i) - slotWidth * 0.22, outputY + 24),
+        Offset(x(i) + slotWidth * 0.22, outputY + 24),
+        Paint()
+          ..color = written && !targetMoving
+              ? SortingVisualTokens.current
+              : colors.outlineVariant,
+      );
+    }
+    if (state.k != null && state.k! < state.end) {
+      _label(
+        canvas,
+        'k',
+        x(state.k!),
+        outputY + 30,
+        SortingVisualTokens.minimum,
+        12,
+        FontWeight.w800,
+        maxWidth: slotWidth - 4,
       );
     }
     if (moving) {
@@ -560,98 +690,14 @@ class _MergePainter extends CustomPainter {
       final sourcePosition = leftIndex >= 0
           ? state.start + leftIndex
           : state.middle + state.rightIds.indexOf(id);
-      final sourceY = state.stage == SortingMergeStage.fusion ? topY : localY;
-      final from = Offset(
-        state.stage == SortingMergeStage.fusion
-            ? mainX(sourcePosition)
-            : x(sourcePosition),
-        sourceY,
-      );
+      final from = Offset(x(sourcePosition), localY);
       final to = Offset(x(state.start + state.outputIds.length - 1), outputY);
       _pin(
         canvas,
         id,
         Offset.lerp(from, to, progress)!,
-        state.stage == SortingMergeStage.fusion ? h * 0.25 : localPinHeight,
+        outputPinHeight,
         SortingVisualTokens.current,
-      );
-    }
-  }
-
-  void _mainPin(
-    Canvas canvas,
-    int id,
-    int position,
-    double y,
-    double height, {
-    required bool isLeft,
-    required bool moving,
-  }) {
-    final sameTop =
-        before.stage != SortingMergeStage.ready &&
-        before.stage != SortingMergeStage.result;
-    final oldIds = isLeft ? before.rootLeftIds : before.rootRightIds;
-    final oldIndex = oldIds.indexOf(id);
-    final oldPosition = oldIndex < 0
-        ? position
-        : oldIndex + (isLeft ? 0 : state.rootMiddle);
-    final canvasHeight =
-        y /
-        (state.stage == SortingMergeStage.division
-            ? 0.58
-            : state.stage == SortingMergeStage.fusion
-            ? 0.37
-            : 0.28);
-    final fromY =
-        canvasHeight *
-        switch (before.stage) {
-          SortingMergeStage.ready => 0.76,
-          SortingMergeStage.division => 0.58,
-          SortingMergeStage.fusion => 0.37,
-          _ => 0.28,
-        };
-    final from = sameTop
-        ? Offset(mainX(oldPosition), fromY)
-        : Offset(x(position), fromY);
-    final to = Offset(mainX(position), y);
-    final consumed =
-        state.stage == SortingMergeStage.fusion &&
-        (isLeft
-            ? state.leftIds.indexOf(id) < state.leftConsumed
-            : state.rightIds.indexOf(id) < state.rightConsumed);
-    if (moving && id == state.selectedId) return;
-    final active = isLeft
-        ? state.stage == SortingMergeStage.left
-        : state.stage == SortingMergeStage.right;
-    final completed = isLeft ? state.leftReady : state.rightReady;
-    final comparing =
-        state.stage == SortingMergeStage.fusion &&
-        current.phase == SortingPhase.mergeComparing &&
-        (current.currentId == id || current.comparingId == id);
-    final color = comparing
-        ? SortingVisualTokens.compared
-        : completed
-        ? SortingVisualTokens.internallyOrdered
-        : active
-        ? SortingVisualTokens.current
-        : SortingVisualTokens.neutral;
-    _pin(
-      canvas,
-      id,
-      Offset.lerp(from, to, progress)!,
-      height,
-      color,
-      opacity: consumed ? 0.5 : 1,
-    );
-    if (comparing) {
-      _label(
-        canvas,
-        isLeft ? 'A' : 'B',
-        to.dx,
-        y - height - 15,
-        SortingVisualTokens.compared,
-        11,
-        FontWeight.w800,
       );
     }
   }
@@ -663,29 +709,56 @@ class _MergePainter extends CustomPainter {
     bool consumed,
     double y,
     double height,
-    bool moving,
   ) {
-    if (moving && id == state.selectedId) return;
     final comparing =
         current.phase == SortingPhase.mergeComparing &&
         (current.currentId == id || current.comparingId == id);
+    final copying = current.phase == SortingPhase.mergeCopying;
+    final sourceReady = current.phase != SortingPhase.splitting;
     _pin(
       canvas,
       id,
       Offset(x(position), y),
       height,
-      comparing ? SortingVisualTokens.compared : SortingVisualTokens.neutral,
-      opacity: consumed ? 0.5 : 1,
+      current.currentId == id && comparing
+          ? SortingVisualTokens.current
+          : current.comparingId == id && comparing
+          ? SortingVisualTokens.compared
+          : SortingVisualTokens.neutral,
+      opacity: copying
+          ? math.max(0.1, progress)
+          : consumed
+          ? 0.55
+          : sourceReady
+          ? 1
+          : 0.75,
     );
-    if (comparing) {
-      _label(
-        canvas,
-        id == current.currentId ? 'A' : 'B',
-        x(position),
-        y - height - 15,
-        SortingVisualTokens.compared,
-        11,
-        FontWeight.w800,
+    final pinWidth =
+        math.min(height, (slotWidth - 12) / SortingVisualTokens.pinAspect) *
+        SortingVisualTokens.relativeHeight(
+          values[id],
+          maxAbsolute,
+          minPositive,
+        ) *
+        SortingVisualTokens.pinAspect;
+    if (state.i == position && position < state.middle && sourceReady) {
+      canvas.drawLine(
+        Offset(x(position) - pinWidth / 2 - 3, y - 12),
+        Offset(x(position) - pinWidth / 2 - 3, y - 2),
+        Paint()
+          ..color = SortingVisualTokens.current
+          ..strokeWidth = 2.5
+          ..strokeCap = StrokeCap.round,
+      );
+    }
+    if (state.j == position && position < state.end && sourceReady) {
+      canvas.drawLine(
+        Offset(x(position) + pinWidth / 2 + 3, y - 12),
+        Offset(x(position) + pinWidth / 2 + 3, y - 2),
+        Paint()
+          ..color = SortingVisualTokens.compared
+          ..strokeWidth = 2.5
+          ..strokeCap = StrokeCap.round,
       );
     }
   }
@@ -763,5 +836,6 @@ class _MergePainter extends CustomPainter {
       oldDelegate.current != current ||
       oldDelegate.progress != progress ||
       oldDelegate.slotWidth != slotWidth ||
-      oldDelegate.colors != colors;
+      oldDelegate.colors != colors ||
+      oldDelegate.bottomInset != bottomInset;
 }

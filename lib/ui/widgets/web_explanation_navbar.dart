@@ -462,7 +462,27 @@ class WebExplanationShell extends ConsumerWidget {
                 icon: Icons.grid_view_rounded,
                 isDrawer: isDrawer,
               ),
-              const SizedBox(height: 6),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 4.0),
+          child: Text(
+            'Ordenamiento',
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1.0,
+              color: colorScheme.primary,
+            ),
+          ),
+        ),
+        const SizedBox(height: 4),
+        Padding(
+          padding: const EdgeInsets.only(left: 12.0),
+          child: Column(
+            children: [
               _buildVerticalNavLink(
                 context,
                 label: 'Selection Sort',

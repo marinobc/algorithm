@@ -9,6 +9,8 @@ import '../../application/providers/edicion_provider.dart';
 import '../../application/providers/grafo_provider.dart';
 import '../../domain/services/sorting_steps.dart';
 import '../../domain/services/sorting_registry.dart';
+import '../../domain/services/sorting_set_storage_service.dart';
+import '../dialogs/sorting_set_dialogs.dart';
 import '../dialogs/sorting_usage_dialog.dart';
 import '../widgets/sorting_pin_visualizer.dart';
 import '../widgets/merge_sort_visualizer.dart';
@@ -129,8 +131,8 @@ class _SortingVisualizerScreenState
 
   void _confirmQuantity() {
     final parsed = int.tryParse(_quantityController.text.trim());
-    if (parsed == null || parsed < 1 || parsed > 60) {
-      setState(() => _quantityError = 'Ingresa una cantidad entre 1 y 60.');
+    if (parsed == null || parsed < 1) {
+      setState(() => _quantityError = 'Ingresa una cantidad mayor que cero.');
       return;
     }
     _stopPlayback();
@@ -274,6 +276,127 @@ class _SortingVisualizerScreenState
     });
   }
 
+  Future<void> _newSet() async {
+    if (_originalValues != null ||
+        _valueControllers.any((controller) => controller.text.isNotEmpty)) {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Nuevo conjunto'),
+          content: const Text(
+            'Los números actuales se quitarán del laboratorio. Guarda el conjunto si quieres reutilizarlo.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancelar'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Nuevo'),
+            ),
+          ],
+        ),
+      );
+      if (confirmed != true || !mounted) return;
+    }
+    _stopPlayback();
+    _motion.value = 1;
+    for (final controller in _valueControllers) {
+      controller.dispose();
+    }
+    _valueControllers.clear();
+    _quantityController.text = '8';
+    setState(() {
+      _quantity = null;
+      _quantityError = null;
+      _invalidValues.clear();
+      _inputMode = _InputMode.manual;
+      _originalValues = null;
+      _timeline = null;
+      _stepIndex = 0;
+      _fromIndex = 0;
+    });
+  }
+
+  Future<void> _saveSet() async {
+    final values = _originalValues;
+    if (values == null) return;
+    final name = await SortingSetDialogs.askName(context);
+    if (name == null || !mounted) return;
+    try {
+      final saved = await SortingSetStorageService.save(name, values);
+      if (mounted) _showSetMessage('"${saved.name}" guardado.');
+    } catch (_) {
+      if (mounted) _showSetMessage('No se pudo guardar el conjunto.');
+    }
+  }
+
+  Future<void> _loadSet() async {
+    final saved = await SortingSetDialogs.load(context);
+    if (saved == null || !mounted) return;
+    if (saved.values.isEmpty) {
+      _showSetMessage('El conjunto guardado no contiene números.');
+      return;
+    }
+    _stopPlayback();
+    _motion.value = 1;
+    for (final controller in _valueControllers) {
+      controller.dispose();
+    }
+    _valueControllers
+      ..clear()
+      ..addAll(
+        saved.values.map(
+          (value) => TextEditingController(text: value.toString()),
+        ),
+      );
+    _quantityController.text = saved.values.length.toString();
+    setState(() {
+      _quantity = saved.values.length;
+      _quantityError = null;
+      _invalidValues.clear();
+      _inputMode = _InputMode.manual;
+      _originalValues = List<int>.unmodifiable(saved.values);
+      _timeline = _algorithm.buildTimeline(_originalValues!);
+      _stepIndex = 0;
+      _fromIndex = 0;
+    });
+    _showSetMessage('"${saved.name}" cargado.');
+  }
+
+  void _showSetMessage(String message) {
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.hideCurrentSnackBar();
+    messenger.showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  Widget _toolbarAction({
+    required String label,
+    required IconData icon,
+    required VoidCallback? onPressed,
+    required bool compact,
+  }) => compact
+      ? IconButton(
+          tooltip: label,
+          onPressed: onPressed,
+          icon: Icon(icon, size: 20),
+          constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+          visualDensity: VisualDensity.compact,
+        )
+      : Padding(
+          padding: const EdgeInsets.only(right: 6),
+          child: OutlinedButton.icon(
+            onPressed: onPressed,
+            icon: Icon(icon, size: 18),
+            label: Text(label),
+            style: OutlinedButton.styleFrom(
+              visualDensity: VisualDensity.compact,
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+            ),
+          ),
+        );
+
   void _goHome() {
     ref.read(grafoProvider.notifier).limpiarGrafo();
     ref.read(loadedGraphItemProvider.notifier).setLoadedItem(null);
@@ -345,6 +468,7 @@ class _SortingVisualizerScreenState
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    final compactToolbar = MediaQuery.sizeOf(context).width < 760;
     return Scaffold(
       backgroundColor: colors.surface,
       appBar: AppBar(
@@ -363,16 +487,45 @@ class _SortingVisualizerScreenState
           onPressed: () => Navigator.of(context).pop(),
         ),
         actions: [
-          OutlinedButton.icon(
-            onPressed: () => SortingUsageDialog.show(context, _algorithm),
-            icon: const Icon(Icons.help_outline_rounded, size: 19),
-            label: const Text('Guía de uso'),
-            style: OutlinedButton.styleFrom(
-              visualDensity: VisualDensity.compact,
-              padding: const EdgeInsets.symmetric(horizontal: 10),
-            ),
+          _toolbarAction(
+            label: 'Nuevo',
+            icon: Icons.note_add_outlined,
+            onPressed: _newSet,
+            compact: compactToolbar,
           ),
-          const SizedBox(width: 6),
+          _toolbarAction(
+            label: 'Cargar',
+            icon: Icons.folder_open_outlined,
+            onPressed: _loadSet,
+            compact: compactToolbar,
+          ),
+          _toolbarAction(
+            label: 'Guardar',
+            icon: Icons.save_outlined,
+            onPressed: _originalValues == null ? null : _saveSet,
+            compact: compactToolbar,
+          ),
+          compactToolbar
+              ? IconButton(
+                  tooltip: 'Guía de uso',
+                  onPressed: () => SortingUsageDialog.show(context, _algorithm),
+                  icon: const Icon(Icons.help_outline_rounded, size: 20),
+                  constraints: const BoxConstraints(
+                    minWidth: 40,
+                    minHeight: 40,
+                  ),
+                  visualDensity: VisualDensity.compact,
+                )
+              : OutlinedButton.icon(
+                  onPressed: () => SortingUsageDialog.show(context, _algorithm),
+                  icon: const Icon(Icons.help_outline_rounded, size: 19),
+                  label: const Text('Guía de uso'),
+                  style: OutlinedButton.styleFrom(
+                    visualDensity: VisualDensity.compact,
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                  ),
+                ),
+          if (!compactToolbar) const SizedBox(width: 6),
           IconButton(
             icon: const Icon(Icons.home_outlined),
             tooltip: 'Ir a la página principal',
@@ -458,7 +611,9 @@ class _SortingVisualizerScreenState
                 _selectionSide(_inputPanel(scrollable: false)),
                 const SizedBox(height: 16),
                 SizedBox(
-                  height: constraints.maxWidth < 600 ? 500 : 570,
+                  height: _algorithm.id == 'merge'
+                      ? (constraints.maxWidth < 600 ? 620 : 650)
+                      : (constraints.maxWidth < 600 ? 500 : 570),
                   child: _visualPanel(),
                 ),
                 const SizedBox(height: 16),
@@ -661,15 +816,16 @@ class _SortingVisualizerScreenState
                       previous: timeline.steps[_fromIndex],
                       current: step!,
                       progress: _motion,
-                      followPlayback: _playing,
+                      followPlayback: true,
                     )
                   : SortingPinVisualizer(
                       values: timeline.values,
                       previous: timeline.steps[_fromIndex],
                       current: step!,
                       progress: _motion,
-                      followPlayback: _playing,
+                      followPlayback: _playing || _algorithm.id == 'shell',
                       selectionStyle: _algorithm.id == 'selection',
+                      shellStyle: _algorithm.id == 'shell',
                     ),
             ),
           ),
@@ -762,7 +918,20 @@ class _SortingVisualizerScreenState
                     DropdownMenuItem(value: 4, child: Text('4x')),
                   ],
                   onChanged: (value) {
-                    if (value != null) setState(() => _speed = value);
+                    if (value == null) return;
+                    setState(() => _speed = value);
+                    if (_algorithm.id == 'merge' && _motion.isAnimating) {
+                      final fraction = _motion.value;
+                      _motion.stop();
+                      _motion.duration = Duration(
+                        milliseconds: max(
+                          50,
+                          (_timeline!.steps[_stepIndex].durationMs / value)
+                              .round(),
+                        ),
+                      );
+                      _motion.forward(from: fraction);
+                    }
                   },
                 ),
               ],
@@ -808,15 +977,17 @@ class _SortingVisualizerScreenState
                 : '${_stepIndex + 1} / ${timeline.steps.length}',
           ),
           _stat('Comparaciones', '${step?.comparisons ?? 0}'),
-          if (_algorithm.id == 'selection')
+          if (_algorithm.id == 'selection' || _algorithm.id == 'shell')
             _stat('Intercambios', '${step?.movements ?? 0}'),
-          if (_algorithm.id == 'insertion' || _algorithm.id == 'shell') ...[
+          if (_algorithm.id == 'insertion') ...[
             _stat('Desplazamientos', '${step?.movements ?? 0}'),
             _stat('Inserciones', '${step?.insertions ?? 0}'),
           ],
           if (_algorithm.id == 'shell') _stat('Gap', '${step?.gap ?? '—'}'),
-          if (_algorithm.id == 'merge')
-            _stat('Escrituras', '${step?.writes ?? 0}'),
+          if (_algorithm.id == 'merge') ...[
+            _stat('Copias a aux[]', '${step?.auxCopies ?? 0}'),
+            _stat('Escrituras en a[]', '${step?.writes ?? 0}'),
+          ],
           const Divider(height: 32),
           Text('Complejidad', style: Theme.of(context).textTheme.titleSmall),
           const SizedBox(height: 8),
@@ -869,7 +1040,7 @@ class _SortingVisualizerScreenState
               SortingVisualTokens.ordered,
             ),
           ],
-          if (_algorithm.id == 'insertion' || _algorithm.id == 'shell') ...[
+          if (_algorithm.id == 'insertion') ...[
             _selectionIndicator(
               'KEY',
               'clave extraída',
@@ -885,17 +1056,33 @@ class _SortingVisualizerScreenState
               'prefijo ordenado',
               SortingVisualTokens.ordered,
             ),
-            if (_algorithm.id == 'shell')
-              _selectionIndicator(
-                'gap',
-                'distancia de comparación',
-                SortingVisualTokens.compared,
-              ),
+          ],
+          if (_algorithm.id == 'shell') ...[
+            _selectionIndicator(
+              'j',
+              'posición actual',
+              SortingVisualTokens.current,
+            ),
+            _selectionIndicator(
+              'j-h',
+              'posición a distancia h',
+              SortingVisualTokens.compared,
+            ),
+            _selectionIndicator(
+              '↔',
+              'intercambio real',
+              SortingVisualTokens.current,
+            ),
+            _selectionIndicator(
+              'h',
+              'distancia de la pasada',
+              SortingVisualTokens.compared,
+            ),
           ],
           if (_algorithm.id == 'merge') ...[
             _selectionIndicator(
-              'A/B',
-              'elementos comparados',
+              'i/j',
+              'punteros en aux[]',
               SortingVisualTokens.compared,
             ),
             _selectionIndicator(

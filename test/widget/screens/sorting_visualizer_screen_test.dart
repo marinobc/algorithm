@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:nodos/domain/services/sorting_registry.dart';
+import 'package:nodos/domain/services/sorting_set_storage_service.dart';
 import 'package:nodos/domain/services/sorting_steps.dart';
 import 'package:nodos/ui/dialogs/algorithm_selection_dialog.dart';
 import 'package:nodos/ui/dialogs/sorting_usage_dialog.dart';
 import 'package:nodos/ui/screens/sorting_algo_screen.dart';
 import 'package:nodos/ui/screens/sorting_visualizer_screen.dart';
 import 'package:nodos/ui/widgets/merge_sort_visualizer.dart';
+import 'package:nodos/ui/widgets/web_explanation_navbar.dart';
 import 'package:nodos/ui/theme/app_theme.dart';
 import 'package:nodos/ui/widgets/sorting_pin_visualizer.dart';
 
@@ -33,7 +36,7 @@ void main() {
           ),
         );
 
-        await tester.tap(find.text('Guía de uso'));
+        await tester.tap(find.byTooltip('Guía de uso'));
         await tester.pumpAndSettle();
         expect(find.byType(SortingUsageDialog), findsOneWidget);
         expect(find.text('1. Prepara los datos'), findsOneWidget);
@@ -42,7 +45,7 @@ void main() {
           find.textContaining(switch (algorithm.id) {
             'selection' => 'i es la posición que se ordena',
             'insertion' => 'KEY se eleva',
-            'shell' => 'gap de cada pasada',
+            'shell' => 'h en cada pasada',
             _ => 'dos mitades activas',
           }),
           findsOneWidget,
@@ -157,7 +160,7 @@ void main() {
 
     await tester.pumpWidget(app(comparison, following: true));
     await tester.pumpAndSettle();
-    expect(offset(), greaterThan(400));
+    expect(offset(), greaterThan(200));
     final pausedOffset = offset();
 
     await tester.pumpWidget(app(steps.first));
@@ -166,7 +169,7 @@ void main() {
 
     await tester.pumpWidget(app(steps[writingIndex], following: true));
     await tester.pumpAndSettle();
-    expect(offset(), greaterThan(400));
+    expect(offset(), greaterThan(200));
     progress.value = 1;
     await tester.pump();
     expect(offset(), lessThan(100));
@@ -188,6 +191,15 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
+    expect(find.text('Ordenamiento'), findsOneWidget);
+    expect(
+      tester.getTopLeft(find.text('Ordenamiento')).dy,
+      greaterThan(tester.getTopLeft(find.text('Northwest')).dy),
+    );
+    expect(
+      tester.getTopLeft(find.text('Ordenamiento')).dy,
+      lessThan(tester.getTopLeft(find.text('Selection Sort')).dy),
+    );
     expect(find.text('Selection Sort'), findsOneWidget);
     expect(find.text('Insertion Sort'), findsOneWidget);
     expect(find.text('Shell Sort'), findsOneWidget);
@@ -249,6 +261,15 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
+    expect(find.text('Ordenamiento'), findsOneWidget);
+    expect(
+      tester.getTopLeft(find.text('Ordenamiento')).dy,
+      greaterThan(tester.getTopLeft(find.text('Northwest')).dy),
+    );
+    expect(
+      tester.getTopLeft(find.text('Ordenamiento')).dy,
+      lessThan(tester.getTopLeft(find.text('Selection Sort').first).dy),
+    );
     await tester.tap(find.text('Insertion Sort').first);
     await tester.pumpAndSettle();
     expect(find.byType(SortingAlgoScreen), findsOneWidget);
@@ -260,6 +281,39 @@ void main() {
     await tester.tap(find.byTooltip('Volver'));
     await tester.pumpAndSettle();
     expect(find.byType(SortingAlgoScreen), findsOneWidget);
+  });
+
+  testWidgets('sorting group remains reachable in the mobile menu', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(390, 760);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.pumpWidget(
+      const ProviderScope(
+        child: MaterialApp(
+          home: WebExplanationShell(
+            activePage: ExplanationWebPage.selectionSort,
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.byTooltip('Abrir Menú Principal'));
+    await tester.pumpAndSettle();
+    final sortingHeading = find.descendant(
+      of: find.byType(Drawer),
+      matching: find.text('Ordenamiento'),
+    );
+    final mergeLink = find.descendant(
+      of: find.byType(Drawer),
+      matching: find.text('Merge Sort'),
+    );
+    expect(sortingHeading, findsOneWidget);
+    await tester.ensureVisible(mergeLink);
+    expect(mergeLink, findsOneWidget);
+    expect(tester.getTopLeft(mergeLink).dy, greaterThan(0));
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('sidebar opens Shell and Merge explanation pages', (
@@ -281,7 +335,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(
       find.text(
-        'Ordena elementos distantes entre sí; reduce el gap hasta llegar a una inserción final con gap 1.',
+        'Compara e intercambia elementos distantes; reduce h hasta completar la pasada final con h=1.',
       ),
       findsOneWidget,
     );
@@ -337,6 +391,86 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets(
+    'saved pins can be loaded after starting a new set and switching sort',
+    (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      tester.view.physicalSize = const Size(1366, 768);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await tester.pumpWidget(
+        const ProviderScope(
+          child: MaterialApp(
+            home: SortingVisualizerScreen(algorithm: SortingRegistry.selection),
+          ),
+        ),
+      );
+      expect(find.text('Guardar'), findsOneWidget);
+      await tester.enterText(input('Elementos'), '3');
+      await tester.tap(find.text('Continuar'));
+      await tester.pumpAndSettle();
+      for (final (index, value) in [(1, '9'), (2, '2'), (3, '5')]) {
+        await tester.enterText(input('#$index'), value);
+      }
+      await tester.tap(find.text('Visualizar números'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Guardar'));
+      await tester.pumpAndSettle();
+      await tester.enterText(input('Nombre del conjunto'), 'Mi práctica');
+      await tester.pump();
+      expect(
+        tester.widget<FilledButton>(
+          find.widgetWithText(FilledButton, 'Guardar'),
+        ).onPressed,
+        isNotNull,
+      );
+      await tester.tap(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.text('Guardar'),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AlertDialog), findsNothing);
+      expect(
+        (await SortingSetStorageService.getSavedSets()).single.name,
+        'Mi práctica',
+      );
+
+      await tester.tap(find.byKey(const Key('sorting-merge')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Nuevo'));
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.text('Nuevo'),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(MergeSortVisualizer), findsNothing);
+
+      await tester.tap(find.text('Cargar'));
+      await tester.pumpAndSettle();
+      expect(find.text('Mi práctica'), findsOneWidget);
+      await tester.tap(find.text('Mi práctica'));
+      await tester.pumpAndSettle();
+      expect(
+        tester
+            .widget<MergeSortVisualizer>(find.byType(MergeSortVisualizer))
+            .values,
+        [9, 2, 5],
+      );
+      expect(tester.widget<TextField>(input('#1')).controller!.text, '9');
+      expect(tester.widget<TextField>(input('#2')).controller!.text, '2');
+      expect(tester.widget<TextField>(input('#3')).controller!.text, '5');
+      expect(find.text('Conjunto listo para ordenar.'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
   testWidgets('random input remains usable in a narrow window', (tester) async {
     tester.view.physicalSize = const Size(700, 760);
     tester.view.devicePixelRatio = 1;
@@ -363,7 +497,9 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('sixty elements fit without a layout overflow', (tester) async {
+  testWidgets('more than sixty elements fit without a layout overflow', (
+    tester,
+  ) async {
     tester.view.physicalSize = const Size(1366, 768);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
@@ -378,14 +514,14 @@ void main() {
         ),
       ),
     );
-    await tester.enterText(input('Elementos'), '60');
+    await tester.enterText(input('Elementos'), '61');
     await tester.tap(find.text('Continuar'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Aleatoria'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Generar números'));
     await tester.pumpAndSettle();
-    expect(find.text('60 elementos'), findsOneWidget);
+    expect(find.text('61 elementos'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -639,12 +775,258 @@ void main() {
             expect(find.text('Mitad izquierda'), findsOneWidget);
             expect(find.text('Mitad derecha'), findsOneWidget);
           } else {
-            expect(find.textContaining('gap'), findsWidgets);
+            expect(find.textContaining('h='), findsWidgets);
           }
           expect(tester.takeException(), isNull);
         },
       );
     }
+  }
+
+  testWidgets('Shell swap can be sought, reversed and replayed', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1366, 768);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    const values = [8, 7, 6, 5, 4, 3, 2, 1];
+    final timeline = SortingTimeline.build(SortingAlgorithm.shell, values);
+    final swapIndex = timeline.steps.indexWhere(
+      (step) => step.phase == SortingPhase.swapping,
+    );
+    await tester.pumpWidget(
+      const ProviderScope(
+        child: MaterialApp(
+          home: SortingVisualizerScreen(algorithm: SortingRegistry.shell),
+        ),
+      ),
+    );
+    await tester.enterText(input('Elementos'), '${values.length}');
+    await tester.tap(find.text('Continuar'));
+    await tester.pumpAndSettle();
+    for (var i = 0; i < values.length; i++) {
+      await tester.enterText(input('#${i + 1}'), '${values[i]}');
+    }
+    await tester.ensureVisible(find.text('Visualizar números'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Visualizar números'));
+    await tester.pumpAndSettle();
+    tester.widget<Slider>(find.byType(Slider)).onChanged!(swapIndex.toDouble());
+    await tester.pump();
+    SortingStep shown() => tester
+        .widget<SortingPinVisualizer>(find.byType(SortingPinVisualizer))
+        .current;
+    expect(shown().phase, SortingPhase.swapping);
+    expect(shown().slots, timeline.steps[swapIndex].slots);
+    expect(shown().keyRaised, isFalse);
+    expect(find.textContaining('Intercambio'), findsWidgets);
+    expect(find.text('j · pos. 5 · 4'), findsOneWidget);
+    expect(find.text('j-h · pos. 1 · 8'), findsOneWidget);
+    expect(find.text('Intercambios'), findsOneWidget);
+    await tester.tap(find.byTooltip('Paso anterior'));
+    await tester.pump();
+    expect(shown().phase, SortingPhase.comparing);
+    expect(shown().slots, timeline.steps[swapIndex - 1].slots);
+    await tester.tap(find.byTooltip('Siguiente paso'));
+    await tester.pumpAndSettle();
+    expect(shown().phase, SortingPhase.swapping);
+    expect(shown().slots, timeline.steps[swapIndex].slots);
+    await tester.tap(find.byTooltip('Reiniciar'));
+    await tester.pump();
+    expect(shown().phase, SortingPhase.ready);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Shell guide shows interleaved groups and distinct operations', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(840, 420);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    const values = [8, 3, 7, 2, 6, 1, 5, 4];
+    final steps = SortingTimeline.build(SortingAlgorithm.shell, values).steps;
+    final start = steps.firstWhere(
+      (step) => step.gap == 4 && step.phase == SortingPhase.gap,
+    );
+    final comparison = steps.firstWhere(
+      (step) => step.gap == 4 && step.phase == SortingPhase.comparing,
+    );
+    final swap = steps.firstWhere(
+      (step) => step.gap == 4 && step.phase == SortingPhase.swapping,
+    );
+    final unchanged = steps.firstWhere(
+      (step) => step.gap == 4 && step.phase == SortingPhase.current,
+    );
+    final complete = steps.firstWhere(
+      (step) => step.gap == 4 && step.phase == SortingPhase.sorted,
+    );
+
+    Widget app(SortingStep step) => MaterialApp(
+      home: Scaffold(
+        body: SizedBox(
+          width: 840,
+          height: 420,
+          child: SortingPinVisualizer(
+            values: values,
+            previous: step,
+            current: step,
+            progress: const AlwaysStoppedAnimation<double>(1),
+            shellStyle: true,
+          ),
+        ),
+      ),
+    );
+
+    await tester.pumpWidget(app(start));
+    expect(find.text('PASADA  h = 4'), findsOneWidget);
+    expect(
+      find.text('4 subsecuencias intercaladas: 4 pares y 0 individuales.'),
+      findsOneWidget,
+    );
+    await tester.pumpWidget(app(comparison));
+    expect(find.text('Subsecuencia 1 de 4'), findsOneWidget);
+    expect(find.text('Comparando'), findsOneWidget);
+    expect(find.text('j · pos. 5 · 6'), findsOneWidget);
+    expect(find.text('j-h · pos. 1 · 8'), findsOneWidget);
+    await tester.pumpWidget(app(swap));
+    expect(find.text('Intercambio real'), findsOneWidget);
+    expect(find.text('j · pos. 5 · 6'), findsOneWidget);
+    expect(find.text('j-h · pos. 1 · 8'), findsOneWidget);
+    await tester.pumpWidget(app(unchanged));
+    expect(find.textContaining('Sin intercambio'), findsOneWidget);
+    await tester.pumpWidget(app(complete));
+    expect(find.text('Pasada completa'), findsOneWidget);
+    expect(
+      find.text(
+        'Las 4 subsecuencias están h-ordenadas; el arreglo completo aún no.',
+      ),
+      findsOneWidget,
+    );
+    expect(find.textContaining('aún no'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Shell h=13 focus identifies three pairs and ten singletons', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(900, 460);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    const values = [
+      54,
+      32,
+      44,
+      68,
+      12,
+      71,
+      19,
+      83,
+      20,
+      41,
+      59,
+      77,
+      86,
+      98,
+      33,
+      65,
+    ];
+    final steps = SortingTimeline.build(SortingAlgorithm.shell, values).steps;
+    final start = steps.firstWhere(
+      (step) => step.gap == 13 && step.phase == SortingPhase.gap,
+    );
+    final comparison = steps.firstWhere(
+      (step) => step.gap == 13 && step.phase == SortingPhase.comparing,
+    );
+    final noSwap = steps.firstWhere(
+      (step) => step.gap == 13 && step.phase == SortingPhase.current,
+    );
+    Widget app(SortingStep step) => MaterialApp(
+      home: Scaffold(
+        body: SortingPinVisualizer(
+          values: values,
+          previous: step,
+          current: step,
+          progress: const AlwaysStoppedAnimation<double>(1),
+          shellStyle: true,
+        ),
+      ),
+    );
+    await tester.pumpWidget(app(start));
+    expect(
+      find.text('13 subsecuencias intercaladas: 3 pares y 10 individuales.'),
+      findsOneWidget,
+    );
+    await tester.pumpWidget(app(comparison));
+    expect(find.text('Subsecuencia 1 de 13'), findsOneWidget);
+    expect(find.text('j-h · pos. 1 · 54'), findsOneWidget);
+    expect(find.text('j · pos. 14 · 98'), findsOneWidget);
+    expect(find.text('distancia 13'), findsOneWidget);
+    expect(
+      find.textContaining('aún no se conoce el resultado'),
+      findsOneWidget,
+    );
+    await tester.pumpWidget(app(noSwap));
+    expect(find.text('Sin intercambio'), findsOneWidget);
+    expect(find.textContaining('Permanecen en sus posiciones'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  for (final (count, gap) in [(30, 13), (80, 40)]) {
+    testWidgets('Shell overview remains usable with $count pins', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(830, 400);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final values = List<int>.generate(count, (index) => count - index);
+      final steps = SortingTimeline.build(SortingAlgorithm.shell, values).steps;
+      final start = steps.firstWhere(
+        (step) => step.gap == gap && step.phase == SortingPhase.gap,
+      );
+      final comparison = steps.lastWhere(
+        (step) => step.gap == gap && step.phase == SortingPhase.comparing,
+      );
+      final complete = steps.firstWhere(
+        (step) => step.gap == gap && step.phase == SortingPhase.sorted,
+      );
+
+      Widget app(SortingStep step) => MaterialApp(
+        home: Scaffold(
+          body: SortingPinVisualizer(
+            values: values,
+            previous: step,
+            current: step,
+            progress: const AlwaysStoppedAnimation<double>(1),
+            followPlayback: true,
+            shellStyle: true,
+          ),
+        ),
+      );
+
+      await tester.pumpWidget(app(start));
+      expect(find.text('PASADA  h = $gap'), findsOneWidget);
+      final scrollbar = find.descendant(
+        of: find.byType(SortingPinVisualizer),
+        matching: find.byType(Scrollbar),
+      );
+      expect(tester.widget<Scrollbar>(scrollbar).thumbVisibility, isTrue);
+      await tester.pumpWidget(app(comparison));
+      await tester.pumpAndSettle();
+      expect(find.text('Comparando'), findsOneWidget);
+      await tester.pumpWidget(app(complete));
+      await tester.pumpAndSettle();
+      expect(
+        find.text(
+          'Las $gap subsecuencias están h-ordenadas; el arreglo completo aún no.',
+        ),
+        findsOneWidget,
+      );
+      expect(tester.takeException(), isNull);
+    });
   }
 
   testWidgets('random values survive a change of sorting algorithm', (
@@ -695,6 +1077,7 @@ void main() {
   for (final (width, count) in [
     (1440.0, 5),
     (1366.0, 8),
+    (1366.0, 24),
     (820.0, 15),
     (390.0, 30),
   ]) {
@@ -744,6 +1127,19 @@ void main() {
                     )
                     .values;
           expect(current, original);
+          if (count == 24) {
+            final visualizer = algorithm.id == 'merge'
+                ? find.byType(MergeSortVisualizer)
+                : find.byType(SortingPinVisualizer);
+            final scrollbar = find.descendant(
+              of: visualizer,
+              matching: find.byType(Scrollbar),
+            );
+            expect(
+              tester.widget<Scrollbar>(scrollbar).thumbVisibility,
+              isFalse,
+            );
+          }
           expect(tester.takeException(), isNull);
         }
       },
@@ -809,6 +1205,148 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets(
+    'Merge explains positions 5–8 without anticipating the next write',
+    (tester) async {
+      tester.view.physicalSize = const Size(900, 560);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      const values = [9, 8, 7, 6, 70, 26, 29, 25];
+      final steps = SortingTimeline.build(SortingAlgorithm.merge, values).steps;
+      final comparison = steps.firstWhere((step) {
+        final state = step.mergeState!;
+        return step.phase == SortingPhase.mergeComparing &&
+            state.start == 4 &&
+            state.end == 8 &&
+            state.k == 6;
+      });
+      final state = comparison.mergeState!;
+      expect(state.auxIds.sublist(4, 8).map((id) => values[id!]), [
+        26,
+        70,
+        25,
+        29,
+      ]);
+      expect((state.i, state.j, state.k), (5, 7, 6));
+      expect(values[comparison.currentId!], 70);
+      expect(values[comparison.comparingId!], 29);
+      expect(state.outputIds.map((id) => values[id]), [25, 26]);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: MergeSortVisualizer(
+              values: values,
+              previous: comparison,
+              current: comparison,
+              progress: const AlwaysStoppedAnimation<double>(1),
+            ),
+          ),
+        ),
+      );
+      expect(find.text('Comparando 70 con 29'), findsOneWidget);
+      expect(find.text('lo 5 · mid 6 · hi 8'), findsOneWidget);
+      expect(find.text('i 6 · izquierda'), findsOneWidget);
+      expect(find.text('j 8 · derecha'), findsOneWidget);
+      expect(find.text('k 7 · destino'), findsOneWidget);
+      expect(
+        find.textContaining('pendientes conservan su valor anterior'),
+        findsOneWidget,
+      );
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  for (final width in [390.0, 900.0]) {
+    testWidgets('Merge canvas stays still across fusion phases at $width px', (
+      tester,
+    ) async {
+      tester.view.physicalSize = Size(width, 560);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      const values = [9, 8, 7, 6, 70, 26, 29, 25];
+      final steps = SortingTimeline.build(SortingAlgorithm.merge, values).steps;
+      final phases = [
+        SortingPhase.mergeCopying,
+        SortingPhase.mergeComparing,
+        SortingPhase.mergeWriting,
+        SortingPhase.merged,
+      ];
+      final positions = <Offset>[];
+      final sizes = <Size>[];
+      for (final phase in phases) {
+        final step = steps.firstWhere(
+          (step) =>
+              step.phase == phase &&
+              step.mergeState?.stage == SortingMergeStage.fusion &&
+              step.mergeState?.start == 0 &&
+              step.mergeState?.end == 8,
+        );
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: MergeSortVisualizer(
+                values: values,
+                previous: step,
+                current: step,
+                progress: const AlwaysStoppedAnimation<double>(1),
+              ),
+            ),
+          ),
+        );
+        final canvas = find.descendant(
+          of: find.byType(MergeSortVisualizer),
+          matching: find.byType(CustomPaint),
+        );
+        positions.add(tester.getTopLeft(canvas.first));
+        sizes.add(tester.getSize(canvas.first));
+        expect(tester.takeException(), isNull);
+      }
+      expect(positions, everyElement(positions.first));
+      expect(sizes, everyElement(sizes.first));
+    });
+  }
+
+  for (final (count, width) in [
+    (1, 390.0),
+    (5, 390.0),
+    (12, 900.0),
+    (16, 900.0),
+    (80, 900.0),
+  ]) {
+    testWidgets(
+      'Merge visualizer renders $count values at ${width.toInt()}px',
+      (tester) async {
+        tester.view.physicalSize = Size(width, 560);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        final values = List<int>.generate(count, (index) => count - index);
+        final timeline = SortingTimeline.build(SortingAlgorithm.merge, values);
+        final step = timeline.steps.firstWhere(
+          (step) => step.phase == SortingPhase.mergeComparing,
+          orElse: () => timeline.steps.last,
+        );
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: MergeSortVisualizer(
+                values: values,
+                previous: step,
+                current: step,
+                progress: const AlwaysStoppedAnimation<double>(1),
+              ),
+            ),
+          ),
+        );
+        expect(find.byType(MergeSortVisualizer), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      },
+    );
+  }
+
   testWidgets('Merge seek, previous, next and restart stay on the same event', (
     tester,
   ) async {
@@ -846,6 +1384,15 @@ void main() {
     expect(visualizer().current.message, timeline.steps[target].message);
     expect(visualizer().current.mergeState!.stage, SortingMergeStage.fusion);
     expect(visualizer().current.mergeState!.outputIds, hasLength(2));
+    expect(
+      visualizer().current.mergeState!.arrayIds[visualizer()
+          .current
+          .mergeState!
+          .k!],
+      visualizer().current.mergeState!.selectedId,
+    );
+    expect(find.text('Copias a aux[]'), findsOneWidget);
+    expect(find.text('Escrituras en a[]'), findsOneWidget);
     expect(find.text('Fusión'), findsOneWidget);
     await tester.tap(find.byTooltip('Paso anterior'));
     await tester.pump();
@@ -864,6 +1411,13 @@ void main() {
     await tester.tap(find.byTooltip('Pausar'));
     await tester.pump();
     expect(find.byTooltip('Reproducir'), findsOneWidget);
+    final pausedAt = visualizer().progress.value;
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(visualizer().progress.value, pausedAt);
+    await tester.tap(find.byTooltip('Reproducir'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 40));
+    expect(visualizer().progress.value, greaterThan(pausedAt));
     expect(tester.takeException(), isNull);
   });
 }

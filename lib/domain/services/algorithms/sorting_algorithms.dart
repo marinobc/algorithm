@@ -47,6 +47,14 @@ class ShellSortAlgorithm extends BaseSortingAlgorithm {
   @override
   SortingTimeline buildTimeline(List<int> input) =>
       SortingTimeline.build(SortingAlgorithm.shell, input);
+
+  @override
+  String formatPhase(SortingPhase phase) => switch (phase) {
+    SortingPhase.gap => 'NUEVA PASADA',
+    SortingPhase.current => 'SIN INTERCAMBIO',
+    SortingPhase.sorted => 'PASADA COMPLETA',
+    _ => super.formatPhase(phase),
+  };
 }
 
 class MergeSortAlgorithm extends BaseSortingAlgorithm {

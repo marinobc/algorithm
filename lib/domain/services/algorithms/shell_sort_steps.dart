@@ -9,16 +9,14 @@ SortingTimeline buildShellTimeline(List<int> input) {
   );
   final steps = <SortingStep>[];
   var comparisons = 0;
-  var shifts = 0;
-  var insertions = 0;
+  var exchanges = 0;
 
   void add(
     SortingPhase phase,
     String message, {
     int? gap,
-    int? keyId,
+    int? currentId,
     int? comparingId,
-    bool keyRaised = false,
     int sortedCount = 0,
     int durationMs = 210,
   }) {
@@ -27,14 +25,14 @@ SortingTimeline buildShellTimeline(List<int> input) {
         slots: List<double>.unmodifiable(slots),
         phase: phase,
         sortedCount: sortedCount,
-        currentId: null,
+        currentId: currentId,
         comparingId: comparingId,
         minimumId: null,
-        keyId: keyId,
-        keyRaised: keyRaised,
+        keyId: null,
+        keyRaised: false,
         comparisons: comparisons,
-        movements: shifts,
-        insertions: insertions,
+        movements: exchanges,
+        insertions: 0,
         durationMs: durationMs,
         message: message,
         gap: gap,
@@ -45,60 +43,63 @@ SortingTimeline buildShellTimeline(List<int> input) {
   add(SortingPhase.ready, 'Conjunto listo para ordenar.', durationMs: 0);
   if (values.isNotEmpty) {
     var gap = 1;
-    while (gap * 3 < values.length) {
-      gap = gap * 3 + 1;
+    while (gap < values.length ~/ 3) {
+      gap = 3 * gap + 1;
     }
     while (gap >= 1) {
-      add(SortingPhase.gap, 'Ordenando subsecuencias con gap $gap.', gap: gap);
+      add(
+        SortingPhase.gap,
+        'Inicia la pasada h=$gap: ${gap == 1 ? 'una subsecuencia' : '$gap subsecuencias intercaladas'}.',
+        gap: gap,
+        durationMs: 440,
+      );
       for (var i = gap; i < order.length; i++) {
-        final keyId = order[i];
-        add(
-          SortingPhase.key,
-          'Seleccionando ${values[keyId]} con gap $gap.',
-          gap: gap,
-          keyId: keyId,
-          keyRaised: true,
-        );
-        var j = i;
-        while (j >= gap) {
-          final comparedId = order[j - gap];
+        for (var j = i; j >= gap; j -= gap) {
+          final rightId = order[j];
+          final leftId = order[j - gap];
           comparisons++;
           add(
             SortingPhase.comparing,
-            'Comparando ${values[keyId]} con ${values[comparedId]} a distancia $gap.',
+            'Posiciones ${j + 1} (${values[rightId]}) y ${j - gap + 1} (${values[leftId]}), h=$gap.',
             gap: gap,
-            keyId: keyId,
-            comparingId: comparedId,
-            keyRaised: true,
+            currentId: rightId,
+            comparingId: leftId,
+            durationMs: 330,
           );
-          if (values[comparedId] <= values[keyId]) break;
-          order[j] = comparedId;
-          slots[comparedId] = j.toDouble();
-          shifts++;
-          add(
-            SortingPhase.shifting,
-            '${values[comparedId]} se desplaza $gap posiciones.',
-            gap: gap,
-            keyId: keyId,
-            comparingId: comparedId,
-            keyRaised: true,
-            durationMs: 310,
-          );
-          j -= gap;
+          if (values[rightId] < values[leftId]) {
+            order[j] = leftId;
+            order[j - gap] = rightId;
+            slots[rightId] = (j - gap).toDouble();
+            slots[leftId] = j.toDouble();
+            exchanges++;
+            add(
+              SortingPhase.swapping,
+              'Intercambio: ${values[rightId]} va a ${j - gap + 1} y ${values[leftId]} va a ${j + 1}.',
+              gap: gap,
+              currentId: rightId,
+              comparingId: leftId,
+              durationMs: 470,
+            );
+          } else {
+            add(
+              SortingPhase.current,
+              'Sin intercambio: ${values[rightId]} y ${values[leftId]} permanecen en sus posiciones.',
+              gap: gap,
+              currentId: rightId,
+              comparingId: leftId,
+              durationMs: 260,
+            );
+            break;
+          }
         }
-        order[j] = keyId;
-        slots[keyId] = j.toDouble();
-        insertions++;
-        add(
-          SortingPhase.inserting,
-          'Insertando ${values[keyId]} en la posición ${j + 1}.',
-          gap: gap,
-          keyId: keyId,
-          keyRaised: true,
-          durationMs: 330,
-        );
       }
-      if (gap == 1) break;
+      add(
+        SortingPhase.sorted,
+        'Pasada h=$gap completa: el arreglo está $gap-ordenado${gap == 1 ? ' y ordenado por completo' : ', aún no necesariamente ordenado por completo'}.',
+        gap: gap,
+        sortedCount: gap == 1 ? values.length : 0,
+        durationMs: 500,
+      );
       gap ~/= 3;
     }
   }

@@ -84,7 +84,7 @@ class SortingUsageDialog extends StatelessWidget {
                         accent: accent,
                         icon: Icons.edit_note_rounded,
                         title: 'Prepara los datos',
-                        body: 'Indica entre 1 y 60 elementos y pulsa Continuar. Después escribe todos los valores en Manual y pulsa Visualizar números, o elige Aleatoria y pulsa Generar números.',
+                        body: 'Indica una cantidad mayor que cero y pulsa Continuar. Después escribe todos los valores en Manual y pulsa Visualizar números, o elige Aleatoria y pulsa Generar números.',
                       ),
                       _section(
                         context,
@@ -95,7 +95,7 @@ class SortingUsageDialog extends StatelessWidget {
                         body: switch (algorithm.id) {
                           'selection' => 'Cada pino representa un valor; su altura indica su magnitud y el número real aparece debajo. i es la posición que se ordena, j el elemento inspeccionado y MIN el menor encontrado. Al terminar la búsqueda, los pinos se intercambian.',
                           'insertion' => 'Cada pino representa un valor; su altura indica su magnitud y el número real aparece debajo. KEY se eleva, j señala el valor comparado y los elementos mayores se desplazan a la derecha antes de insertar la clave.',
-                          'shell' => 'Observa el gap de cada pasada. KEY marca el elemento que se inserta; el algoritmo compara y desplaza valores separados por esa distancia. La última pasada usa gap 1.',
+                          'shell' => 'Observa h en cada pasada. Los marcadores j y j-h indican posiciones separadas por esa distancia. Si el valor en j es menor, ambos bolos intercambian sus lugares; la última pasada usa h=1.',
                           _ => 'Sigue las dos mitades activas y la fila de fusión. Cada comparación elige el siguiente valor de salida. El proceso se repite hasta fusionar todo el conjunto.',
                         },
                       ),
@@ -116,7 +116,7 @@ class SortingUsageDialog extends StatelessWidget {
                         body: switch (algorithm.id) {
                           'selection' => 'La franja inferior señala las posiciones ordenadas. El panel derecho muestra comparaciones, intercambios y la complejidad n(n - 1) / 2 ≈ n² / 2, O(n²).',
                           'insertion' => 'La franja inferior señala la región ordenada. El panel derecho muestra comparaciones, desplazamientos, inserciones y la aproximación n² / 4, O(n²).',
-                          'shell' => 'El panel muestra el gap actual, comparaciones, desplazamientos e inserciones reales. Los incrementos de Knuth tienen peor caso Θ(n³ᐟ²).',
+                          'shell' => 'El panel muestra h actual, comparaciones e intercambios reales. Al cerrar una pasada, el arreglo queda h-ordenado. Los incrementos de Knuth tienen peor caso Θ(n³ᐟ²).',
                           _ => 'El panel muestra comparaciones y escrituras reales. Merge Sort usa Θ(n log n) tiempo y Θ(n) espacio auxiliar.',
                         },
                       ),

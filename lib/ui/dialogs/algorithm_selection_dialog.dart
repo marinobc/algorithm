@@ -70,34 +70,9 @@ class AlgorithmSelectionDialog extends StatelessWidget {
               ),
               const SizedBox(height: 26),
               Expanded(
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    final columns = constraints.maxWidth >= 1040
-                        ? 4
-                        : constraints.maxWidth >= 620
-                        ? 2
-                        : 1;
-                    return ScrollConfiguration(
-                      behavior: ScrollConfiguration.of(context)
-                          .copyWith(scrollbars: false),
-                      child: GridView.builder(
-                        physics: const BouncingScrollPhysics(),
-                        itemCount: options.length,
-                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: columns,
-                          crossAxisSpacing: 18,
-                          mainAxisSpacing: 18,
-                          mainAxisExtent: columns == 1 ? 280 : 300,
-                        ),
-                        itemBuilder: (context, index) => _AlgorithmCatalogCard(
-                          option: options[index],
-                          onSelect: options[index].available
-                              ? () => _select(context, options[index])
-                              : null,
-                        ),
-                      ),
-                    );
-                  },
+                child: _CatalogOptionsList(
+                  options: options,
+                  onSelect: (option) => _select(context, option),
                 ),
               ),
             ],
@@ -279,40 +254,9 @@ class AlgorithmSelectionScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 26),
                   Expanded(
-                    child: LayoutBuilder(
-                      builder: (context, constraints) {
-                        final columns = constraints.maxWidth >= 1040
-                            ? 4
-                            : constraints.maxWidth >= 620
-                            ? 2
-                            : 1;
-                        return ScrollConfiguration(
-                          behavior: ScrollConfiguration.of(context)
-                              .copyWith(scrollbars: false),
-                          child: GridView.builder(
-                            physics: const BouncingScrollPhysics(),
-                            itemCount: options.length,
-                            gridDelegate:
-                                SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: columns,
-                                  crossAxisSpacing: 18,
-                                  mainAxisSpacing: 18,
-                                  mainAxisExtent: columns == 1 ? 280 : 300,
-                                ),
-                            itemBuilder: (context, index) =>
-                                _AlgorithmCatalogCard(
-                                  option: options[index],
-                                  onSelect: options[index].available
-                                      ? () => _select(
-                                          context,
-                                          ref,
-                                          options[index],
-                                        )
-                                      : null,
-                                ),
-                          ),
-                        );
-                      },
+                    child: _CatalogOptionsList(
+                      options: options,
+                      onSelect: (option) => _select(context, ref, option),
                     ),
                   ),
                 ],
@@ -352,6 +296,96 @@ class AlgorithmSelectionScreen extends ConsumerWidget {
         MaterialPageRoute(builder: (_) => const GraphEditorScreen()),
       );
     }
+  }
+}
+
+class _CatalogOptionsList extends StatelessWidget {
+  final List<_AlgorithmCatalogOption> options;
+  final ValueChanged<_AlgorithmCatalogOption> onSelect;
+
+  const _CatalogOptionsList({required this.options, required this.onSelect});
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final general = options
+        .where((option) => option.available && option.sortingAlgorithm == null)
+        .toList();
+    final sorting = options
+        .where((option) => option.sortingAlgorithm != null)
+        .toList();
+    final upcoming = options.where((option) => !option.available).toList();
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final columns = constraints.maxWidth >= 1040
+            ? 4
+            : constraints.maxWidth >= 620
+            ? 2
+            : 1;
+        final gridDelegate = SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: columns,
+          crossAxisSpacing: 18,
+          mainAxisSpacing: 18,
+          mainAxisExtent: columns == 1 ? 280 : 300,
+        );
+
+        Widget grid(List<_AlgorithmCatalogOption> entries) => SliverGrid(
+          gridDelegate: gridDelegate,
+          delegate: SliverChildBuilderDelegate(
+            (context, index) => _AlgorithmCatalogCard(
+              option: entries[index],
+              onSelect: entries[index].available
+                  ? () => onSelect(entries[index])
+                  : null,
+            ),
+            childCount: entries.length,
+          ),
+        );
+
+        return ScrollConfiguration(
+          behavior: ScrollConfiguration.of(context).copyWith(scrollbars: false),
+          child: CustomScrollView(
+            physics: const BouncingScrollPhysics(),
+            slivers: [
+              grid(general),
+              if (sorting.isNotEmpty) ...[
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(0, 22, 0, 12),
+                    child: Row(
+                      children: [
+                        Text(
+                          'Ordenamiento',
+                          style: TextStyle(
+                            color: colors.onSurfaceVariant,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(child: Divider(color: colors.outlineVariant)),
+                      ],
+                    ),
+                  ),
+                ),
+                grid(sorting),
+              ],
+              if (upcoming.isNotEmpty) ...[
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 20),
+                    child: Divider(color: colors.outlineVariant),
+                  ),
+                ),
+                grid(upcoming),
+              ],
+              const SliverToBoxAdapter(child: SizedBox(height: 8)),
+            ],
+          ),
+        );
+      },
+    );
   }
 }
 

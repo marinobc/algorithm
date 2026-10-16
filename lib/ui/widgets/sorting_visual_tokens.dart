@@ -6,6 +6,7 @@ class SortingVisualTokens {
   const SortingVisualTokens._();
 
   static const double pinAspect = 39.54 / 114.06;
+  static const double compactSlotWidth = 32;
   static const Color current = Color(0xFF7650B4);
   static const Color compared = Color(0xFF087E91);
   static const Color minimum = Color(0xFFAD6900);

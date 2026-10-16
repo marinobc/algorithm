@@ -34,6 +34,7 @@ abstract class BaseSortingAlgorithm {
     SortingPhase.gap => 'NUEVO GAP',
     SortingPhase.splitting => 'DIVIDIENDO',
     SortingPhase.mergeComparing => 'COMPARANDO MITADES',
+    SortingPhase.mergeCopying => 'COPIANDO A AUX',
     SortingPhase.mergeWriting => 'FUSIONANDO',
     SortingPhase.merged => 'TRAMO FUSIONADO',
     SortingPhase.mergeFocus => 'CAMBIO DE FOCO',

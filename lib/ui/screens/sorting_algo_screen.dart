@@ -163,9 +163,7 @@ class SortingAlgoScreen extends StatelessWidget {
       BoxDecoration(
         color: colors.surfaceContainerHigh,
         borderRadius: BorderRadius.circular(radius),
-        border: Border.all(
-          color: colors.outlineVariant.withValues(alpha: 0.4),
-        ),
+        border: Border.all(color: colors.outlineVariant.withValues(alpha: 0.4)),
       );
 
   Widget _eyebrow(ColorScheme colors, String text) => Text(
@@ -200,7 +198,11 @@ class SortingAlgoScreen extends StatelessWidget {
   // DIVISION 0: Hero
   // ---------------------------------------------------------------------------
 
-  Widget _buildHero(BuildContext context, ColorScheme colors, SortingPageContent c) {
+  Widget _buildHero(
+    BuildContext context,
+    ColorScheme colors,
+    SortingPageContent c,
+  ) {
     final accent = algorithm.accentColor;
     final width = MediaQuery.sizeOf(context).width;
     return Container(
@@ -288,7 +290,11 @@ class SortingAlgoScreen extends StatelessWidget {
   // DIVISION 1
   // ---------------------------------------------------------------------------
 
-  Widget _buildConceptCard(BuildContext context, ColorScheme colors, SortingPageContent c) {
+  Widget _buildConceptCard(
+    BuildContext context,
+    ColorScheme colors,
+    SortingPageContent c,
+  ) {
     final accent = algorithm.accentColor;
     return Container(
       decoration: _cardDecoration(colors, radius: 24),
@@ -361,8 +367,11 @@ class SortingAlgoScreen extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.lightbulb_outline_rounded,
-                  color: algorithm.accentColor, size: 28),
+              Icon(
+                Icons.lightbulb_outline_rounded,
+                color: algorithm.accentColor,
+                size: 28,
+              ),
               const SizedBox(width: 12),
               Text(
                 '¿Cómo funciona?',
@@ -411,7 +420,11 @@ class SortingAlgoScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildAnalogyCard(BuildContext context, ColorScheme colors, SortingPageContent c) {
+  Widget _buildAnalogyCard(
+    BuildContext context,
+    ColorScheme colors,
+    SortingPageContent c,
+  ) {
     final accent = algorithm.accentColor;
     return Container(
       padding: const EdgeInsets.all(28),
@@ -458,7 +471,11 @@ class SortingAlgoScreen extends StatelessWidget {
   // DIVISION 2
   // ---------------------------------------------------------------------------
 
-  Widget _buildStepsSection(BuildContext context, ColorScheme colors, SortingPageContent c) {
+  Widget _buildStepsSection(
+    BuildContext context,
+    ColorScheme colors,
+    SortingPageContent c,
+  ) {
     final accent = algorithm.accentColor;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -520,7 +537,11 @@ class SortingAlgoScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTraceSection(BuildContext context, ColorScheme colors, SortingPageContent c) {
+  Widget _buildTraceSection(
+    BuildContext context,
+    ColorScheme colors,
+    SortingPageContent c,
+  ) {
     final accent = algorithm.accentColor;
     return Container(
       width: double.infinity,
@@ -626,7 +647,11 @@ class SortingAlgoScreen extends StatelessWidget {
   // DIVISION 3
   // ---------------------------------------------------------------------------
 
-  Widget _buildComplexitySection(BuildContext context, ColorScheme colors, SortingPageContent c) {
+  Widget _buildComplexitySection(
+    BuildContext context,
+    ColorScheme colors,
+    SortingPageContent c,
+  ) {
     final accent = algorithm.accentColor;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -671,7 +696,11 @@ class SortingAlgoScreen extends StatelessWidget {
   // DIVISION 4
   // ---------------------------------------------------------------------------
 
-  Widget _buildProsConsSection(BuildContext context, ColorScheme colors, SortingPageContent c) {
+  Widget _buildProsConsSection(
+    BuildContext context,
+    ColorScheme colors,
+    SortingPageContent c,
+  ) {
     Widget panel({
       required String title,
       required IconData icon,
@@ -763,7 +792,11 @@ class SortingAlgoScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildWhenCard(BuildContext context, ColorScheme colors, SortingPageContent c) {
+  Widget _buildWhenCard(
+    BuildContext context,
+    ColorScheme colors,
+    SortingPageContent c,
+  ) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(28),
@@ -773,8 +806,11 @@ class SortingAlgoScreen extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.tips_and_updates_outlined,
-                  color: algorithm.accentColor, size: 28),
+              Icon(
+                Icons.tips_and_updates_outlined,
+                color: algorithm.accentColor,
+                size: 28,
+              ),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
@@ -836,9 +872,7 @@ class SortingAlgoScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: colors.surfaceContainerHigh,
         border: Border(
-          top: BorderSide(
-            color: colors.outlineVariant.withValues(alpha: 0.3),
-          ),
+          top: BorderSide(color: colors.outlineVariant.withValues(alpha: 0.3)),
         ),
       ),
       padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 24),
@@ -979,21 +1013,15 @@ class SortingPageContent {
     badge: 'Ordenamiento por selección',
     badgeIcon: Icons.sort_rounded,
     heroIcon: Icons.sort_rounded,
-    intro:
-        'Encuentra el menor elemento del tramo pendiente y colócalo en su posición definitiva.',
+    intro: 'Encuentra el menor elemento del tramo pendiente y colócalo en su posición definitiva.',
     conceptEyebrow: 'LA IDEA EN UNA FRASE',
     conceptTitle: '¿Por qué se llama "selección"?',
-    conceptBody:
-        'Porque en cada pasada el algoritmo selecciona al mejor candidato: el menor valor que todavía no está ordenado. Una vez elegido, no vuelve a moverlo nunca más; ya está en su lugar definitivo.',
-    conceptExtra:
-        'Es uno de los primeros algoritmos que se estudian porque se puede explicar sin trucos: buscar el mínimo y ponerlo al principio, una y otra vez, hasta que no quede nada por ordenar.',
-    how:
-        'Selection Sort divide el arreglo en una parte ordenada y otra pendiente. En cada recorrido busca el valor mínimo de la parte pendiente y lo intercambia con el primer elemento de esa parte.',
-    howExtra:
-        'Al principio la parte ordenada está vacía y la pendiente es todo el arreglo. Después de cada pasada la frontera avanza una posición hacia la derecha, de modo que la parte ordenada crece de a un elemento y la pendiente se reduce. Cuando solo queda un elemento pendiente, el arreglo completo está ordenado.',
+    conceptBody: 'Porque en cada pasada el algoritmo selecciona al mejor candidato: el menor valor que todavía no está ordenado. Una vez elegido, no vuelve a moverlo nunca más; ya está en su lugar definitivo.',
+    conceptExtra: 'Es uno de los primeros algoritmos que se estudian porque se puede explicar sin trucos: buscar el mínimo y ponerlo al principio, una y otra vez, hasta que no quede nada por ordenar.',
+    how: 'Selection Sort divide el arreglo en una parte ordenada y otra pendiente. En cada recorrido busca el valor mínimo de la parte pendiente y lo intercambia con el primer elemento de esa parte.',
+    howExtra: 'Al principio la parte ordenada está vacía y la pendiente es todo el arreglo. Después de cada pasada la frontera avanza una posición hacia la derecha, de modo que la parte ordenada crece de a un elemento y la pendiente se reduce. Cuando solo queda un elemento pendiente, el arreglo completo está ordenado.',
     analogyTitle: 'Ejemplo cotidiano: ordenar cartas en la mano',
-    analogyBody:
-        'Imagina que tienes cartas numeradas boca arriba sobre la mesa. Buscas la más pequeña, la pones en la primera posición de tu mano; luego buscas la más pequeña de las que quedan y la pones en la segunda posición, y así hasta terminar. Eso es exactamente lo que hace Selection Sort.',
+    analogyBody: 'Imagina que tienes cartas numeradas boca arriba sobre la mesa. Buscas la más pequeña, la pones en la primera posición de tu mano; luego buscas la más pequeña de las que quedan y la pones en la segunda posición, y así hasta terminar. Eso es exactamente lo que hace Selection Sort.',
     steps: [
       (
         '1. Elige una posición',
@@ -1011,10 +1039,13 @@ class SortingPageContent {
         'Se intercambia el mínimo con el elemento que estaba en i. Si el mínimo ya estaba en i, no hay nada que mover. Luego i avanza una posición y se repite hasta llegar al penúltimo elemento.',
       ),
     ],
-    example:
-        'Ejemplo: [8, 3, 6, 2] → el mínimo es 2 → se intercambia con 8 → [2, 3, 6, 8].',
+    example: 'Ejemplo: [8, 3, 6, 2] → el mínimo es 2 → se intercambia con 8 → [2, 3, 6, 8].',
     trace: [
-      SortingTraceRow('Inicio', '[8, 3, 6, 2]', 'Todo el arreglo está pendiente.'),
+      SortingTraceRow(
+        'Inicio',
+        '[8, 3, 6, 2]',
+        'Todo el arreglo está pendiente.',
+      ),
       SortingTraceRow(
         'Pasada 1',
         '[2, 3, 6, 8]',
@@ -1032,10 +1063,8 @@ class SortingPageContent {
       ),
     ],
     complexity: 'n(n - 1) / 2 ≈ n² / 2',
-    complexityDetails:
-        'Realiza n(n - 1) / 2 comparaciones, incluso si los datos ya estaban ordenados. Complejidad temporal: O(n²).',
-    complexityExtra:
-        'Su comportamiento es muy predecible: siempre hace la misma cantidad de comparaciones sin importar el orden inicial. En cambio, el número de intercambios es pequeño (como máximo n - 1), lo que lo vuelve útil cuando mover datos es costoso.',
+    complexityDetails: 'Realiza n(n - 1) / 2 comparaciones, incluso si los datos ya estaban ordenados. Complejidad temporal: O(n²).',
+    complexityExtra: 'Su comportamiento es muy predecible: siempre hace la misma cantidad de comparaciones sin importar el orden inicial. En cambio, el número de intercambios es pequeño (como máximo n - 1), lo que lo vuelve útil cuando mover datos es costoso.',
     metrics: [
       ('Mejor caso', 'O(n²)'),
       ('Caso promedio', 'O(n²)'),
@@ -1057,29 +1086,24 @@ class SortingPageContent {
       'Poco práctico para conjuntos de datos grandes.',
     ],
     whenTitle: '¿Cuándo conviene usarlo?',
-    whenBody:
-        'Es una buena opción para listas pequeñas, para enseñar cómo funciona un ordenamiento y cuando escribir en memoria es mucho más caro que leer (por ejemplo, memorias flash). Para grandes volúmenes de datos es preferible un algoritmo de tipo n log n.',
-    cta:
-        'Observa cómo el mínimo viaja a su posición definitiva y cuenta las comparaciones en tiempo real.',
+    whenBody: 'Es una buena opción para listas pequeñas, para enseñar cómo funciona un ordenamiento y cuando escribir en memoria es mucho más caro que leer (por ejemplo, memorias flash). Para grandes volúmenes de datos es preferible un algoritmo de tipo n log n.',
+    cta: 'Observa cómo el mínimo viaja a su posición definitiva y cuenta las comparaciones en tiempo real.',
     videos: [
       SortingVideo(
         title: 'Video 1: Selection Sort paso a paso',
-        description:
-            'Explicación en español con prueba de escritorio: sigue cómo cambian las posiciones en cada pasada.',
+        description: 'Explicación en español con prueba de escritorio: sigue cómo cambian las posiciones en cada pasada.',
         url: 'https://www.youtube.com/watch?v=wJzJIX0CYI0',
         label: 'Prueba de escritorio',
       ),
       SortingVideo(
         title: 'Video 2: la idea del ordenamiento por selección',
-        description:
-            'Una introducción clara al concepto, ideal para repasar antes de probar el laboratorio.',
+        description: 'Una introducción clara al concepto, ideal para repasar antes de probar el laboratorio.',
         url: 'https://www.youtube.com/watch?v=Myy-eU-SWbE',
         label: 'Introducción',
       ),
       SortingVideo(
         title: 'Video 3: Selection Sort bailado',
-        description:
-            'Una forma distinta y memorable de ver cómo se elige el mínimo y se intercambia.',
+        description: 'Una forma distinta y memorable de ver cómo se elige el mínimo y se intercambia.',
         url: 'https://www.youtube.com/watch?v=Ns4TPTC8whw',
         label: 'Visualización con baile',
       ),
@@ -1093,21 +1117,15 @@ class SortingPageContent {
     badge: 'Ordenamiento por inserción',
     badgeIcon: Icons.low_priority_rounded,
     heroIcon: Icons.low_priority_rounded,
-    intro:
-        'Toma cada elemento y ubícalo en el lugar correcto dentro de la parte ya ordenada.',
+    intro: 'Toma cada elemento y ubícalo en el lugar correcto dentro de la parte ya ordenada.',
     conceptEyebrow: 'LA IDEA EN UNA FRASE',
     conceptTitle: '¿Por qué se llama "inserción"?',
-    conceptBody:
-        'Porque en cada paso toma un elemento nuevo y lo inserta en el lugar que le corresponde dentro de la parte que ya está ordenada, desplazando a los mayores un espacio hacia la derecha.',
-    conceptExtra:
-        'Es el método que usamos de forma natural al ordenar a mano. Su gran ventaja es que se adapta a los datos: si el arreglo ya viene casi ordenado, casi no tiene trabajo que hacer.',
-    how:
-        'Insertion Sort construye una región ordenada de izquierda a derecha. Extrae el elemento actual, desplaza a la derecha los valores mayores y lo inserta en el espacio que queda.',
-    howExtra:
-        'El primer elemento se considera ordenado por sí solo. Luego se toma el segundo, el tercero, y así sucesivamente: cada uno (la "clave") se compara hacia la izquierda con los elementos ya ordenados. Los que son mayores se corren un lugar a la derecha para abrir un hueco, y la clave cae en ese hueco.',
+    conceptBody: 'Porque en cada paso toma un elemento nuevo y lo inserta en el lugar que le corresponde dentro de la parte que ya está ordenada, desplazando a los mayores un espacio hacia la derecha.',
+    conceptExtra: 'Es el método que usamos de forma natural al ordenar a mano. Su gran ventaja es que se adapta a los datos: si el arreglo ya viene casi ordenado, casi no tiene trabajo que hacer.',
+    how: 'Insertion Sort construye una región ordenada de izquierda a derecha. Extrae el elemento actual, desplaza a la derecha los valores mayores y lo inserta en el espacio que queda.',
+    howExtra: 'El primer elemento se considera ordenado por sí solo. Luego se toma el segundo, el tercero, y así sucesivamente: cada uno (la "clave") se compara hacia la izquierda con los elementos ya ordenados. Los que son mayores se corren un lugar a la derecha para abrir un hueco, y la clave cae en ese hueco.',
     analogyTitle: 'Ejemplo cotidiano: ordenar cartas de una baraja',
-    analogyBody:
-        'Cuando repartes cartas y las vas tomando una por una, cada carta nueva la colocas en su sitio entre las que ya tienes ordenadas en la mano: la comparas con las anteriores, corres las mayores y la insertas. Eso es Insertion Sort.',
+    analogyBody: 'Cuando repartes cartas y las vas tomando una por una, cada carta nueva la colocas en su sitio entre las que ya tienes ordenadas en la mano: la comparas con las anteriores, corres las mayores y la insertas. Eso es Insertion Sort.',
     steps: [
       (
         '1. Extrae la clave',
@@ -1128,7 +1146,11 @@ class SortingPageContent {
     example:
         'Ejemplo: [3, 7, 4, 9] → la clave es 4 → 7 se desplaza → [3, 4, 7, 9].',
     trace: [
-      SortingTraceRow('Inicio', '[3, 7, 4, 9]', 'La región ordenada es solo [3].'),
+      SortingTraceRow(
+        'Inicio',
+        '[3, 7, 4, 9]',
+        'La región ordenada es solo [3].',
+      ),
       SortingTraceRow(
         'Clave 7',
         '[3, 7, 4, 9]',
@@ -1146,10 +1168,8 @@ class SortingPageContent {
       ),
     ],
     complexity: 'n² / 4',
-    complexityDetails:
-        'La aproximación utilizada en la materia es n² / 4. El trabajo depende del orden inicial de los datos; su complejidad temporal es O(n²).',
-    complexityExtra:
-        'Si el arreglo ya está ordenado, cada clave se compara una sola vez y el costo baja a O(n). Si está en orden inverso, cada clave debe recorrer toda la región ordenada y el costo se acerca al máximo. Por eso se dice que es un algoritmo adaptativo.',
+    complexityDetails: 'La aproximación utilizada en la materia es n² / 4. El trabajo depende del orden inicial de los datos; su complejidad temporal es O(n²).',
+    complexityExtra: 'Si el arreglo ya está ordenado, cada clave se compara una sola vez y el costo baja a O(n). Si está en orden inverso, cada clave debe recorrer toda la región ordenada y el costo se acerca al máximo. Por eso se dice que es un algoritmo adaptativo.',
     metrics: [
       ('Mejor caso', 'O(n)'),
       ('Caso promedio', 'O(n²)'),
@@ -1170,29 +1190,24 @@ class SortingPageContent {
       'Es lento con arreglos grandes y desordenados.',
     ],
     whenTitle: '¿Cuándo conviene usarlo?',
-    whenBody:
-        'Funciona muy bien con listas pequeñas y con datos que ya vienen casi ordenados. Por eso muchas implementaciones profesionales lo usan como paso final o para tramos cortos dentro de algoritmos más rápidos.',
-    cta:
-        'Mira cómo la clave se eleva, los mayores se desplazan y el hueco se llena con el valor correcto.',
+    whenBody: 'Funciona muy bien con listas pequeñas y con datos que ya vienen casi ordenados. Por eso muchas implementaciones profesionales lo usan como paso final o para tramos cortos dentro de algoritmos más rápidos.',
+    cta: 'Mira cómo la clave se eleva, los mayores se desplazan y el hueco se llena con el valor correcto.',
     videos: [
       SortingVideo(
         title: 'Video 1: Insertion Sort paso a paso',
-        description:
-            'Explicación en español con prueba de escritorio del ordenamiento por inserción.',
+        description: 'Explicación en español con prueba de escritorio del ordenamiento por inserción.',
         url: 'https://www.youtube.com/watch?v=8rhtmJ7nurM',
         label: 'Prueba de escritorio',
       ),
       SortingVideo(
         title: 'Video 2: explicación, pseudocódigo y complejidad',
-        description:
-            'Cubre la idea general, el pseudocódigo y el análisis de complejidad con un visualizador.',
+        description: 'Cubre la idea general, el pseudocódigo y el análisis de complejidad con un visualizador.',
         url: 'https://www.youtube.com/watch?v=6GU6AGEWYJY',
         label: 'Teoría y código',
       ),
       SortingVideo(
         title: 'Video 3: Insertion Sort bailado',
-        description:
-            'Observa cómo cada elemento se inserta en la fila ordenada mediante una coreografía.',
+        description: 'Observa cómo cada elemento se inserta en la fila ordenada mediante una coreografía.',
         url: 'https://www.youtube.com/watch?v=ROalU379l3U',
         label: 'Visualización con baile',
       ),
@@ -1203,43 +1218,37 @@ class SortingPageContent {
   // SHELL SORT
   // ---------------------------------------------------------------------------
   static const _shell = SortingPageContent(
-    badge: 'Inserción con saltos',
+    badge: 'Intercambios con saltos',
     badgeIcon: Icons.space_bar_rounded,
     heroIcon: Icons.space_bar_rounded,
-    intro:
-        'Ordena elementos distantes entre sí; reduce el gap hasta llegar a una inserción final con gap 1.',
+    intro: 'Compara e intercambia elementos distantes; reduce h hasta completar la pasada final con h=1.',
     conceptEyebrow: 'LA IDEA EN UNA FRASE',
     conceptTitle: '¿Qué es el "gap"?',
-    conceptBody:
-        'El gap es la distancia entre los elementos que se comparan en cada pasada. Con un gap grande, los valores mueven grandes distancias de un solo salto; con gap 1 el algoritmo se comporta como una inserción normal.',
-    conceptExtra:
-        'Shell Sort fue propuesto por Donald Shell en 1959. Su truco es que Insertion Sort es muy rápido con datos casi ordenados, así que primero "casi ordena" el arreglo con saltos grandes y deja la inserción fina para el final.',
-    how:
-        'Shell Sort aplica inserción a subsecuencias separadas por incrementos de Knuth (1, 4, 13, …). Cada pasada reduce el gap; la última, con gap 1, termina de ordenar.',
-    howExtra:
-        'La secuencia de Knuth sigue la regla h = 3h + 1 (1, 4, 13, 40, …). Se elige el mayor gap que sea razonable para el tamaño del arreglo y se va reduciendo. Cada pasada deja al arreglo "h-ordenado": los elementos separados por h posiciones ya quedan en orden relativo, lo que prepara el terreno para la pasada siguiente.',
-    analogyTitle: 'Ejemplo cotidiano: ordenar una fila de personas por estatura',
-    analogyBody:
-        'En vez de pedir que vecinos contiguos se intercambien, primero haces que personas muy separadas en la fila se comparen y se cambien de lugar. Así los más altos viajan rápido hacia el final y los más bajos al inicio. Luego acortas la distancia hasta que solo corriges ajustes pequeños entre vecinos.',
+    conceptBody: 'El gap h es la distancia entre los elementos comparados en cada pasada. Si el de la derecha es menor, ambos intercambian sus posiciones; con h=1 se comparan vecinos.',
+    conceptExtra: 'Shell Sort fue propuesto por Donald Shell en 1959. Su truco es que Insertion Sort es muy rápido con datos casi ordenados, así que primero "casi ordena" el arreglo con saltos grandes y deja la inserción fina para el final.',
+    how: 'Shell Sort ordena subsecuencias intercaladas con incrementos de Knuth (1, 4, 13, …). Compara a[j] con a[j-h] e intercambia si el primero es menor. La pasada h=1 termina de ordenar.',
+    howExtra: 'La secuencia de Knuth sigue la regla h = 3h + 1 (1, 4, 13, 40, …). Se elige el mayor gap que sea razonable para el tamaño del arreglo y se va reduciendo. Cada pasada deja al arreglo "h-ordenado": los elementos separados por h posiciones ya quedan en orden relativo, lo que prepara el terreno para la pasada siguiente.',
+    analogyTitle:
+        'Ejemplo cotidiano: ordenar una fila de personas por estatura',
+    analogyBody: 'En vez de pedir que vecinos contiguos se intercambien, primero haces que personas muy separadas en la fila se comparen y se cambien de lugar. Así los más altos viajan rápido hacia el final y los más bajos al inicio. Luego acortas la distancia hasta que solo corriges ajustes pequeños entre vecinos.',
     steps: [
       (
         '1. Calcula el gap',
         'Usa el mayor incremento de Knuth apropiado para el tamaño.',
-        'Se parte de gap = 1 y se multiplica por 3 sumando 1 mientras el gap siga siendo pequeño respecto al tamaño del arreglo. Para pocos elementos el gap inicial puede ser 1 o muy cercano.',
+        'Se parte de h=1; mientras h < n/3 se calcula h=3h+1. Luego se recorren esos incrementos en orden descendente.',
       ),
       (
         '2. Ordena subsecuencias',
-        'Compara elementos separados por el gap y desplaza los mayores.',
-        'Los elementos que están a gap posiciones entre sí forman subsecuencias independientes. Cada una se ordena con inserción: se toma una clave, se compara con el elemento que está gap lugares atrás y se desplaza si es mayor.',
+        'Compara posiciones separadas por h e intercambia cuando hace falta.',
+        'Para cada i desde h, compara a[j] con a[j-h]. Si a[j] es menor, intercambia ambos y continúa en j-h; de lo contrario detiene ese recorrido. Los valores iguales nunca se intercambian.',
       ),
       (
         '3. Reduce el gap',
         'Repite hasta completar una pasada con gap 1.',
-        'Tras cada pasada se pasa al siguiente gap menor de la secuencia (por ejemplo 13 → 4 → 1). La pasada final con gap 1 es una inserción clásica, pero sobre un arreglo que ya está casi ordenado, así que termina muy rápido.',
+        'Tras cada pasada el arreglo queda h-ordenado, aunque aún no necesariamente ordenado por completo. Se divide h entre 3 (por ejemplo 13 → 4 → 1) y se repite.',
       ),
     ],
-    example:
-        'Ejemplo: [8, 3, 6, 2] → gap 1 → inserción con desplazamientos → [2, 3, 6, 8].',
+    example: 'Ejemplo: [8, 3, 6, 2] → h=1 → intercambios de vecinos mientras el de la derecha sea menor → [2, 3, 6, 8].',
     trace: [
       SortingTraceRow(
         'Arreglo',
@@ -1254,14 +1263,12 @@ class SortingPageContent {
       SortingTraceRow(
         'Gap 1',
         '[1, 2, 3, 4, 5, 6, 7, 8]',
-        'Inserción final sobre un arreglo casi ordenado: pocos desplazamientos. Fin.',
+        'Intercambios de vecinos sobre un arreglo casi ordenado. Fin.',
       ),
     ],
     complexity: 'Θ(n³ᐟ²) peor caso',
-    complexityDetails:
-        'Con incrementos de Knuth, el peor caso es Θ(n³ᐟ²). Se ordena in situ; las comparaciones y desplazamientos reales se muestran en el laboratorio.',
-    complexityExtra:
-        'La complejidad exacta de Shell Sort depende de la secuencia de gaps elegida: con la secuencia original de Shell (n/2, n/4, …) el peor caso es O(n²), mientras que con la de Knuth baja a Θ(n³ᐟ²). En la práctica suele ser mucho más rápido que Insertion Sort sin necesitar memoria adicional.',
+    complexityDetails: 'Con incrementos de Knuth, el peor caso es Θ(n³ᐟ²). Se ordena in situ; las comparaciones y los intercambios reales se muestran en el laboratorio.',
+    complexityExtra: 'La complejidad exacta de Shell Sort depende de la secuencia de gaps elegida: con la secuencia original de Shell (n/2, n/4, …) el peor caso es O(n²), mientras que con la de Knuth baja a Θ(n³ᐟ²). En la práctica suele ser mucho más rápido que Insertion Sort sin necesitar memoria adicional.',
     metrics: [
       ('Mejor caso', 'O(n log n)'),
       ('Caso promedio', 'según el gap'),
@@ -1283,29 +1290,24 @@ class SortingPageContent {
       'Para datos muy grandes hay algoritmos n log n garantizados.',
     ],
     whenTitle: '¿Cuándo conviene usarlo?',
-    whenBody:
-        'Es una mejora sencilla cuando se quiere algo más rápido que la inserción sin recurrir a recursión ni a memoria extra. Se usa en sistemas embebidos y en situaciones donde importa un código pequeño y un uso mínimo de memoria.',
-    cta:
-        'Observa cómo cambia el gap en cada pasada y cómo los elementos lejanos se acercan a su lugar.',
+    whenBody: 'Es una mejora sencilla cuando se quiere algo más rápido que la inserción sin recurrir a recursión ni a memoria extra. Se usa en sistemas embebidos y en situaciones donde importa un código pequeño y un uso mínimo de memoria.',
+    cta: 'Observa cómo cambia el gap en cada pasada y cómo los elementos lejanos se acercan a su lugar.',
     videos: [
       SortingVideo(
         title: 'Video 1: Shell Sort paso a paso',
-        description:
-            'Explicación en español con prueba de escritorio, útil para seguir cada gap.',
+        description: 'Explicación en español con prueba de escritorio, útil para seguir cada gap.',
         url: 'https://www.youtube.com/watch?v=vwn514rBtNc',
         label: 'Prueba de escritorio',
       ),
       SortingVideo(
         title: 'Video 2: funcionamiento gráfico del método Shell',
-        description:
-            'Describe gráficamente cómo se agrupan y ordenan los elementos según el incremento.',
+        description: 'Describe gráficamente cómo se agrupan y ordenan los elementos según el incremento.',
         url: 'https://www.youtube.com/watch?v=9GAtGHVRYh0',
         label: 'Explicación gráfica',
       ),
       SortingVideo(
         title: 'Video 3: Shell Sort bailado',
-        description:
-            'Una coreografía que muestra cómo los saltos grandes se reducen hasta llegar a gap 1.',
+        description: 'Una coreografía que muestra cómo los saltos grandes se reducen hasta llegar a gap 1.',
         url: 'https://www.youtube.com/watch?v=CmPA7zE8mx0',
         label: 'Visualización con baile',
       ),
@@ -1319,21 +1321,15 @@ class SortingPageContent {
     badge: 'Divide y vencerás',
     badgeIcon: Icons.call_merge_rounded,
     heroIcon: Icons.call_merge_rounded,
-    intro:
-        'Divide el conjunto en dos mitades, ordena cada mitad y fusiónalas comparando sus elementos.',
+    intro: 'Divide el conjunto en dos mitades, ordena cada mitad y fusiónalas comparando sus elementos.',
     conceptEyebrow: 'LA IDEA EN UNA FRASE',
     conceptTitle: '¿Qué significa "divide y vencerás"?',
-    conceptBody:
-        'Es una estrategia que parte un problema grande en problemas más pequeños de la misma forma, los resuelve por separado y combina las respuestas. Ordenar una lista de un solo elemento es trivial: ya está ordenada.',
-    conceptExtra:
-        'Merge Sort fue propuesto por John von Neumann en 1945. Su secreto es que fusionar dos listas que ya están ordenadas es muy barato: basta con mirar el primer elemento pendiente de cada una y quedarse con el menor.',
-    how:
-        'Merge Sort divide recursivamente en dos mitades hasta obtener tramos de un elemento. Después fusiona cada par de mitades ya ordenadas, eligiendo el menor elemento disponible.',
-    howExtra:
-        'El algoritmo tiene dos fases. En la de división se parte el arreglo por la mitad una y otra vez hasta llegar a tramos de tamaño 1. En la de fusión se recorre el camino de vuelta: cada par de tramos ordenados se combina en uno más grande y ordenado, hasta reconstruir el arreglo completo.',
+    conceptBody: 'Es una estrategia que parte un problema grande en problemas más pequeños de la misma forma, los resuelve por separado y combina las respuestas. Ordenar una lista de un solo elemento es trivial: ya está ordenada.',
+    conceptExtra: 'Merge Sort fue propuesto por John von Neumann en 1945. Su secreto es que fusionar dos listas que ya están ordenadas es muy barato: basta con mirar el primer elemento pendiente de cada una y quedarse con el menor.',
+    how: 'Merge Sort divide recursivamente en dos mitades hasta obtener tramos de un elemento. Después fusiona cada par de mitades ya ordenadas, eligiendo el menor elemento disponible.',
+    howExtra: 'El algoritmo tiene dos fases. En la de división se parte el arreglo por la mitad una y otra vez hasta llegar a tramos de tamaño 1. En la de fusión se recorre el camino de vuelta: cada par de tramos ordenados se combina en uno más grande y ordenado, hasta reconstruir el arreglo completo.',
     analogyTitle: 'Ejemplo cotidiano: unir dos montones de exámenes',
-    analogyBody:
-        'Dos profesores corrigen cada uno la mitad de los exámenes y los dejan ordenados por nota. Para juntarlos en un solo montón ordenado, basta con mirar el examen de arriba de cada pila y pasar siempre el de menor nota. Merge Sort aplica esa misma idea una y otra vez.',
+    analogyBody: 'Dos profesores corrigen cada uno la mitad de los exámenes y los dejan ordenados por nota. Para juntarlos en un solo montón ordenado, basta con mirar el examen de arriba de cada pila y pasar siempre el de menor nota. Merge Sort aplica esa misma idea una y otra vez.',
     steps: [
       (
         '1. Divide',
@@ -1351,10 +1347,13 @@ class SortingPageContent {
         'Se usan dos punteros, uno por tramo. Se compara el elemento apuntado en cada uno, se copia el menor al resultado y se avanza ese puntero. Cuando un tramo se agota, se copia lo que queda del otro.',
       ),
     ],
-    example:
-        'Ejemplo: [8, 3, 6, 2] → [3, 8] y [2, 6] → fusión → [2, 3, 6, 8].',
+    example: 'Ejemplo: [8, 3, 6, 2] → [3, 8] y [2, 6] → fusión → [2, 3, 6, 8].',
     trace: [
-      SortingTraceRow('Inicio', '[8, 3, 6, 2]', 'Un solo tramo de 4 elementos.'),
+      SortingTraceRow(
+        'Inicio',
+        '[8, 3, 6, 2]',
+        'Un solo tramo de 4 elementos.',
+      ),
       SortingTraceRow(
         'División',
         '[8, 3]  |  [6, 2]',
@@ -1372,10 +1371,8 @@ class SortingPageContent {
       ),
     ],
     complexity: 'Θ(n log n)',
-    complexityDetails:
-        'Divide y fusiona en Θ(n log n) tiempo incluso en el peor caso. La fusión requiere Θ(n) espacio auxiliar.',
-    complexityExtra:
-        'El arreglo se divide en log n niveles y en cada nivel se recorren los n elementos para fusionar, de ahí n log n. Es una de las pocas opciones con tiempo garantizado en todos los casos, a cambio de usar memoria adicional proporcional al tamaño de los datos.',
+    complexityDetails: 'Divide y fusiona en Θ(n log n) tiempo incluso en el peor caso. La fusión requiere Θ(n) espacio auxiliar.',
+    complexityExtra: 'El arreglo se divide en log n niveles y en cada nivel se recorren los n elementos para fusionar, de ahí n log n. Es una de las pocas opciones con tiempo garantizado en todos los casos, a cambio de usar memoria adicional proporcional al tamaño de los datos.',
     metrics: [
       ('Mejor caso', 'Θ(n log n)'),
       ('Caso promedio', 'Θ(n log n)'),
@@ -1396,22 +1393,18 @@ class SortingPageContent {
       'Para arreglos muy pequeños suele ser más lento que la inserción.',
     ],
     whenTitle: '¿Cuándo conviene usarlo?',
-    whenBody:
-        'Es la elección habitual cuando se necesita un tiempo predecible con muchos datos o cuando la estabilidad importa. Se usa, por ejemplo, para ordenar archivos que no caben en memoria y como base de los ordenamientos estándar de varios lenguajes.',
-    cta:
-        'Sigue cómo se dividen los tramos y cómo la fusión elige siempre el menor elemento disponible.',
+    whenBody: 'Es la elección habitual cuando se necesita un tiempo predecible con muchos datos o cuando la estabilidad importa. Se usa, por ejemplo, para ordenar archivos que no caben en memoria y como base de los ordenamientos estándar de varios lenguajes.',
+    cta: 'Sigue cómo se dividen los tramos y cómo la fusión elige siempre el menor elemento disponible.',
     videos: [
       SortingVideo(
         title: 'Video 1: Merge Sort explicado',
-        description:
-            'Introducción al ordenamiento por mezcla como ejemplo clásico del patrón divide y vencerás.',
+        description: 'Introducción al ordenamiento por mezcla como ejemplo clásico del patrón divide y vencerás.',
         url: 'https://www.youtube.com/watch?v=ACFZn_xQcz8',
         label: 'Explicación principal',
       ),
       SortingVideo(
         title: 'Video 2: Merge Sort bailado',
-        description:
-            'Una coreografía que muestra cómo se dividen los grupos y cómo se fusionan de forma ordenada.',
+        description: 'Una coreografía que muestra cómo se dividen los grupos y cómo se fusionan de forma ordenada.',
         url: 'https://youtu.be/XaqR3G_NVoo',
         label: 'Visualización con baile',
       ),

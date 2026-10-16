@@ -62,6 +62,11 @@ void main() {
         expect(find.text('Modo Libre'), findsOneWidget);
         expect(find.text('Asignación'), findsOneWidget);
         expect(find.text('Johnson'), findsOneWidget);
+        expect(find.text('Ordenamiento'), findsOneWidget);
+        expect(
+          tester.getTopLeft(find.text('Ordenamiento')).dy,
+          greaterThan(tester.getTopLeft(find.text('Northwest')).dy),
+        );
 
         // Verify no checkmark icons are preselected
         expect(find.byIcon(Icons.check_circle_rounded), findsNothing);
@@ -71,6 +76,33 @@ void main() {
         container.dispose();
       },
     );
+
+    for (final width in [390.0, 800.0]) {
+      testWidgets('sorting group is reachable at ${width.toInt()}px', (
+        tester,
+      ) async {
+        tester.view.physicalSize = Size(width, 800);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        await tester.pumpWidget(
+          const ProviderScope(
+            child: MaterialApp(home: AlgorithmSelectionScreen()),
+          ),
+        );
+        final catalog = find.byType(CustomScrollView);
+        await tester.scrollUntilVisible(
+          find.text('Ordenamiento'),
+          250,
+          scrollable: find.descendant(
+            of: catalog,
+            matching: find.byType(Scrollable),
+          ),
+        );
+        expect(find.text('Ordenamiento'), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      });
+    }
 
     testWidgets('tapping Modo Libre clears active algorithm', (tester) async {
       tester.view.physicalSize = const Size(1280, 900);
@@ -138,7 +170,7 @@ void main() {
 
       final grid = find.descendant(
         of: find.byType(AlgorithmSelectionDialog),
-        matching: find.byType(GridView),
+        matching: find.byType(CustomScrollView),
       );
       await tester.drag(grid, const Offset(0, -700));
       await tester.pumpAndSettle();

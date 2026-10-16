@@ -7,10 +7,12 @@ SortingTimeline buildMergeTimeline(List<int> input) {
     values.length,
     (index) => index.toDouble(),
   );
+  final aux = List<int?>.filled(values.length, null);
   final steps = <SortingStep>[];
   final rootMiddle = values.length ~/ 2;
   var comparisons = 0;
   var writes = 0;
+  var auxCopies = 0;
   var leftReady = false;
   var rightReady = false;
 
@@ -25,6 +27,9 @@ SortingTimeline buildMergeTimeline(List<int> input) {
     int leftConsumed = 0,
     int rightConsumed = 0,
     int? selectedId,
+    int? i,
+    int? j,
+    int? k,
   }) => SortingMergeState(
     stage: stage,
     rootMiddle: rootMiddle,
@@ -38,6 +43,11 @@ SortingTimeline buildMergeTimeline(List<int> input) {
     leftIds: List<int>.unmodifiable(left),
     rightIds: List<int>.unmodifiable(right),
     outputIds: List<int>.unmodifiable(output),
+    arrayIds: List<int>.unmodifiable(order),
+    auxIds: List<int?>.unmodifiable(aux),
+    i: i,
+    j: j,
+    k: k,
     leftConsumed: leftConsumed,
     rightConsumed: rightConsumed,
     selectedId: selectedId,
@@ -66,6 +76,7 @@ SortingTimeline buildMergeTimeline(List<int> input) {
         movements: 0,
         insertions: 0,
         writes: writes,
+        auxCopies: auxCopies,
         durationMs: durationMs,
         message: message,
         mergeState: state,
@@ -136,6 +147,27 @@ SortingTimeline buildMergeTimeline(List<int> input) {
     var l = 0;
     var r = 0;
     final mergeStage = root ? SortingMergeStage.fusion : stage;
+    for (var index = start; index < end; index++) {
+      aux[index] = order[index];
+      auxCopies++;
+    }
+    add(
+      SortingPhase.mergeCopying,
+      'Copiando a aux[${start + 1}..$end] antes de fusionar.',
+      snapshot(
+        mergeStage,
+        start,
+        middle,
+        end,
+        left,
+        right,
+        output,
+        i: start,
+        j: middle,
+        k: start,
+      ),
+      durationMs: 390,
+    );
     while (l < left.length || r < right.length) {
       if (l < left.length && r < right.length) {
         comparisons++;
@@ -152,22 +184,29 @@ SortingTimeline buildMergeTimeline(List<int> input) {
             output,
             leftConsumed: l,
             rightConsumed: r,
+            i: start + l,
+            j: middle + r,
+            k: start + output.length,
           ),
           leftId: left[l],
           rightId: right[r],
           durationMs: 320,
         );
       }
+      final leftExhausted = l >= left.length;
+      final rightExhausted = r >= right.length;
       final chosen =
-          r >= right.length ||
-              (l < left.length && values[left[l]] <= values[right[r]])
+          rightExhausted ||
+              (!leftExhausted && values[left[l]] <= values[right[r]])
           ? left[l++]
           : right[r++];
+      final target = start + output.length;
+      order[target] = chosen;
       output.add(chosen);
       writes++;
       add(
         SortingPhase.mergeWriting,
-        'Colocando ${values[chosen]} en la posición ${start + output.length}.',
+        '${leftExhausted || rightExhausted ? 'Mitad agotada; copiando' : 'Escribiendo'} ${values[chosen]} en a[${target + 1}].',
         snapshot(
           mergeStage,
           start,
@@ -179,13 +218,15 @@ SortingTimeline buildMergeTimeline(List<int> input) {
           leftConsumed: l,
           rightConsumed: r,
           selectedId: chosen,
+          i: start + l,
+          j: middle + r,
+          k: target,
         ),
         leftId: chosen,
         durationMs: 460,
       );
     }
     for (var offset = 0; offset < output.length; offset++) {
-      order[start + offset] = output[offset];
       slots[output[offset]] = (start + offset).toDouble();
     }
     add(
@@ -201,6 +242,9 @@ SortingTimeline buildMergeTimeline(List<int> input) {
         output,
         leftConsumed: l,
         rightConsumed: r,
+        i: start + l,
+        j: middle + r,
+        k: end,
       ),
       sortedCount: root ? values.length : 0,
       durationMs: 300,
