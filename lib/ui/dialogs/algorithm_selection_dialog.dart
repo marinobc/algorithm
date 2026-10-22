@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../algorithms/assignment/domain/services/assignment_validator.dart';
+import '../../algorithms/bst/ui/bst_theory_screen.dart';
 import '../../algorithms/assignment/providers/assignment_provider.dart';
 import '../../algorithms/core/algorithm_registry.dart';
 import '../../algorithms/core/graph_algorithm.dart';
@@ -125,6 +126,13 @@ class AlgorithmSelectionDialog extends StatelessWidget {
           algorithm: northwest,
         ),
       const _AlgorithmCatalogOption(
+        id: 'bst',
+        title: 'Árboles BST',
+        description: 'Construye y recorre árboles binarios de búsqueda.',
+        accentColor: Color(0xFF7461AE),
+        illustration: AlgorithmCatalogIllustration.bst,
+      ),
+      const _AlgorithmCatalogOption(
         id: 'selection-sort',
         title: 'Selection Sort',
         description:
@@ -170,6 +178,11 @@ class AlgorithmSelectionDialog extends StatelessWidget {
   }
 
   void _select(BuildContext context, _AlgorithmCatalogOption option) {
+    if (option.id == 'bst') {
+      Navigator.of(context)
+          .push(MaterialPageRoute(builder: (_) => const BstTheoryScreen()));
+      return;
+    }
     final sortingAlgorithm = option.sortingAlgorithm;
     if (sortingAlgorithm != null) {
       Navigator.of(context).push(
@@ -273,6 +286,11 @@ class AlgorithmSelectionScreen extends ConsumerWidget {
     WidgetRef ref,
     _AlgorithmCatalogOption option,
   ) {
+    if (option.id == 'bst') {
+      Navigator.of(context)
+          .push(MaterialPageRoute(builder: (_) => const BstTheoryScreen()));
+      return;
+    }
     final sortingAlgorithm = option.sortingAlgorithm;
     if (sortingAlgorithm != null) {
       Navigator.of(context).push(
@@ -309,11 +327,17 @@ class _CatalogOptionsList extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     final general = options
-        .where((option) => option.available && option.sortingAlgorithm == null)
+        .where(
+          (option) =>
+              option.available &&
+              option.sortingAlgorithm == null &&
+              option.id != 'bst',
+        )
         .toList();
     final sorting = options
         .where((option) => option.sortingAlgorithm != null)
         .toList();
+    final structures = options.where((option) => option.id == 'bst').toList();
     final upcoming = options.where((option) => !option.available).toList();
 
     return LayoutBuilder(
@@ -370,6 +394,28 @@ class _CatalogOptionsList extends StatelessWidget {
                   ),
                 ),
                 grid(sorting),
+              ],
+              if (structures.isNotEmpty) ...[
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(0, 22, 0, 12),
+                    child: Row(
+                      children: [
+                        Text(
+                          'Estructuras de datos',
+                          style: TextStyle(
+                            color: colors.onSurfaceVariant,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(child: Divider(color: colors.outlineVariant)),
+                      ],
+                    ),
+                  ),
+                ),
+                grid(structures),
               ],
               if (upcoming.isNotEmpty) ...[
                 SliverToBoxAdapter(

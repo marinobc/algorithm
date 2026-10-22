@@ -7,6 +7,7 @@ enum AlgorithmCatalogIllustration {
   assignment,
   johnson,
   northwest,
+  bst,
   selectionSort,
   insertionSort,
   shellSort,
@@ -64,6 +65,8 @@ class _AlgorithmCatalogIllustrationPainter extends CustomPainter {
         _drawDirectedGraph(canvas, size, linePaint, nodePaint, mutedNodePaint);
       case AlgorithmCatalogIllustration.northwest:
         _drawBipartiteGraph(canvas, size, linePaint, nodePaint, mutedNodePaint);
+      case AlgorithmCatalogIllustration.bst:
+        _drawTree(canvas, size, linePaint, nodePaint, mutedNodePaint);
       case AlgorithmCatalogIllustration.selectionSort:
         _drawSortingStacks(canvas, size, nodePaint, mutedNodePaint, true);
       case AlgorithmCatalogIllustration.insertionSort:
@@ -96,6 +99,29 @@ class _AlgorithmCatalogIllustrationPainter extends CustomPainter {
           column == (selection ? 4 : 2) ? node : muted,
         );
       }
+    }
+  }
+
+  void _drawTree(
+    Canvas canvas,
+    Size size,
+    Paint line,
+    Paint node,
+    Paint muted,
+  ) {
+    final points = [
+      Offset(size.width * .50, size.height * .24),
+      Offset(size.width * .30, size.height * .52),
+      Offset(size.width * .70, size.height * .52),
+      Offset(size.width * .20, size.height * .78),
+      Offset(size.width * .40, size.height * .78),
+      Offset(size.width * .80, size.height * .78),
+    ];
+    for (final (parent, child) in [(0, 1), (0, 2), (1, 3), (1, 4), (2, 5)]) {
+      canvas.drawLine(points[parent], points[child], line);
+    }
+    for (var i = 0; i < points.length; i++) {
+      canvas.drawCircle(points[i], i == 0 ? 11 : 9, i == 0 ? node : muted);
     }
   }
 

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../algorithms/core/algorithm_registry.dart';
+import '../../algorithms/bst/ui/bst_theory_screen.dart';
 import '../dialogs/algorithm_selection_dialog.dart';
 import '../screens/assignment_algo_screen.dart';
 import '../screens/contact_screen.dart';
@@ -19,6 +20,7 @@ enum ExplanationWebPage {
   assignment,
   johnson,
   northwest,
+  bst,
   selectionSort,
   insertionSort,
   shellSort,
@@ -51,6 +53,9 @@ class WebExplanationShell extends ConsumerWidget {
         break;
       case ExplanationWebPage.northwest:
         targetScreen = const NorthwestAlgoScreen();
+        break;
+      case ExplanationWebPage.bst:
+        targetScreen = const BstTheoryScreen();
         break;
       case ExplanationWebPage.selectionSort:
         targetScreen = const SortingAlgoScreen(
@@ -515,6 +520,29 @@ class WebExplanationShell extends ConsumerWidget {
                 isDrawer: isDrawer,
               ),
             ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+          child: Text(
+            'Estructuras de datos',
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1.0,
+              color: colorScheme.primary,
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(left: 12),
+          child: _buildVerticalNavLink(
+            context,
+            label: 'Árboles BST',
+            page: ExplanationWebPage.bst,
+            icon: Icons.account_tree_outlined,
+            isDrawer: isDrawer,
           ),
         ),
         const SizedBox(height: 16),
