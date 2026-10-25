@@ -25,7 +25,7 @@ class _BstTreeCanvasState extends State<BstTreeCanvas>
   late _TreeLayout _layout;
   Map<String, Offset> _previous = const {};
   Size _viewport = Size.zero;
-  bool _autoFit = true;
+  bool _fitWhenFirstTreeAppears = false;
 
   @override
   void initState() {
@@ -37,9 +37,11 @@ class _BstTreeCanvasState extends State<BstTreeCanvas>
           duration: const Duration(milliseconds: 220),
           value: 1,
         )..addStatusListener((status) {
-          if (status == AnimationStatus.completed && _autoFit) _scheduleFit();
+          if (status == AnimationStatus.completed && _fitWhenFirstTreeAppears) {
+            _fitWhenFirstTreeAppears = false;
+            _scheduleFit();
+          }
         });
-    _scheduleFit();
   }
 
   @override
@@ -48,10 +50,17 @@ class _BstTreeCanvasState extends State<BstTreeCanvas>
     if (oldWidget.tree.root != widget.tree.root) {
       _previous = _currentPositions();
       _layout = _TreeLayout.compute(widget.tree);
+      final isFirstTree = oldWidget.tree.isEmpty && !widget.tree.isEmpty;
       if (MediaQuery.disableAnimationsOf(context)) {
         _transition.value = 1;
-        if (_autoFit) _scheduleFit();
+        if (isFirstTree) _scheduleFit();
+        _fitWhenFirstTreeAppears = false;
       } else {
+        if (widget.tree.isEmpty) {
+          _fitWhenFirstTreeAppears = false;
+        } else if (isFirstTree) {
+          _fitWhenFirstTreeAppears = true;
+        }
         _transition.forward(from: 0);
       }
     }
@@ -76,7 +85,7 @@ class _BstTreeCanvasState extends State<BstTreeCanvas>
 
   void _scheduleFit() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted && _autoFit) _fit();
+      if (mounted) _fit();
     });
   }
 
@@ -94,7 +103,6 @@ class _BstTreeCanvasState extends State<BstTreeCanvas>
     final x = (_viewport.width - _layout.size.width * scale) / 2;
     final y = (_viewport.height - _layout.size.height * scale) / 2;
     _camera.value = _matrix(scale, x, y);
-    _autoFit = true;
   }
 
   Matrix4 _matrix(double scale, double x, double y) => Matrix4.identity()
@@ -112,7 +120,6 @@ class _BstTreeCanvasState extends State<BstTreeCanvas>
     final x = center.dx - (center.dx - old.entry(0, 3)) * ratio;
     final y = center.dy - (center.dy - old.entry(1, 3)) * ratio;
     _camera.value = _matrix(next, x, y);
-    _autoFit = false;
   }
 
   @override
@@ -123,27 +130,69 @@ class _BstTreeCanvasState extends State<BstTreeCanvas>
         final size = Size(constraints.maxWidth, constraints.maxHeight);
         if (size != _viewport) {
           _viewport = size;
-          _scheduleFit();
         }
         return Stack(
           children: [
             Positioned.fill(
               child: widget.tree.isEmpty
                   ? Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.account_tree_outlined,
-                            size: 46,
-                            color: colors.primary,
+                      child: Semantics(
+                        container: true,
+                        liveRegion: true,
+                        label: 'Construye tu primer árbol BST. Introduce valores en el panel izquierdo. Los menores van a la izquierda y los mayores, a la derecha. Ejemplo: 5, 3, 7, 1, 4.',
+                        child: ExcludeSemantics(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.account_tree_outlined,
+                                size: 34,
+                                color: colors.primary,
+                              ),
+                              const SizedBox(height: 10),
+                              Text(
+                                'Construye tu primer árbol BST',
+                                textAlign: TextAlign.center,
+                                style: Theme.of(context).textTheme.titleMedium
+                                    ?.copyWith(fontWeight: FontWeight.w700),
+                              ),
+                              const SizedBox(height: 6),
+                              ConstrainedBox(
+                                constraints: const BoxConstraints(
+                                  maxWidth: 390,
+                                ),
+                                child: Text(
+                                  'Introduce valores en el panel izquierdo. Los menores van a la izquierda y los mayores, a la derecha.',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: colors.onSurfaceVariant,
+                                    height: 1.45,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 7,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: colors.secondaryContainer,
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Text(
+                                  'Ejemplo: 5, 3, 7, 1, 4',
+                                  style: TextStyle(
+                                    color: colors.onSecondaryContainer,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(height: 12),
-                          Text(
-                            'Tu árbol aparecerá aquí',
-                            style: Theme.of(context).textTheme.titleMedium,
-                          ),
-                        ],
+                        ),
                       ),
                     )
                   : InteractiveViewer(
@@ -152,7 +201,6 @@ class _BstTreeCanvasState extends State<BstTreeCanvas>
                       minScale: 0.04,
                       maxScale: 3,
                       boundaryMargin: const EdgeInsets.all(300),
-                      onInteractionStart: (_) => _autoFit = false,
                       child: AnimatedBuilder(
                         animation: _transition,
                         builder: (context, child) {
@@ -217,26 +265,37 @@ class _BstTreeCanvasState extends State<BstTreeCanvas>
               bottom: 12,
               child: Material(
                 color: colors.surfaceContainerHigh,
-                borderRadius: BorderRadius.circular(8),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      tooltip: 'Alejar árbol',
-                      onPressed: () => _zoom(0.8),
-                      icon: const Icon(Icons.remove_rounded),
-                    ),
-                    IconButton(
-                      tooltip: 'Centrar y ajustar árbol',
-                      onPressed: _fit,
-                      icon: const Icon(Icons.center_focus_strong_rounded),
-                    ),
-                    IconButton(
-                      tooltip: 'Acercar árbol',
-                      onPressed: () => _zoom(1.25),
-                      icon: const Icon(Icons.add_rounded),
-                    ),
-                  ],
+                borderRadius: BorderRadius.circular(12),
+                clipBehavior: Clip.antiAlias,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    border: Border.all(color: colors.outlineVariant),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        tooltip: 'Alejar árbol',
+                        onPressed: widget.tree.isEmpty
+                            ? null
+                            : () => _zoom(0.8),
+                        icon: const Icon(Icons.remove_rounded),
+                      ),
+                      IconButton(
+                        tooltip: 'Centrar y ajustar árbol',
+                        onPressed: widget.tree.isEmpty ? null : _fit,
+                        icon: const Icon(Icons.center_focus_strong_rounded),
+                      ),
+                      IconButton(
+                        tooltip: 'Acercar árbol',
+                        onPressed: widget.tree.isEmpty
+                            ? null
+                            : () => _zoom(1.25),
+                        icon: const Icon(Icons.add_rounded),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -323,8 +382,11 @@ class _TreeEdgePainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _TreeEdgePainter oldDelegate) =>
       oldDelegate.positions != positions ||
+      oldDelegate.parents != parents ||
+      oldDelegate.nodes != nodes ||
       oldDelegate.activeValues != activeValues ||
-      oldDelegate.color != color;
+      oldDelegate.color != color ||
+      oldDelegate.activeColor != activeColor;
 }
 
 class _TreeNodeWidget extends StatelessWidget {
@@ -344,6 +406,7 @@ class _TreeNodeWidget extends StatelessWidget {
     return Semantics(
       label:
           'Nodo ${node.value}, frecuencia ${node.frequency}${isRoot ? ', raíz' : ''}',
+      excludeSemantics: true,
       child: SizedBox(
         width: 64,
         height: 64,

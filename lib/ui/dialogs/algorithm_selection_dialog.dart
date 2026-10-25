@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../algorithms/assignment/domain/services/assignment_validator.dart';
-import '../../algorithms/bst/ui/bst_theory_screen.dart';
+import '../../algorithms/bst/ui/bst_lab_screen.dart';
 import '../../algorithms/assignment/providers/assignment_provider.dart';
 import '../../algorithms/core/algorithm_registry.dart';
 import '../../algorithms/core/graph_algorithm.dart';
@@ -180,7 +180,7 @@ class AlgorithmSelectionDialog extends StatelessWidget {
   void _select(BuildContext context, _AlgorithmCatalogOption option) {
     if (option.id == 'bst') {
       Navigator.of(context)
-          .push(MaterialPageRoute(builder: (_) => const BstTheoryScreen()));
+          .push(MaterialPageRoute(builder: (_) => const BstLabScreen()));
       return;
     }
     final sortingAlgorithm = option.sortingAlgorithm;
@@ -288,7 +288,7 @@ class AlgorithmSelectionScreen extends ConsumerWidget {
   ) {
     if (option.id == 'bst') {
       Navigator.of(context)
-          .push(MaterialPageRoute(builder: (_) => const BstTheoryScreen()));
+          .push(MaterialPageRoute(builder: (_) => const BstLabScreen()));
       return;
     }
     final sortingAlgorithm = option.sortingAlgorithm;
@@ -317,16 +317,82 @@ class AlgorithmSelectionScreen extends ConsumerWidget {
   }
 }
 
-class _CatalogOptionsList extends StatelessWidget {
+class _CatalogOptionsList extends StatefulWidget {
   final List<_AlgorithmCatalogOption> options;
   final ValueChanged<_AlgorithmCatalogOption> onSelect;
 
   const _CatalogOptionsList({required this.options, required this.onSelect});
 
   @override
+  State<_CatalogOptionsList> createState() => _CatalogOptionsListState();
+}
+
+class _CatalogOptionsListState extends State<_CatalogOptionsList> {
+  final _searchController = TextEditingController();
+  String _query = '';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  String _normalize(String value) => value
+      .toLowerCase()
+      .replaceAll(RegExp('[áàäâ]'), 'a')
+      .replaceAll(RegExp('[éèëê]'), 'e')
+      .replaceAll(RegExp('[íìïî]'), 'i')
+      .replaceAll(RegExp('[óòöô]'), 'o')
+      .replaceAll(RegExp('[úùüû]'), 'u')
+      .replaceAll('ñ', 'n');
+
+  bool _matches(_AlgorithmCatalogOption option) {
+    final query = _normalize(_query.trim());
+    if (query.isEmpty) return true;
+
+    final category = option.sortingAlgorithm != null
+        ? 'ordenamiento sorting sort'
+        : option.id == 'bst'
+        ? 'estructura estructuras de datos arbol arboles bst'
+        : option.id == 'free-mode'
+        ? 'grafos libre edicion'
+        : !option.available
+        ? 'proximamente'
+        : 'grafos';
+    final searchable = _normalize(
+      '${option.title} ${option.description} ${option.id} $category',
+    );
+    return query.split(RegExp(r'\s+')).every(searchable.contains);
+  }
+
+  Widget _categoryHeader(BuildContext context, String title) {
+    final colors = Theme.of(context).colorScheme;
+    return SliverToBoxAdapter(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(0, 22, 0, 12),
+        child: Row(
+          children: [
+            Text(
+              title,
+              style: TextStyle(
+                color: colors.onSurfaceVariant,
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(child: Divider(color: colors.outlineVariant)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-    final general = options
+    final filtered = widget.options.where(_matches).toList();
+    final general = filtered
         .where(
           (option) =>
               option.available &&
@@ -334,11 +400,11 @@ class _CatalogOptionsList extends StatelessWidget {
               option.id != 'bst',
         )
         .toList();
-    final sorting = options
+    final sorting = filtered
         .where((option) => option.sortingAlgorithm != null)
         .toList();
-    final structures = options.where((option) => option.id == 'bst').toList();
-    final upcoming = options.where((option) => !option.available).toList();
+    final structures = filtered.where((option) => option.id == 'bst').toList();
+    final upcoming = filtered.where((option) => !option.available).toList();
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -360,7 +426,7 @@ class _CatalogOptionsList extends StatelessWidget {
             (context, index) => _AlgorithmCatalogCard(
               option: entries[index],
               onSelect: entries[index].available
-                  ? () => onSelect(entries[index])
+                  ? () => widget.onSelect(entries[index])
                   : null,
             ),
             childCount: entries.length,
@@ -372,49 +438,73 @@ class _CatalogOptionsList extends StatelessWidget {
           child: CustomScrollView(
             physics: const BouncingScrollPhysics(),
             slivers: [
-              grid(general),
-              if (sorting.isNotEmpty) ...[
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(0, 22, 0, 12),
-                    child: Row(
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: TextField(
+                    controller: _searchController,
+                    onChanged: (value) => setState(() => _query = value),
+                    textInputAction: TextInputAction.search,
+                    decoration: InputDecoration(
+                      hintText: 'Buscar algoritmo por nombre o descripción',
+                      prefixIcon: const Icon(Icons.search_rounded),
+                      suffixIcon: _query.isEmpty
+                          ? null
+                          : IconButton(
+                              tooltip: 'Limpiar búsqueda',
+                              onPressed: () {
+                                _searchController.clear();
+                                setState(() => _query = '');
+                              },
+                              icon: const Icon(Icons.close_rounded),
+                            ),
+                      filled: true,
+                      fillColor: colors.surfaceContainerLow,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: BorderSide(color: colors.outlineVariant),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: BorderSide(color: colors.outlineVariant),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: BorderSide(color: colors.primary, width: 2),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              if (filtered.isEmpty)
+                SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(
-                          'Ordenamiento',
-                          style: TextStyle(
-                            color: colors.onSurfaceVariant,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                          ),
+                        Icon(
+                          Icons.search_off_rounded,
+                          size: 42,
+                          color: colors.onSurfaceVariant,
                         ),
-                        const SizedBox(width: 14),
-                        Expanded(child: Divider(color: colors.outlineVariant)),
+                        const SizedBox(height: 12),
+                        Text(
+                          'No encontramos algoritmos para «${_query.trim()}».',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: colors.onSurfaceVariant),
+                        ),
                       ],
                     ),
                   ),
                 ),
+              if (general.isNotEmpty) grid(general),
+              if (sorting.isNotEmpty) ...[
+                _categoryHeader(context, 'Ordenamiento'),
                 grid(sorting),
               ],
               if (structures.isNotEmpty) ...[
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(0, 22, 0, 12),
-                    child: Row(
-                      children: [
-                        Text(
-                          'Estructuras de datos',
-                          style: TextStyle(
-                            color: colors.onSurfaceVariant,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        const SizedBox(width: 14),
-                        Expanded(child: Divider(color: colors.outlineVariant)),
-                      ],
-                    ),
-                  ),
-                ),
+                _categoryHeader(context, 'Estructuras de datos'),
                 grid(structures),
               ],
               if (upcoming.isNotEmpty) ...[
@@ -426,6 +516,19 @@ class _CatalogOptionsList extends StatelessWidget {
                 ),
                 grid(upcoming),
               ],
+              if (_query.isNotEmpty && filtered.isNotEmpty)
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 16),
+                    child: Text(
+                      '${filtered.length} resultado${filtered.length == 1 ? '' : 's'}',
+                      style: TextStyle(
+                        color: colors.onSurfaceVariant,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                ),
               const SliverToBoxAdapter(child: SizedBox(height: 8)),
             ],
           ),

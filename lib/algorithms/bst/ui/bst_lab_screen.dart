@@ -29,8 +29,16 @@ class _BstLabScreenState extends State<BstLabScreen> {
   BstTraversal _secondType = BstTraversal.inorder;
   String? _manualError;
   String? _reconstructionError;
+  String? _reconstructionMessage;
   String? _quantityError;
   String? _savedJson;
+  String? _savedManualText;
+  String? _savedQuantity;
+  String? _savedFirstText;
+  String? _savedSecondText;
+  _InputMode? _savedMode;
+  BstTraversal? _savedFirstType;
+  BstTraversal? _savedSecondType;
   String _lastManualText = '';
   List<int> _manualSequence = const [];
   List<int> _path = const [];
@@ -44,12 +52,32 @@ class _BstLabScreenState extends State<BstLabScreen> {
     super.dispose();
   }
 
-  bool get _hasUnsavedChanges =>
-      _tree.toJson() != (_savedJson ?? const BstTree.empty().toJson()) ||
-      (_tree.isEmpty &&
-          (_manual.text.trim().isNotEmpty ||
-              _first.text.trim().isNotEmpty ||
-              _second.text.trim().isNotEmpty));
+  bool get _hasUnsavedChanges {
+    if (_savedJson == null) {
+      return !_tree.isEmpty ||
+          _manual.text.trim().isNotEmpty ||
+          _first.text.trim().isNotEmpty ||
+          _second.text.trim().isNotEmpty;
+    }
+    return _tree.toJson() != _savedJson ||
+        _manual.text != _savedManualText ||
+        _quantity.text != _savedQuantity ||
+        _first.text != _savedFirstText ||
+        _second.text != _savedSecondText ||
+        _mode != _savedMode ||
+        _firstType != _savedFirstType ||
+        _secondType != _savedSecondType;
+  }
+
+  void _captureSavedInputs() {
+    _savedManualText = _manual.text;
+    _savedQuantity = _quantity.text;
+    _savedFirstText = _first.text;
+    _savedSecondText = _second.text;
+    _savedMode = _mode;
+    _savedFirstType = _firstType;
+    _savedSecondType = _secondType;
+  }
 
   Future<bool> _confirmReplacement(String title) async {
     if (!_hasUnsavedChanges) return true;
@@ -81,23 +109,25 @@ class _BstLabScreenState extends State<BstLabScreen> {
       _path = path;
       _manualError = null;
       _reconstructionError = null;
+      _reconstructionMessage = null;
     });
   }
 
   void _onManualChanged(String value) {
-    final pasted = value.length - _lastManualText.length > 1;
+    final lengthChange = value.length - _lastManualText.length;
+    final hasSeparator = RegExp(r'[\s,]').hasMatch(value);
+    final pasted = lengthChange > 1 || (lengthChange < -1 && hasSeparator);
     _lastManualText = value;
-    if (!pasted &&
-        _manual.selection.isValid &&
-        _manual.selection.baseOffset < value.length) {
+    if (_manualError != null) {
+      setState(() => _manualError = null);
+    }
+    if (pasted || value.isEmpty) {
+      _readManual(value);
       return;
     }
-    final complete =
-        pasted || value.isEmpty || RegExp(r'[\s,]$').hasMatch(value);
-    final source = complete
-        ? value
-        : value.substring(0, value.lastIndexOf(RegExp(r'[\s,]')) + 1);
-    _readManual(source);
+    final lastSeparator = value.lastIndexOf(RegExp(r'[\s,]'));
+    if (lastSeparator < 0) return;
+    _readManual(value.substring(0, lastSeparator + 1));
   }
 
   void _readManual(String source) {
@@ -176,13 +206,19 @@ class _BstLabScreenState extends State<BstLabScreen> {
         tree.traverse(BstTraversal.preorder),
       );
       _applyTree(tree);
+      setState(
+        () => _reconstructionMessage = 'Árbol reconstruido correctamente.',
+      );
       AppToast.show(
         context,
         'BST reconstruido correctamente.',
         icon: Icons.account_tree_rounded,
       );
     } on FormatException catch (error) {
-      setState(() => _reconstructionError = error.message);
+      setState(() {
+        _reconstructionError = error.message;
+        _reconstructionMessage = null;
+      });
     }
   }
 
@@ -194,6 +230,13 @@ class _BstLabScreenState extends State<BstLabScreen> {
     _lastManualText = '';
     _manualSequence = const [];
     _savedJson = null;
+    _savedManualText = null;
+    _savedQuantity = null;
+    _savedFirstText = null;
+    _savedSecondText = null;
+    _savedMode = null;
+    _savedFirstType = null;
+    _savedSecondType = null;
     _applyTree(const BstTree.empty());
   }
 
@@ -217,7 +260,10 @@ class _BstLabScreenState extends State<BstLabScreen> {
         ),
       );
       if (!mounted) return;
-      setState(() => _savedJson = _tree.toJson());
+      setState(() {
+        _savedJson = _tree.toJson();
+        _captureSavedInputs();
+      });
       AppToast.show(
         context,
         'Árbol guardado como ${saved.name}.',
@@ -252,6 +298,7 @@ class _BstLabScreenState extends State<BstLabScreen> {
       _firstType = BstTraversal.values.byName(saved.firstType);
       _secondType = BstTraversal.values.byName(saved.secondType);
       _savedJson = loaded.toJson();
+      _captureSavedInputs();
       _applyTree(loaded);
       AppToast.show(
         context,
@@ -289,18 +336,29 @@ class _BstLabScreenState extends State<BstLabScreen> {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     final compact = MediaQuery.sizeOf(context).width < 760;
-    Widget action(String label, IconData icon, VoidCallback? onPressed) =>
-        compact
-        ? IconButton(tooltip: label, onPressed: onPressed, icon: Icon(icon))
-        : TextButton.icon(
-            onPressed: onPressed,
-            icon: Icon(icon, size: 19),
-            label: Text(label),
-          );
+    Widget action(
+      String label,
+      IconData icon,
+      VoidCallback? onPressed, {
+      String? disabledHint,
+    }) {
+      final tooltip = onPressed == null ? disabledHint ?? label : label;
+      return Tooltip(
+        message: tooltip,
+        child: compact
+            ? IconButton(onPressed: onPressed, icon: Icon(icon))
+            : TextButton.icon(
+                onPressed: onPressed,
+                icon: Icon(icon, size: 19),
+                label: Text(label),
+              ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: colors.surface,
       appBar: AppBar(
-        backgroundColor: colors.surfaceContainerHigh,
+        backgroundColor: colors.surfaceContainerLow,
         title: Text(
           'Árboles BST',
           style: TextStyle(fontSize: compact ? 17 : 20),
@@ -318,6 +376,7 @@ class _BstLabScreenState extends State<BstLabScreen> {
             'Guardar',
             Icons.save_outlined,
             _tree.isEmpty ? null : _saveTree,
+            disabledHint: 'Construye o carga un árbol para habilitar Guardar.',
           ),
           action('Guía de uso', Icons.help_outline_rounded, _showGuide),
           const SizedBox(width: 8),
@@ -327,18 +386,25 @@ class _BstLabScreenState extends State<BstLabScreen> {
         builder: (context, constraints) {
           final desktop = constraints.maxWidth >= 1100;
           if (desktop) {
-            return Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                SizedBox(width: 310, child: _sidePanel(_inputPanel())),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(18),
-                    child: _board(),
+            final wide = constraints.maxWidth >= 1600;
+            return Padding(
+              padding: const EdgeInsets.all(14),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  SizedBox(
+                    width: wide ? 340 : 300,
+                    child: _sidePanel(_inputPanel()),
                   ),
-                ),
-                SizedBox(width: 270, child: _sidePanel(_resultsPanel())),
-              ],
+                  const SizedBox(width: 14),
+                  Expanded(child: _board()),
+                  const SizedBox(width: 14),
+                  SizedBox(
+                    width: wide ? 300 : 260,
+                    child: _sidePanel(_resultsPanel()),
+                  ),
+                ],
+              ),
             );
           }
           return SingleChildScrollView(
@@ -351,7 +417,9 @@ class _BstLabScreenState extends State<BstLabScreen> {
                     children: [
                       if (constraints.maxWidth >= 700)
                         SizedBox(
-                          height: 560,
+                          height: (constraints.maxHeight - 48)
+                              .clamp(480.0, 620.0)
+                              .toDouble(),
                           child: Row(
                             children: [
                               SizedBox(
@@ -364,12 +432,12 @@ class _BstLabScreenState extends State<BstLabScreen> {
                           ),
                         )
                       else ...[
-                        _inputPanel(),
+                        _panelSurface(child: _inputPanel()),
                         const SizedBox(height: 16),
                         SizedBox(height: 420, child: _board()),
                       ],
                       const SizedBox(height: 16),
-                      _resultsPanel(),
+                      _panelSurface(child: _resultsPanel()),
                     ],
                   ),
                 ),
@@ -381,99 +449,175 @@ class _BstLabScreenState extends State<BstLabScreen> {
     );
   }
 
-  Widget _sidePanel(Widget child) => SingleChildScrollView(
-    child: Padding(padding: const EdgeInsets.all(18), child: child),
-  );
+  Widget _sidePanel(Widget child) =>
+      SingleChildScrollView(child: _panelSurface(child: child));
+
+  Widget _panelSurface({required Widget child}) {
+    final colors = Theme.of(context).colorScheme;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: colors.surfaceContainerLow,
+        border: Border.all(color: colors.outlineVariant),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Padding(padding: const EdgeInsets.all(16), child: child),
+    );
+  }
 
   Widget _inputPanel() {
     final colors = Theme.of(context).colorScheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _panelHeading(Icons.input_rounded, 'Entrada de datos'),
+        _panelHeading(Icons.input_rounded, 'Construye tu BST'),
+        const SizedBox(height: 6),
+        Text(
+          'Agrega valores paso a paso o reconstruye el árbol con dos recorridos.',
+          style: TextStyle(color: colors.onSurfaceVariant, height: 1.4),
+        ),
         const SizedBox(height: 16),
         SegmentedButton<_InputMode>(
           segments: const [
-            ButtonSegment(value: _InputMode.manual, label: Text('Manual')),
+            ButtonSegment(
+              value: _InputMode.manual,
+              icon: Icon(Icons.edit_outlined),
+              label: Text('Manual'),
+            ),
             ButtonSegment(
               value: _InputMode.traversals,
+              icon: Icon(Icons.account_tree_outlined),
               label: Text('Recorridos'),
             ),
           ],
           selected: {_mode},
-          onSelectionChanged: (selection) =>
-              setState(() => _mode = selection.first),
+          onSelectionChanged: (selection) => setState(() {
+            _mode = selection.first;
+            _reconstructionError = null;
+            _reconstructionMessage = null;
+          }),
           showSelectedIcon: false,
+        ),
+        const SizedBox(height: 6),
+        Text(
+          'Cambiar de modo conserva tus entradas y el árbol actual.',
+          style: TextStyle(color: colors.onSurfaceVariant, fontSize: 12),
         ),
         const SizedBox(height: 18),
         if (_mode == _InputMode.manual) ...[
           Text(
-            'Inserción manual',
-            style: Theme.of(context).textTheme.titleSmall,
+            'Entrada progresiva',
+            style: Theme.of(context).textTheme.titleSmall
+                ?.copyWith(fontWeight: FontWeight.w700),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           TextField(
             controller: _manual,
-            maxLines: 3,
+            minLines: 1,
+            maxLines: 2,
             keyboardType: TextInputType.multiline,
             textInputAction: TextInputAction.newline,
             decoration: InputDecoration(
               labelText: 'Valores',
-              hintText: '5, 3, 7, 1, 4',
-              border: const OutlineInputBorder(),
+              hintText: 'Ejemplo: 5, 3, 7, 1, 4',
+              filled: true,
+              fillColor: colors.surfaceContainerLowest,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: colors.outlineVariant),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: colors.outlineVariant),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: colors.primary, width: 2),
+              ),
               errorText: _manualError,
-              helperText: 'Separa con coma, espacio o Enter.',
+              helperMaxLines: 3,
+              helperText: 'Pulsa coma, espacio o Enter para insertar cada valor. También puedes pegar una lista completa.',
             ),
             onChanged: _onManualChanged,
-            onTapOutside: (_) => _readManual(_manual.text),
           ),
-          const SizedBox(height: 12),
-          FilledButton.icon(
-            onPressed: () => _readManual(_manual.text),
-            icon: const Icon(Icons.add_rounded),
-            label: const Text('Confirmar valores'),
+          const SizedBox(height: 8),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () => _readManual(_manual.text),
+              icon: const Icon(Icons.playlist_add_rounded),
+              label: const Text('Aplicar valores pendientes'),
+              style: OutlinedButton.styleFrom(
+                minimumSize: const Size.fromHeight(44),
+              ),
+            ),
           ),
-          const SizedBox(height: 28),
+          const SizedBox(height: 22),
+          Divider(color: colors.outlineVariant),
+          const SizedBox(height: 16),
           Text(
             'Generación aleatoria',
-            style: Theme.of(context).textTheme.titleSmall,
+            style: Theme.of(context).textTheme.titleSmall
+                ?.copyWith(fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _quantity,
-                  keyboardType: TextInputType.number,
-                  decoration: InputDecoration(
-                    labelText: 'Cantidad',
-                    errorText: _quantityError,
-                    border: const OutlineInputBorder(),
-                  ),
-                ),
+          TextField(
+            controller: _quantity,
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(
+              labelText: 'Cantidad de valores',
+              filled: true,
+              fillColor: colors.surfaceContainerLowest,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: colors.outlineVariant),
               ),
-              const SizedBox(width: 8),
-              IconButton.filledTonal(
-                tooltip: 'Generar árbol aleatorio',
-                onPressed: _generate,
-                icon: const Icon(Icons.casino_outlined),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: colors.outlineVariant),
               ),
-            ],
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: colors.primary, width: 2),
+              ),
+              errorText: _quantityError,
+            ),
+            onChanged: (_) {
+              if (_quantityError != null) {
+                setState(() => _quantityError = null);
+              }
+            },
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton.icon(
+              onPressed: _generate,
+              icon: const Icon(Icons.casino_outlined),
+              label: const Text('Generar árbol'),
+              style: FilledButton.styleFrom(
+                minimumSize: const Size.fromHeight(46),
+              ),
+            ),
+          ),
+          const SizedBox(height: 7),
           Text(
-            'Valores entre 1 y 99; pueden repetirse.',
-            style: TextStyle(color: colors.onSurfaceVariant, fontSize: 12),
+            'Cada valor estará entre 1 y 99; se permiten repetidos. Si ya existe un árbol, se pedirá confirmar antes de reemplazarlo.',
+            style: TextStyle(
+              color: colors.onSurfaceVariant,
+              fontSize: 12,
+              height: 1.4,
+            ),
           ),
         ] else ...[
           Text(
-            'Reconstruir por recorridos',
-            style: Theme.of(context).textTheme.titleSmall,
+            'Reconstruye a partir de recorridos',
+            style: Theme.of(context).textTheme.titleSmall
+                ?.copyWith(fontWeight: FontWeight.w700),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           Text(
-            'Ingresa dos secuencias del mismo árbol.',
-            style: TextStyle(color: colors.onSurfaceVariant),
+            'Elige dos órdenes distintos e introduce todos los valores de cada uno. Ambos deben describir el mismo BST.',
+            style: TextStyle(color: colors.onSurfaceVariant, height: 1.4),
           ),
           const SizedBox(height: 14),
           _traversalInput(
@@ -488,6 +632,7 @@ class _BstLabScreenState extends State<BstLabScreen> {
               }
             }),
             BstTraversal.values,
+            fieldNumber: 1,
           ),
           const SizedBox(height: 16),
           _traversalInput(
@@ -495,19 +640,47 @@ class _BstLabScreenState extends State<BstLabScreen> {
             _secondType,
             (type) => setState(() => _secondType = type),
             BstTraversal.values.where((item) => item != _firstType).toList(),
+            fieldNumber: 2,
           ),
           if (_reconstructionError != null) ...[
             const SizedBox(height: 10),
-            Text(
-              _reconstructionError!,
-              style: TextStyle(color: colors.error, fontSize: 13),
+            Semantics(
+              liveRegion: true,
+              child: Text(
+                _reconstructionError!,
+                style: TextStyle(
+                  color: colors.error,
+                  fontSize: 13,
+                  height: 1.4,
+                ),
+              ),
+            ),
+          ],
+          if (_reconstructionMessage != null) ...[
+            const SizedBox(height: 10),
+            Semantics(
+              liveRegion: true,
+              child: Text(
+                _reconstructionMessage!,
+                style: TextStyle(
+                  color: colors.primary,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ),
           ],
           const SizedBox(height: 14),
-          FilledButton.icon(
-            onPressed: _reconstruct,
-            icon: const Icon(Icons.account_tree_outlined),
-            label: const Text('Reconstruir árbol'),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton.icon(
+              onPressed: _reconstruct,
+              icon: const Icon(Icons.account_tree_outlined),
+              label: const Text('Reconstruir árbol'),
+              style: FilledButton.styleFrom(
+                minimumSize: const Size.fromHeight(46),
+              ),
+            ),
           ),
         ],
       ],
@@ -518,8 +691,9 @@ class _BstLabScreenState extends State<BstLabScreen> {
     TextEditingController controller,
     BstTraversal selected,
     ValueChanged<BstTraversal> onChanged,
-    List<BstTraversal> options,
-  ) => Column(
+    List<BstTraversal> options, {
+    required int fieldNumber,
+  }) => Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       DropdownButtonFormField<BstTraversal>(
@@ -527,16 +701,26 @@ class _BstLabScreenState extends State<BstLabScreen> {
           '${selected.name}-${options.map((item) => item.name).join()}',
         ),
         initialValue: selected,
-        decoration: const InputDecoration(
-          labelText: 'Tipo de recorrido',
-          border: OutlineInputBorder(),
+        decoration: InputDecoration(
+          labelText: fieldNumber == 1
+              ? 'Primer recorrido'
+              : 'Segundo recorrido',
+          filled: true,
+          fillColor: Theme.of(context).colorScheme.surfaceContainerLowest,
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
         ),
         items: [
           for (final type in options)
             DropdownMenuItem(value: type, child: Text(type.label)),
         ],
         onChanged: (value) {
-          if (value != null) onChanged(value);
+          if (value != null) {
+            onChanged(value);
+            setState(() {
+              _reconstructionError = null;
+              _reconstructionMessage = null;
+            });
+          }
         },
       ),
       const SizedBox(height: 8),
@@ -545,12 +729,19 @@ class _BstLabScreenState extends State<BstLabScreen> {
         maxLines: 2,
         decoration: InputDecoration(
           labelText: '${selected.label}: valores',
-          hintText: '5, 3, 1, 4, 7',
-          border: const OutlineInputBorder(),
+          hintText: fieldNumber == 1 ? '5, 3, 7' : '3, 5, 7',
+          helperText: 'Separa los valores con comas o espacios.',
+          helperMaxLines: 2,
+          filled: true,
+          fillColor: Theme.of(context).colorScheme.surfaceContainerLowest,
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
         ),
         onChanged: (_) {
-          if (_reconstructionError != null) {
-            setState(() => _reconstructionError = null);
+          if (_reconstructionError != null || _reconstructionMessage != null) {
+            setState(() {
+              _reconstructionError = null;
+              _reconstructionMessage = null;
+            });
           }
         },
       ),
@@ -559,30 +750,47 @@ class _BstLabScreenState extends State<BstLabScreen> {
 
   Widget _board() {
     final colors = Theme.of(context).colorScheme;
-    return DecoratedBox(
+    return Container(
       decoration: BoxDecoration(
         color: colors.surfaceContainerLowest,
         border: Border.all(color: colors.outlineVariant),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
+            padding: const EdgeInsets.fromLTRB(18, 14, 18, 12),
             child: Row(
               children: [
                 Icon(Icons.account_tree_outlined, color: colors.primary),
-                const SizedBox(width: 8),
+                const SizedBox(width: 10),
                 Expanded(
-                  child: Text(
-                    'Pizarra BST',
-                    style: Theme.of(context).textTheme.titleMedium,
+                  child: Semantics(
+                    header: true,
+                    child: Text(
+                      'Pizarra BST',
+                      style: Theme.of(context).textTheme.titleMedium
+                          ?.copyWith(fontWeight: FontWeight.w700),
+                    ),
                   ),
                 ),
-                Text(
-                  '${_tree.distinctCount} ${_tree.distinctCount == 1 ? 'nodo' : 'nodos'}',
-                  style: TextStyle(color: colors.onSurfaceVariant),
+                const SizedBox(width: 8),
+                Flexible(
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: Text(
+                      _tree.isEmpty
+                          ? 'Árbol vacío'
+                          : '${_tree.distinctCount} ${_tree.distinctCount == 1 ? 'nodo único' : 'nodos únicos'} · ${_tree.totalCount} ${_tree.totalCount == 1 ? 'valor' : 'valores'}',
+                      textAlign: TextAlign.end,
+                      style: TextStyle(
+                        color: colors.onSurfaceVariant,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -593,10 +801,18 @@ class _BstLabScreenState extends State<BstLabScreen> {
           ),
           if (!_tree.isEmpty)
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 7, 16, 10),
-              child: Text(
-                'Raíz: ${_tree.root!.value}   ·   Altura: ${_tree.height}   ·   Valores: ${_tree.totalCount}',
-                style: TextStyle(color: colors.onSurfaceVariant, fontSize: 12),
+              padding: const EdgeInsets.fromLTRB(18, 8, 18, 14),
+              child: Wrap(
+                spacing: 18,
+                runSpacing: 6,
+                children: [
+                  _boardMetric('Raíz', '${_tree.root!.value}'),
+                  _boardMetric('Altura', '${_tree.height}'),
+                  _boardMetric(
+                    'Valores repetidos',
+                    '${_tree.totalCount - _tree.distinctCount}',
+                  ),
+                ],
               ),
             ),
         ],
@@ -610,48 +826,121 @@ class _BstLabScreenState extends State<BstLabScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _panelHeading(Icons.format_list_numbered_rounded, 'Recorridos'),
-        const SizedBox(height: 8),
-        Text(
-          'Los valores repetidos aparecen según su frecuencia.',
-          style: TextStyle(color: colors.onSurfaceVariant, fontSize: 13),
-        ),
-        const SizedBox(height: 18),
-        for (final type in BstTraversal.values) ...[
+        const SizedBox(height: 12),
+        if (_tree.isEmpty)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: colors.surfaceContainerLowest,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: colors.outlineVariant),
+            ),
+            child: Semantics(
+              liveRegion: true,
+              child: Text(
+                'Los recorridos aparecerán cuando construyas un árbol.',
+                style: TextStyle(color: colors.onSurfaceVariant, height: 1.45),
+              ),
+            ),
+          )
+        else ...[
           Text(
-            type.label,
+            'Cada valor repetido aparece según su frecuencia, igual que en los nodos.',
             style: TextStyle(
-              color: colors.primary,
-              fontWeight: FontWeight.w700,
+              color: colors.onSurfaceVariant,
+              fontSize: 12,
+              height: 1.4,
             ),
           ),
-          const SizedBox(height: 4),
-          Text(switch (type) {
-            BstTraversal.preorder => 'Raíz → izquierda → derecha',
-            BstTraversal.inorder => 'Izquierda → raíz → derecha',
-            BstTraversal.postorder => 'Izquierda → derecha → raíz',
-          }, style: TextStyle(color: colors.onSurfaceVariant, fontSize: 12)),
-          const SizedBox(height: 8),
-          SelectableText(
-            _tree.isEmpty ? 'Sin valores' : _tree.traverse(type).join(' → '),
-            style: const TextStyle(fontWeight: FontWeight.w600, height: 1.5),
-          ),
-          const SizedBox(height: 18),
-          if (type != BstTraversal.postorder)
-            Divider(color: colors.outlineVariant),
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
+          for (final type in BstTraversal.values) ...[
+            _traversalResult(type),
+            if (type != BstTraversal.postorder)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                child: Divider(height: 1, color: colors.outlineVariant),
+              ),
+          ],
         ],
       ],
     );
   }
 
-  Widget _panelHeading(IconData icon, String text) => Row(
-    children: [
-      Icon(icon, size: 21, color: Theme.of(context).colorScheme.primary),
-      const SizedBox(width: 8),
-      Expanded(
-        child: Text(text, style: Theme.of(context).textTheme.titleMedium),
+  Widget _traversalResult(BstTraversal type) {
+    final colors = Theme.of(context).colorScheme;
+    final order = switch (type) {
+      BstTraversal.preorder => 'Raíz → izquierda → derecha',
+      BstTraversal.inorder => 'Izquierda → raíz → derecha',
+      BstTraversal.postorder => 'Izquierda → derecha → raíz',
+    };
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          type.label,
+          style: Theme.of(context).textTheme.titleSmall
+              ?.copyWith(color: colors.primary, fontWeight: FontWeight.w700),
+        ),
+        const SizedBox(height: 3),
+        Text(
+          order,
+          style: TextStyle(color: colors.onSurfaceVariant, fontSize: 12),
+        ),
+        const SizedBox(height: 8),
+        SelectableText(
+          _tree.traverse(type).join(' → '),
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            color: colors.onSurface,
+            fontWeight: FontWeight.w700,
+            height: 1.5,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _boardMetric(String label, String value) {
+    final colors = Theme.of(context).colorScheme;
+    return Semantics(
+      label: '$label: $value',
+      child: ExcludeSemantics(
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              '$label: ',
+              style: TextStyle(color: colors.onSurfaceVariant, fontSize: 12),
+            ),
+            Text(
+              value,
+              style: TextStyle(
+                color: colors.onSurface,
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
       ),
-    ],
+    );
+  }
+
+  Widget _panelHeading(IconData icon, String text) => Semantics(
+    header: true,
+    child: Row(
+      children: [
+        Icon(icon, size: 21, color: Theme.of(context).colorScheme.primary),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            text,
+            style: Theme.of(context).textTheme.titleMedium
+                ?.copyWith(fontWeight: FontWeight.w700),
+          ),
+        ),
+      ],
+    ),
   );
 }
 
@@ -661,81 +950,170 @@ class _BstGuideDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-    return AlertDialog(
-      title: const Row(
-        children: [
-          Icon(Icons.help_outline_rounded),
-          SizedBox(width: 10),
-          Text('Guía de uso'),
-        ],
-      ),
-      content: SizedBox(
-        width: 540,
-        child: SingleChildScrollView(
+    const accent = Color(0xFF7461AE);
+    final size = MediaQuery.sizeOf(context);
+
+    return Dialog(
+      insetPadding: const EdgeInsets.all(16),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxWidth: 580,
+          maxHeight: size.height * .88,
+        ),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _item(
-                context,
-                '1 · Insertar',
-                'Escribe 5, 3, 7, 1. Cada coma, espacio o Enter confirma el valor anterior. Usa “Confirmar valores” para el último número. El primero será la raíz.',
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: accent.withValues(alpha: .16),
+                  border: Border.all(color: accent.withValues(alpha: .42)),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.account_tree_rounded, color: accent, size: 28),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Árboles BST',
+                            style: Theme.of(context).textTheme.titleLarge
+                                ?.copyWith(fontWeight: FontWeight.bold),
+                          ),
+                          Text(
+                            'Guía de uso · Inserción, reconstrucción y recorridos',
+                            style: TextStyle(color: colors.onSurfaceVariant),
+                          ),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      tooltip: 'Cerrar guía',
+                      onPressed: () => Navigator.of(context).pop(),
+                      icon: const Icon(Icons.close_rounded),
+                    ),
+                  ],
+                ),
               ),
-              _item(
-                context,
-                '2 · Generar',
-                'Elige una cantidad y pulsa el dado. Los valores repetidos comparten nodo y muestran su frecuencia ×N.',
+              const SizedBox(height: 16),
+              Flexible(
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _item(
+                        context,
+                        1,
+                        Icons.edit_note_rounded,
+                        'Insertar valores',
+                        'Escribe valores separados por comas, espacios o Enter: cada separador incorpora el valor completo. También puedes pegar una lista. Usa “Aplicar valores pendientes” para confirmar lo que quede escrito. El primer valor será la raíz.',
+                      ),
+                      _item(
+                        context,
+                        2,
+                        Icons.auto_awesome_rounded,
+                        'Generar un árbol',
+                        'Elige cuántos valores crear y pulsa “Generar árbol”. Los valores aleatorios están entre 1 y 99; los repetidos comparten nodo y muestran su frecuencia ×N.',
+                      ),
+                      _item(
+                        context,
+                        3,
+                        Icons.account_tree_outlined,
+                        'Reconstruir',
+                        'Cambia a Recorridos, elige dos tipos diferentes e introduce ambas secuencias. Por ejemplo, Preorder 5, 3, 7 e Inorder 3, 5, 7.',
+                      ),
+                      _item(
+                        context,
+                        4,
+                        Icons.format_list_numbered_rounded,
+                        'Leer recorridos',
+                        'Preorder visita primero la raíz; Inorder da las claves ordenadas; Postorder deja la raíz al final. Cada frecuencia se repite en el resultado.',
+                      ),
+                      _item(
+                        context,
+                        5,
+                        Icons.folder_open_rounded,
+                        'Archivos y vista',
+                        'Nuevo limpia la práctica; Guardar conserva el árbol en este navegador y Cargar recupera uno guardado. Usa +, − y centrar para explorar árboles grandes.',
+                      ),
+                    ],
+                  ),
+                ),
               ),
-              _item(
-                context,
-                '3 · Reconstruir',
-                'Cambia a Recorridos, elige dos tipos diferentes e introduce ambas secuencias. Por ejemplo, Preorder 5, 3, 7 e Inorder 3, 5, 7.',
-              ),
-              _item(
-                context,
-                '4 · Leer recorridos',
-                'Preorder visita primero la raíz; Inorder da las claves ordenadas; Postorder deja la raíz al final. Cada frecuencia se repite en el resultado.',
-              ),
-              _item(
-                context,
-                '5 · Archivos y vista',
-                'Nuevo limpia la práctica; Guardar conserva el árbol en este navegador y Cargar recupera uno guardado. Usa +, − y centrar para explorar árboles grandes.',
-              ),
-              Text(
-                'Las claves menores van a la izquierda y las mayores a la derecha.',
-                style: TextStyle(
-                  color: colors.primary,
-                  fontWeight: FontWeight.w600,
+              const SizedBox(height: 12),
+              Align(
+                alignment: Alignment.centerRight,
+                child: FilledButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  style: FilledButton.styleFrom(backgroundColor: accent),
+                  child: const Text('Entendido'),
                 ),
               ),
             ],
           ),
         ),
       ),
-      actions: [
-        FilledButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Entendido'),
-        ),
-      ],
     );
   }
 
-  Widget _item(BuildContext context, String title, String body) => Padding(
-    padding: const EdgeInsets.only(bottom: 16),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(title, style: Theme.of(context).textTheme.titleSmall),
-        const SizedBox(height: 4),
-        Text(
-          body,
-          style: TextStyle(
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-            height: 1.45,
+  Widget _item(
+    BuildContext context,
+    int number,
+    IconData icon,
+    String title,
+    String body,
+  ) {
+    final colors = Theme.of(context).colorScheme;
+    const accent = Color(0xFF7461AE);
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: accent.withValues(alpha: .06),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: accent.withValues(alpha: .2)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 36,
+            height: 36,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: accent.withValues(alpha: .18),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Icon(icon, size: 20, color: accent),
           ),
-        ),
-      ],
-    ),
-  );
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '$number. $title',
+                  style: Theme.of(context).textTheme.titleSmall
+                      ?.copyWith(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 5),
+                Text(
+                  body,
+                  style: TextStyle(
+                    color: colors.onSurfaceVariant,
+                    height: 1.45,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
