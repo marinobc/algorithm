@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../algorithms/assignment/domain/models/assignment_models.dart';
 import '../../algorithms/assignment/providers/assignment_provider.dart';
 import '../../algorithms/core/algorithm_registry.dart';
+import '../../algorithms/graph_paths/providers/graph_path_run_provider.dart';
 import '../../algorithms/johnson/providers/johnson_provider.dart';
 import '../../algorithms/northwest/domain/models/northwest_models.dart';
 import '../../algorithms/northwest/domain/services/northwest_problem_extractor.dart';
@@ -20,6 +21,37 @@ Future<bool> runActiveAlgorithm(BuildContext context, WidgetRef ref) async {
       icon: Icons.info_outline_rounded,
     );
     return false;
+  }
+
+  if (activeAlgo.id == AlgorithmRegistry.dijkstraId ||
+      activeAlgo.id == AlgorithmRegistry.kruskalId) {
+    final graph = ref.read(grafoProvider);
+    if (graph.nodos.isEmpty) {
+      AppToast.show(
+        context,
+        'Crea al menos un vértice en el lienzo para calcular.',
+        icon: Icons.info_outline_rounded,
+      );
+      return false;
+    }
+    ref.read(graphPathRunProvider.notifier).run(graph);
+    final run = ref.read(graphPathRunProvider);
+    if (run.error != null) {
+      AppToast.show(
+        context,
+        run.error!,
+        icon: Icons.warning_amber_rounded,
+        duration: const Duration(seconds: 4),
+      );
+      return false;
+    }
+    AppToast.show(
+      context,
+      run.computation?.summary ?? 'Cálculo completado.',
+      icon: Icons.check_circle_rounded,
+      duration: const Duration(seconds: 3),
+    );
+    return true;
   }
 
   if (activeAlgo.id == AlgorithmRegistry.assignmentId) {

@@ -25,6 +25,8 @@ class PolicyResult {
 /// Abstract policy specifying graph construction and editing constraints
 /// for an algorithm.
 abstract class GraphAlgorithmPolicy {
+  const GraphAlgorithmPolicy();
+
   /// Checks whether creating a new node at coordinates [x, y] is allowed.
   PolicyResult canCreateNode(
     Grafo grafo,
@@ -82,6 +84,8 @@ abstract class GraphAlgorithmPolicy {
 /// modular UI components (launch button, canvas controls, algorithm card,
 /// and node edit controls).
 abstract class GraphAlgorithm {
+  const GraphAlgorithm();
+
   /// Unique identifier (e.g. 'assignment', 'johnson').
   String get id;
 

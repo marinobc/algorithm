@@ -30,6 +30,7 @@ class RenderNode {
   final bool isPendingConnectTarget; // Visual hint during creation
   final bool isOverlapping; // Opacity visual indicator when stacked
   final String? quantityLabel;
+  final String? endpointBadge;
   final bool quantityLabelOnLeft;
   final bool quantityLabelBelow;
 
@@ -47,6 +48,7 @@ class RenderNode {
     this.isPendingConnectTarget = false,
     this.isOverlapping = false,
     this.quantityLabel,
+    this.endpointBadge,
     this.quantityLabelOnLeft = false,
     this.quantityLabelBelow = false,
   });
@@ -133,6 +135,8 @@ class GraphRenderModel {
     Set<String> disconnectedNodeIds = const {},
     Set<String> highlightedNodeIds = const {},
     Set<String> highlightedConnectionIds = const {},
+    Map<String, String> nodeAnnotations = const {},
+    Map<String, String> nodeEndpointBadges = const {},
     String? pendingConnectNodeId,
     String? dragConnectingStartNodeId,
     Offset? dragConnectingCurrentPos,
@@ -162,7 +166,10 @@ class GraphRenderModel {
           isHighlighted: highlightedNodeIds.contains(n.id),
           isDisconnected: disconnectedNodeIds.contains(n.id),
           isPendingConnectTarget: pendingConnectNodeId == n.id,
-          quantityLabel: n.cantidad == null ? null : _formatNumber(n.cantidad!),
+          quantityLabel:
+              nodeAnnotations[n.id] ??
+              (n.cantidad == null ? null : _formatNumber(n.cantidad!)),
+          endpointBadge: nodeEndpointBadges[n.id],
           quantityLabelOnLeft: n.rol == 'northwest_origin' || n.rol == 'origen',
           quantityLabelBelow:
               isDetectadoMode && (n.rol == null || n.rol!.isEmpty),
@@ -206,6 +213,7 @@ class GraphRenderModel {
           isPendingConnectTarget: rn.isPendingConnectTarget,
           isOverlapping: true,
           quantityLabel: rn.quantityLabel,
+          endpointBadge: rn.endpointBadge,
           quantityLabelOnLeft: rn.quantityLabelOnLeft,
           quantityLabelBelow: rn.quantityLabelBelow,
         );

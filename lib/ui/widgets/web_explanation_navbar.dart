@@ -4,6 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../algorithms/core/algorithm_registry.dart';
 import '../../algorithms/bst/ui/bst_theory_screen.dart';
+import '../../algorithms/graph_paths/ui/graph_path_theory_screen.dart';
 import '../dialogs/algorithm_selection_dialog.dart';
 import '../screens/assignment_algo_screen.dart';
 import '../screens/contact_screen.dart';
@@ -20,6 +21,8 @@ enum ExplanationWebPage {
   assignment,
   johnson,
   northwest,
+  dijkstra,
+  kruskal,
   bst,
   selectionSort,
   insertionSort,
@@ -53,6 +56,12 @@ class WebExplanationShell extends ConsumerWidget {
         break;
       case ExplanationWebPage.northwest:
         targetScreen = const NorthwestAlgoScreen();
+        break;
+      case ExplanationWebPage.dijkstra:
+        targetScreen = const GraphPathTheoryScreen.dijkstra();
+        break;
+      case ExplanationWebPage.kruskal:
+        targetScreen = const GraphPathTheoryScreen.kruskal();
         break;
       case ExplanationWebPage.bst:
         targetScreen = const BstTheoryScreen();
@@ -465,6 +474,22 @@ class WebExplanationShell extends ConsumerWidget {
                 label: 'Northwest',
                 page: ExplanationWebPage.northwest,
                 icon: Icons.grid_view_rounded,
+                isDrawer: isDrawer,
+              ),
+              const SizedBox(height: 6),
+              _buildVerticalNavLink(
+                context,
+                label: 'Dijkstra',
+                page: ExplanationWebPage.dijkstra,
+                icon: Icons.route_rounded,
+                isDrawer: isDrawer,
+              ),
+              const SizedBox(height: 6),
+              _buildVerticalNavLink(
+                context,
+                label: 'Kruskal',
+                page: ExplanationWebPage.kruskal,
+                icon: Icons.account_tree_outlined,
                 isDrawer: isDrawer,
               ),
             ],

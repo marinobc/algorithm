@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../algorithms/core/algorithm_registry.dart';
+import '../../algorithms/graph_paths/domain/graph_path_policy.dart';
+import '../../algorithms/graph_paths/providers/graph_path_run_provider.dart';
 import '../../algorithms/northwest/providers/northwest_provider.dart';
 import '../../application/providers/atributos_provider.dart';
 import '../../application/providers/edicion_provider.dart';
@@ -426,6 +428,13 @@ class _EditPanelState extends ConsumerState<EditPanel> {
                           if (!isNode) ...[
                             CustomAttributesSection(
                               atributosGlobales: atributosGlobales,
+                              allowSignedValues:
+                                  activeAlgo?.id ==
+                                      AlgorithmRegistry.kruskalId ||
+                                  (activeAlgo?.id ==
+                                          AlgorithmRegistry.dijkstraId &&
+                                      ref.watch(graphPathRunProvider).mode ==
+                                          GraphPathMode.longestSimple),
                               colorScheme: colorScheme,
                               palette: palette,
                               newAttrController: _newAttrController,
@@ -585,6 +594,10 @@ class _EditPanelState extends ConsumerState<EditPanel> {
       final isNorthwest =
           ref.read(activeAlgorithmProvider)?.id ==
           AlgorithmRegistry.northwestId;
+      final activeId = ref.read(activeAlgorithmProvider)?.id;
+      final isPathMode =
+          activeId == AlgorithmRegistry.dijkstraId ||
+          activeId == AlgorithmRegistry.kruskalId;
 
       final targetOrigenId = isNorthwest
           ? conn.nodoOrigenId
@@ -592,6 +605,31 @@ class _EditPanelState extends ConsumerState<EditPanel> {
       final targetDestinoId = isNorthwest
           ? conn.nodoDestinoId
           : (_selectedDestinoId ?? conn.nodoDestinoId);
+
+      if (isPathMode) {
+        final validation =
+            GraphPathPolicy(kruskal: activeId == AlgorithmRegistry.kruskalId)
+                .canUpdateConnection(
+                  grafo,
+                  conn,
+                  origenId: targetOrigenId,
+                  destinoId: targetDestinoId,
+                  direccion: _selectedDireccion,
+                  weight: _attrValueControllers['attr_valor']?.text ?? '',
+                  allowNegativeForLongestSimple:
+                      activeId == AlgorithmRegistry.dijkstraId &&
+                      ref.read(graphPathRunProvider).mode ==
+                          GraphPathMode.longestSimple,
+                );
+        if (!validation.allowed) {
+          AppToast.show(
+            context,
+            validation.message ?? 'Arista no válida.',
+            icon: Icons.warning_amber_rounded,
+          );
+          return;
+        }
+      }
 
       final existingDuplicate = grafo.conexiones.values.firstWhere(
         (other) =>
@@ -608,7 +646,7 @@ class _EditPanelState extends ConsumerState<EditPanel> {
         ),
       );
 
-      if (existingDuplicate.id.isNotEmpty) {
+      if (!isPathMode && existingDuplicate.id.isNotEmpty) {
         final origNode = grafo.nodos[targetOrigenId];
         final destNode = grafo.nodos[targetDestinoId];
         final origName = origNode?.nombre ?? targetOrigenId;
@@ -633,9 +671,11 @@ class _EditPanelState extends ConsumerState<EditPanel> {
       for (final a in atributosGlobales) {
         String val = _attrValueControllers[a.id]?.text.trim() ?? '';
         if (val.isNotEmpty) {
-          final parsed = double.tryParse(val);
-          if (parsed == null || (!isNorthwest && parsed <= 0)) {
-            val = '1';
+          if (!isPathMode) {
+            final parsed = double.tryParse(val);
+            if (parsed == null || (!isNorthwest && parsed <= 0)) {
+              val = '1';
+            }
           }
           attrValues.add(AtributoValor(atributoId: a.id, valor: val));
         }

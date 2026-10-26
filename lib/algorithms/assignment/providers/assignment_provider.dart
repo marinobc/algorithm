@@ -5,6 +5,7 @@ import '../../../../domain/models/grafo.dart';
 import '../../../../domain/highlights/algorithm_highlight.dart';
 import '../../johnson/providers/johnson_provider.dart';
 import '../../northwest/providers/northwest_provider.dart';
+import '../../graph_paths/providers/graph_path_run_provider.dart';
 import '../domain/models/assignment_models.dart';
 import '../domain/services/assignment_matrix_extractor.dart';
 import '../domain/services/assignment_validator.dart';
@@ -249,6 +250,10 @@ final highlightedElementsProvider = Provider<AlgorithmHighlight>((ref) {
   final northwestHighlight = ref.watch(northwestHighlightProvider);
   if (northwestHighlight.isNotEmpty) {
     return northwestHighlight;
+  }
+  final graphPathHighlight = ref.watch(graphPathHighlightProvider);
+  if (graphPathHighlight.isNotEmpty) {
+    return graphPathHighlight;
   }
   return const AlgorithmHighlight();
 });

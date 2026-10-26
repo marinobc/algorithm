@@ -30,8 +30,13 @@ void main() {
     await tester.pumpWidget(
       const ProviderScope(child: MaterialApp(home: BstTheoryScreen())),
     );
-    await tester.ensureVisible(find.text('Probar árboles BST'));
-    await tester.tap(find.text('Probar árboles BST'));
+    await tester.scrollUntilVisible(
+      find.text('Explorar el laboratorio BST'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.ensureVisible(find.text('Explorar el laboratorio BST'));
+    await tester.tap(find.text('Explorar el laboratorio BST'));
     await tester.pumpAndSettle();
     expect(find.text('Pizarra BST'), findsOneWidget);
   });

@@ -7,6 +7,7 @@ class CanvasContextMenuOverlay extends StatelessWidget {
   final VoidCallback onEdit;
   final VoidCallback onDelete;
   final VoidCallback onDismiss;
+  final List<CanvasContextAction> actions;
 
   const CanvasContextMenuOverlay({
     super.key,
@@ -14,6 +15,7 @@ class CanvasContextMenuOverlay extends StatelessWidget {
     required this.onEdit,
     required this.onDelete,
     required this.onDismiss,
+    this.actions = const [],
   });
 
   @override
@@ -21,12 +23,19 @@ class CanvasContextMenuOverlay extends StatelessWidget {
     final screenSize = MediaQuery.of(context).size;
 
     return Positioned(
-      left: (position.dx).clamp(0.0, screenSize.width - 150),
-      top: (position.dy).clamp(0.0, screenSize.height - 120),
+      left: (position.dx).clamp(
+        0.0,
+        screenSize.width - (actions.isEmpty ? 150 : 220),
+      ),
+      top: (position.dy).clamp(
+        0.0,
+        screenSize.height - (actions.isEmpty ? 120 : 220),
+      ),
       child: FloatingContextMenu(
         onEdit: onEdit,
         onDelete: onDelete,
         onDismiss: onDismiss,
+        actions: actions,
       ),
     );
   }

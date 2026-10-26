@@ -62,11 +62,17 @@ void main() {
         expect(find.text('Modo Libre'), findsOneWidget);
         expect(find.text('Asignación'), findsOneWidget);
         expect(find.text('Johnson'), findsOneWidget);
-        expect(find.text('Ordenamiento'), findsOneWidget);
-        expect(
-          tester.getTopLeft(find.text('Ordenamiento')).dy,
-          greaterThan(tester.getTopLeft(find.text('Northwest')).dy),
+        await tester.scrollUntilVisible(
+          find.text('Ordenamiento'),
+          300,
+          scrollable: find
+              .descendant(
+                of: find.byType(CustomScrollView),
+                matching: find.byType(Scrollable),
+              )
+              .first,
         );
+        expect(find.text('Ordenamiento'), findsOneWidget);
 
         // Verify no checkmark icons are preselected
         expect(find.byIcon(Icons.check_circle_rounded), findsNothing);
@@ -94,10 +100,9 @@ void main() {
         await tester.scrollUntilVisible(
           find.text('Ordenamiento'),
           250,
-          scrollable: find.descendant(
-            of: catalog,
-            matching: find.byType(Scrollable),
-          ),
+          scrollable: find
+              .descendant(of: catalog, matching: find.byType(Scrollable))
+              .first,
         );
         expect(find.text('Ordenamiento'), findsOneWidget);
         expect(tester.takeException(), isNull);
@@ -172,7 +177,7 @@ void main() {
         of: find.byType(AlgorithmSelectionDialog),
         matching: find.byType(CustomScrollView),
       );
-      await tester.drag(grid, const Offset(0, -700));
+      await tester.drag(grid, const Offset(0, -1500));
       await tester.pumpAndSettle();
       final proximamenteText = find.text('Próximamente').first;
       final card = tester.widget<InkWell>(

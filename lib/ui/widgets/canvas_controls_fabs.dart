@@ -92,6 +92,10 @@ class CanvasControlsFabs extends ConsumerWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final mostrarDebug = ref.watch(configProvider).mostrarBotonesDebug;
     final activeAlgo = ref.watch(activeAlgorithmProvider);
+    final isPathMode =
+        activeAlgo?.id == AlgorithmRegistry.dijkstraId ||
+        activeAlgo?.id == AlgorithmRegistry.kruskalId;
+    final pathIsEmpty = isPathMode && ref.watch(grafoProvider).nodos.isEmpty;
 
     bool isAlgoValid = true;
     if (activeAlgo != null) {
@@ -252,22 +256,29 @@ class CanvasControlsFabs extends ConsumerWidget {
         else
           FloatingActionButton.extended(
             heroTag: 'fab_optimizar',
-            tooltip:
-                (activeAlgo.id == AlgorithmRegistry.northwestId ||
-                        activeAlgo.id == AlgorithmRegistry.assignmentId) &&
-                    !isAlgoValid
+            tooltip: pathIsEmpty
+                ? 'Crea al menos un vértice para calcular'
+                : isPathMode
+                ? activeAlgo.id == AlgorithmRegistry.dijkstraId
+                      ? 'Calcular ruta con los extremos indicados'
+                      : 'Calcular árbol o bosque de expansión'
+                : (activeAlgo.id == AlgorithmRegistry.northwestId ||
+                          activeAlgo.id == AlgorithmRegistry.assignmentId) &&
+                      !isAlgoValid
                 ? 'Configura una matriz de ${activeAlgo.shortName.toLowerCase()} válida para optimizar'
                 : 'Ejecutar / Optimizar Algoritmo',
             elevation:
-                (activeAlgo.id == AlgorithmRegistry.northwestId ||
-                        activeAlgo.id == AlgorithmRegistry.assignmentId) &&
-                    !isAlgoValid
+                pathIsEmpty ||
+                    (activeAlgo.id == AlgorithmRegistry.northwestId ||
+                            activeAlgo.id == AlgorithmRegistry.assignmentId) &&
+                        !isAlgoValid
                 ? 0
                 : 4,
             backgroundColor:
-                (activeAlgo.id == AlgorithmRegistry.northwestId ||
-                        activeAlgo.id == AlgorithmRegistry.assignmentId) &&
-                    !isAlgoValid
+                pathIsEmpty ||
+                    (activeAlgo.id == AlgorithmRegistry.northwestId ||
+                            activeAlgo.id == AlgorithmRegistry.assignmentId) &&
+                        !isAlgoValid
                 ? colorScheme.surfaceContainerLow
                 : activeAlgo.themeColor,
             foregroundColor:
@@ -277,14 +288,19 @@ class CanvasControlsFabs extends ConsumerWidget {
                 ? colorScheme.onSurface.withValues(alpha: 0.38)
                 : Colors.white,
             icon: const Icon(Icons.play_arrow_rounded),
-            label: const Text(
-              'Optimizar',
-              style: TextStyle(fontWeight: FontWeight.bold),
+            label: Text(
+              activeAlgo.id == AlgorithmRegistry.dijkstraId
+                  ? 'Calcular ruta'
+                  : activeAlgo.id == AlgorithmRegistry.kruskalId
+                  ? 'Calcular árbol'
+                  : 'Optimizar',
+              style: const TextStyle(fontWeight: FontWeight.bold),
             ),
             onPressed:
-                (activeAlgo.id == AlgorithmRegistry.northwestId ||
-                        activeAlgo.id == AlgorithmRegistry.assignmentId) &&
-                    !isAlgoValid
+                pathIsEmpty ||
+                    (activeAlgo.id == AlgorithmRegistry.northwestId ||
+                            activeAlgo.id == AlgorithmRegistry.assignmentId) &&
+                        !isAlgoValid
                 ? null
                 : () => _runOptimizar(context, ref),
           ),

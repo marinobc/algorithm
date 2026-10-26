@@ -88,6 +88,32 @@ class NodeRenderHelper {
       ),
     );
 
+    if (node.endpointBadge != null) {
+      final badge = node.endpointBadge!;
+      final center = Offset(
+        rect.right + (badge == 'O/D' ? 14 : 8),
+        rect.top - 5,
+      );
+      final radius = badge == 'O/D' ? 16.0 : 12.0;
+      canvas.drawCircle(
+        center,
+        radius,
+        Paint()..color = const Color(0xFF6754B2),
+      );
+      final label = TextPainter(
+        text: TextSpan(
+          text: badge,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 10,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      label.paint(canvas, center - Offset(label.width / 2, label.height / 2));
+    }
+
     if (node.quantityLabel != null) {
       final quantityPainter = TextPainter(
         text: TextSpan(

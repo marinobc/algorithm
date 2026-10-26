@@ -191,19 +191,34 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text('Ordenamiento'), findsOneWidget);
-    expect(
-      tester.getTopLeft(find.text('Ordenamiento')).dy,
-      greaterThan(tester.getTopLeft(find.text('Northwest')).dy),
+    await tester.scrollUntilVisible(
+      find.text('Ordenamiento'),
+      300,
+      scrollable: find
+          .descendant(
+            of: find.byType(CustomScrollView),
+            matching: find.byType(Scrollable),
+          )
+          .first,
     );
-    expect(
-      tester.getTopLeft(find.text('Ordenamiento')).dy,
-      lessThan(tester.getTopLeft(find.text('Selection Sort')).dy),
+    expect(find.text('Ordenamiento'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('Selection Sort'),
+      300,
+      scrollable: find
+          .descendant(
+            of: find.byType(CustomScrollView),
+            matching: find.byType(Scrollable),
+          )
+          .first,
     );
     expect(find.text('Selection Sort'), findsOneWidget);
     expect(find.text('Insertion Sort'), findsOneWidget);
     expect(find.text('Shell Sort'), findsOneWidget);
     expect(find.text('Merge Sort'), findsOneWidget);
+
+    await tester.drag(find.byType(CustomScrollView), const Offset(0, 200));
+    await tester.pumpAndSettle();
 
     await tester.tap(find.text('Selection Sort'));
     await tester.pumpAndSettle();
@@ -420,9 +435,9 @@ void main() {
       await tester.enterText(input('Nombre del conjunto'), 'Mi práctica');
       await tester.pump();
       expect(
-        tester.widget<FilledButton>(
-          find.widgetWithText(FilledButton, 'Guardar'),
-        ).onPressed,
+        tester
+            .widget<FilledButton>(find.widgetWithText(FilledButton, 'Guardar'))
+            .onPressed,
         isNotNull,
       );
       await tester.tap(

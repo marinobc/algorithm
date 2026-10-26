@@ -4,16 +4,30 @@ import 'package:flutter/widget_previews.dart';
 import '../text/app_text.dart';
 import '../theme/app_theme.dart';
 
+class CanvasContextAction {
+  final String label;
+  final IconData icon;
+  final VoidCallback onTap;
+
+  const CanvasContextAction({
+    required this.label,
+    required this.icon,
+    required this.onTap,
+  });
+}
+
 class FloatingContextMenu extends StatelessWidget {
   final VoidCallback onEdit;
   final VoidCallback onDelete;
   final VoidCallback onDismiss;
+  final List<CanvasContextAction> actions;
 
   const FloatingContextMenu({
     super.key,
     required this.onEdit,
     required this.onDelete,
     required this.onDismiss,
+    this.actions = const [],
   });
 
   @override
@@ -41,7 +55,7 @@ class FloatingContextMenu extends StatelessWidget {
             ),
             color: colorScheme.surfaceContainerHigh,
             child: SizedBox(
-              width: 140,
+              width: actions.isEmpty ? 140 : 210,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -76,6 +90,37 @@ class FloatingContextMenu extends StatelessWidget {
                     ),
                   ),
                   Divider(height: 1, color: colorScheme.outlineVariant),
+                  for (final action in actions) ...[
+                    InkWell(
+                      onTap: action.onTap,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 11,
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              action.icon,
+                              color: colorScheme.primary,
+                              size: 18,
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                action.label,
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Divider(height: 1, color: colorScheme.outlineVariant),
+                  ],
                   InkWell(
                     onTap: onDelete,
                     borderRadius: const BorderRadius.vertical(

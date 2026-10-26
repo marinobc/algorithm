@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../algorithms/assignment/ui/assignment_bipartite_matrix_screen.dart';
 import '../../algorithms/core/algorithm_registry.dart';
+import '../../algorithms/graph_paths/ui/graph_path_matrix_screen.dart';
 import '../../application/providers/grafo_invalido_provider.dart';
 import '../../application/providers/grafo_provider.dart';
 import '../widgets/app_toast.dart';
@@ -23,6 +24,13 @@ class MatrixViewCoordinator {
       return;
     }
     final activeAlgorithm = ref.read(activeAlgorithmProvider);
+    if (activeAlgorithm?.id == AlgorithmRegistry.dijkstraId ||
+        activeAlgorithm?.id == AlgorithmRegistry.kruskalId) {
+      Navigator.of(
+        context,
+      ).push(MaterialPageRoute(builder: (_) => const GraphPathMatrixScreen()));
+      return;
+    }
     if (activeAlgorithm?.id == AlgorithmRegistry.assignmentId ||
         activeAlgorithm?.id == AlgorithmRegistry.northwestId) {
       Navigator.of(context).push(

@@ -6,6 +6,8 @@ import '../assignment/domain/policy/assignment_graph_policy.dart';
 import '../assignment/providers/assignment_provider.dart';
 import '../johnson/johnson_algorithm.dart';
 import '../johnson/providers/johnson_provider.dart';
+import '../graph_paths/graph_path_algorithm.dart';
+import '../graph_paths/providers/graph_path_run_provider.dart';
 import '../northwest/domain/models/northwest_models.dart';
 import '../northwest/northwest_algorithm.dart';
 import '../northwest/providers/northwest_provider.dart';
@@ -16,11 +18,15 @@ class AlgorithmRegistry {
   static const String assignmentId = AssignmentAlgorithm.algorithmId;
   static const String johnsonId = JohnsonAlgorithm.algorithmId;
   static const String northwestId = NorthwestAlgorithm.algorithmId;
+  static const String dijkstraId = GraphPathAlgorithm.dijkstraId;
+  static const String kruskalId = GraphPathAlgorithm.kruskalId;
 
   static final List<GraphAlgorithm> registeredAlgorithms = [
     const AssignmentAlgorithm(),
     const JohnsonAlgorithm(),
     const NorthwestAlgorithm(),
+    const GraphPathAlgorithm.dijkstra(),
+    const GraphPathAlgorithm.kruskal(),
   ];
 
   static GraphAlgorithm? findById(String? id) {
@@ -65,6 +71,14 @@ class ActiveAlgorithmNotifier extends Notifier<GraphAlgorithm?> {
     ref.read(transportationNotifierProvider.notifier).setActive(false);
     ref.read(johnsonNotifierProvider.notifier).setActive(false);
     ref.read(northwestNotifierProvider.notifier).setActive(false);
+    ref.read(graphPathRunProvider.notifier).reset(keepSelections: false);
+    if (activeId == AlgorithmRegistry.dijkstraId) {
+      ref.read(graphPathRunProvider.notifier).setMode(GraphPathMode.dijkstra);
+    } else if (activeId == AlgorithmRegistry.kruskalId) {
+      ref
+          .read(graphPathRunProvider.notifier)
+          .setMode(GraphPathMode.kruskalMinimum);
+    }
 
     if (activeId == AlgorithmRegistry.assignmentId) {
       ref

@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../algorithms/assignment/providers/assignment_provider.dart';
 import '../../algorithms/core/algorithm_registry.dart';
 import '../../algorithms/core/graph_algorithm.dart';
+import '../../algorithms/graph_paths/ui/graph_path_lab_overlay.dart';
 import '../../algorithms/johnson/providers/johnson_provider.dart';
 import '../../algorithms/northwest/providers/northwest_provider.dart';
 import '../../application/providers/edicion_provider.dart';
@@ -255,7 +256,13 @@ class _GraphEditorScreenState extends ConsumerState<GraphEditorScreen> {
       // Restore the algorithm that this graph was saved with, but keep optimization results temporal (inactive until user taps Optimizar)
       final savedAlgoId =
           loadedGraph.tipoAlgoritmo ?? selectedItem.tipoAlgoritmo;
-      if (savedAlgoId != null) {
+      final currentId = ref.read(activeAlgorithmProvider)?.id;
+      final isPathLab =
+          currentId == AlgorithmRegistry.dijkstraId ||
+          currentId == AlgorithmRegistry.kruskalId;
+      if (isPathLab) {
+        ref.read(activeAlgorithmProvider.notifier).selectById(currentId);
+      } else if (savedAlgoId != null) {
         ref.read(activeAlgorithmProvider.notifier).selectById(savedAlgoId);
       } else {
         ref.read(activeAlgorithmProvider.notifier).clear();
@@ -349,8 +356,11 @@ class _GraphEditorScreenState extends ConsumerState<GraphEditorScreen> {
     final badgeLabel = isAlgoActive ? activeAlgo.shortName : 'Modo Libre';
     final badgeIcon = isAlgoActive ? activeAlgo.icon : Icons.brush_rounded;
 
+    final isPathLab =
+        activeAlgo?.id == AlgorithmRegistry.dijkstraId ||
+        activeAlgo?.id == AlgorithmRegistry.kruskalId;
     return InkWell(
-      onTap: () => _openAlgorithmSelection(),
+      onTap: isPathLab ? null : () => _openAlgorithmSelection(),
       borderRadius: BorderRadius.circular(16),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -382,16 +392,35 @@ class _GraphEditorScreenState extends ConsumerState<GraphEditorScreen> {
   }
 
   Future<void> _openAlgorithmSelection({bool initial = false}) async {
-    if (!initial) {
+    final previousId = ref.read(activeAlgorithmProvider)?.id;
+    final wasPathMode =
+        previousId == AlgorithmRegistry.dijkstraId ||
+        previousId == AlgorithmRegistry.kruskalId;
+    if (!initial && !wasPathMode) {
       final canProceed = await _promptUnsavedChanges(isNewGraph: true);
       if (!canProceed || !mounted) return;
     }
 
     final didSelect = await Navigator.of(context).push<bool>(
-      MaterialPageRoute(builder: (_) => const AlgorithmSelectionScreen()),
+      MaterialPageRoute(
+        builder: (_) => const AlgorithmSelectionScreen(openedFromEditor: true),
+      ),
     );
     if (!initial && didSelect == true && mounted) {
-      _cleanAndUnloadAll(preserveAlgorithm: true);
+      final selectedId = ref.read(activeAlgorithmProvider)?.id;
+      final selectedPathMode =
+          selectedId == AlgorithmRegistry.dijkstraId ||
+          selectedId == AlgorithmRegistry.kruskalId;
+      if (!selectedPathMode) {
+        if (wasPathMode) {
+          final canProceed = await _promptUnsavedChanges(isNewGraph: true);
+          if (!canProceed || !mounted) {
+            ref.read(activeAlgorithmProvider.notifier).selectById(previousId!);
+            return;
+          }
+        }
+        _cleanAndUnloadAll(preserveAlgorithm: true);
+      }
     }
   }
 
@@ -535,10 +564,16 @@ class _GraphEditorScreenState extends ConsumerState<GraphEditorScreen> {
                 onSaveJpg: _saveGraphAsJpg,
                 onOpenTutorial: _openTutorialScreen,
                 onOpenConfig: _openConfigModal,
+                showAlgorithmSelector:
+                    activeAlgo?.id != AlgorithmRegistry.dijkstraId &&
+                    activeAlgo?.id != AlgorithmRegistry.kruskalId,
               ),
               body: Stack(
                 children: [
                   Positioned.fill(child: GraphCanvas(key: _canvasKey)),
+                  if (activeAlgo?.id == AlgorithmRegistry.dijkstraId ||
+                      activeAlgo?.id == AlgorithmRegistry.kruskalId)
+                    const GraphPathLabOverlay(),
                   if (emptyState != null) Positioned.fill(child: emptyState),
                   if (canvasControls != null)
                     Positioned(top: 14, left: 14, child: canvasControls),

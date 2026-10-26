@@ -9,6 +9,7 @@ import 'package:flutter/services.dart';
 
 import '../../algorithms/assignment/providers/assignment_provider.dart';
 import '../../algorithms/core/algorithm_registry.dart';
+import '../../algorithms/graph_paths/providers/graph_path_run_provider.dart';
 import '../../application/providers/config_provider.dart';
 import '../../application/providers/creacion_provider.dart';
 import '../../application/providers/edicion_provider.dart';
@@ -25,6 +26,7 @@ import '../dialogs/connection_value_input_dialog.dart';
 import '../dialogs/overlapping_elements_dialog.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_toast.dart';
+import '../widgets/floating_context_menu.dart';
 import 'canvas_camera.dart';
 import 'canvas_gesture_state.dart';
 import 'graph_canvas_dialogs.dart';
@@ -527,13 +529,19 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
             return;
           }
 
+          final activePath = ref.read(activeAlgorithmProvider)?.id;
+          final pathDirection = activePath == AlgorithmRegistry.kruskalId
+              ? Direccion.ninguna
+              : activePath == AlgorithmRegistry.dijkstraId
+              ? ref.read(configProvider).tipoConexionPorDefecto
+              : Direccion.unidireccional;
           final policy = ref.read(activePolicyProvider);
           if (policy != null) {
             final check = policy.canCreateConnection(
               grafo,
               startId,
               targetNode.id,
-              Direccion.unidireccional,
+              pathDirection,
             );
             if (!check.allowed) {
               _showPolicyDeniedSnackBar(check.message);
@@ -546,9 +554,10 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
               .agregarConexion(
                 startId,
                 targetNode.id,
-                ref.read(activeAlgorithmProvider)?.id ==
-                        AlgorithmRegistry.northwestId
-                    ? Direccion.unidireccional
+                activePath == AlgorithmRegistry.kruskalId ||
+                        activePath == AlgorithmRegistry.dijkstraId ||
+                        activePath == AlgorithmRegistry.northwestId
+                    ? pathDirection
                     : null,
               );
           _singleTapEditTimer?.cancel();
@@ -642,6 +651,11 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
     _nodeHoldTimer?.cancel();
     _longPressTimer?.cancel();
     if (hitNodes.length == 1) {
+      if (ref.read(activeAlgorithmProvider)?.id ==
+          AlgorithmRegistry.dijkstraId) {
+        _triggerContextMenu(details.localPosition, hitNodes.first.id, true);
+        return;
+      }
       _showDeleteNodeDialog(hitNodes.first);
       return;
     }
@@ -654,7 +668,13 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
         nodeMap: grafo.nodos,
         onSelected: (item) {
           final nodo = grafo.nodos[item.id];
-          if (nodo != null) _showDeleteNodeDialog(nodo);
+          if (nodo == null) return;
+          if (ref.read(activeAlgorithmProvider)?.id ==
+              AlgorithmRegistry.dijkstraId) {
+            _triggerContextMenu(details.localPosition, nodo.id, true);
+          } else {
+            _showDeleteNodeDialog(nodo);
+          }
         },
       ),
     );
@@ -746,9 +766,26 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
           return;
         }
 
+        final activeId = ref.read(activeAlgorithmProvider)?.id;
+        final pathLoop = activeId == AlgorithmRegistry.dijkstraId;
+        final loopDirection = pathLoop
+            ? ref.read(configProvider).tipoConexionPorDefecto
+            : null;
+        if (pathLoop) {
+          final check = policy!.canCreateConnection(
+            grafo,
+            firstNode.id,
+            firstNode.id,
+            loopDirection!,
+          );
+          if (!check.allowed) {
+            _showPolicyDeniedSnackBar(check.message);
+            return;
+          }
+        }
         final createdConns = ref
             .read(grafoProvider.notifier)
-            .agregarConexion(firstNode.id, firstNode.id);
+            .agregarConexion(firstNode.id, firstNode.id, loopDirection);
         if (createdConns.isNotEmpty) {
           final newConn = createdConns.first;
           final activeAlgo = ref.read(activeAlgorithmProvider);
@@ -942,6 +979,42 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
         ref.watch(configProvider).modoTipoNodo == ModoTipoNodo.detectado;
 
     final highlights = ref.watch(highlightedElementsProvider);
+    final activeId = ref.watch(activeAlgorithmProvider)?.id;
+    final pathRun = activeId == AlgorithmRegistry.dijkstraId
+        ? ref.watch(graphPathRunProvider)
+        : null;
+    final pathStep =
+        activeId == AlgorithmRegistry.dijkstraId ||
+            activeId == AlgorithmRegistry.kruskalId
+        ? ref.watch(graphPathRunProvider).currentStep
+        : null;
+    String formatAnnotation(double value) {
+      if (!value.isFinite) return value.isNegative ? '−∞' : '∞';
+      if (value == value.roundToDouble()) return value.toInt().toString();
+      return value.toStringAsFixed(2);
+    }
+
+    final nodeAnnotations = <String, String>{};
+    final endpointBadges = <String, String>{};
+    if (pathRun?.sourceId != null &&
+        grafo.nodos.containsKey(pathRun!.sourceId)) {
+      endpointBadges[pathRun.sourceId!] = 'O';
+    }
+    if (pathRun?.targetId != null &&
+        grafo.nodos.containsKey(pathRun!.targetId)) {
+      endpointBadges[pathRun.targetId!] =
+          endpointBadges.containsKey(pathRun.targetId) ? 'O/D' : 'D';
+    }
+    if (pathStep != null) {
+      if (activeId == AlgorithmRegistry.kruskalId) {
+        nodeAnnotations.addAll(pathStep.components);
+      } else {
+        for (final entry in pathStep.distances.entries) {
+          nodeAnnotations[entry.key] =
+              '${pathStep.settledNodes.contains(entry.key) ? '✓ ' : ''}${formatAnnotation(entry.value)}';
+        }
+      }
+    }
 
     return GraphRenderModel.fromGrafo(
       grafo,
@@ -951,6 +1024,8 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
       disconnectedNodeIds: desconectados,
       highlightedNodeIds: highlights.nodeIds,
       highlightedConnectionIds: highlights.connectionIds,
+      nodeAnnotations: nodeAnnotations,
+      nodeEndpointBadges: endpointBadges,
       pendingConnectNodeId: creacion.primerNodoSeleccionado,
       dragConnectingStartNodeId: _dragConnectingStartNodeId,
       dragConnectingCurrentPos: _dragConnectingCurrentPos,
@@ -1047,6 +1122,35 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
                   _contextMenuTargetId != null)
                 CanvasContextMenuOverlay(
                   position: _contextMenuScreenPosition!,
+                  actions:
+                      _contextMenuIsNode &&
+                          ref.watch(activeAlgorithmProvider)?.id ==
+                              AlgorithmRegistry.dijkstraId
+                      ? [
+                          CanvasContextAction(
+                            label: 'Fijar como origen',
+                            icon: Icons.trip_origin_rounded,
+                            onTap: () {
+                              final id = _contextMenuTargetId!;
+                              setState(() => _contextMenuScreenPosition = null);
+                              ref
+                                  .read(graphPathRunProvider.notifier)
+                                  .setSource(id);
+                            },
+                          ),
+                          CanvasContextAction(
+                            label: 'Fijar como destino',
+                            icon: Icons.flag_outlined,
+                            onTap: () {
+                              final id = _contextMenuTargetId!;
+                              setState(() => _contextMenuScreenPosition = null);
+                              ref
+                                  .read(graphPathRunProvider.notifier)
+                                  .setTarget(id);
+                            },
+                          ),
+                        ]
+                      : const [],
                   onEdit: () {
                     final targetId = _contextMenuTargetId!;
                     final isNode = _contextMenuIsNode;

@@ -7,6 +7,8 @@ enum AlgorithmCatalogIllustration {
   assignment,
   johnson,
   northwest,
+  dijkstra,
+  kruskal,
   bst,
   selectionSort,
   insertionSort,
@@ -65,6 +67,10 @@ class _AlgorithmCatalogIllustrationPainter extends CustomPainter {
         _drawDirectedGraph(canvas, size, linePaint, nodePaint, mutedNodePaint);
       case AlgorithmCatalogIllustration.northwest:
         _drawBipartiteGraph(canvas, size, linePaint, nodePaint, mutedNodePaint);
+      case AlgorithmCatalogIllustration.dijkstra:
+        _drawDirectedGraph(canvas, size, linePaint, nodePaint, mutedNodePaint);
+      case AlgorithmCatalogIllustration.kruskal:
+        _drawFreeGraph(canvas, size, linePaint, nodePaint, mutedNodePaint);
       case AlgorithmCatalogIllustration.bst:
         _drawTree(canvas, size, linePaint, nodePaint, mutedNodePaint);
       case AlgorithmCatalogIllustration.selectionSort:

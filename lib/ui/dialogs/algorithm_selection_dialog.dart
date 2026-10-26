@@ -6,6 +6,7 @@ import '../../algorithms/bst/ui/bst_lab_screen.dart';
 import '../../algorithms/assignment/providers/assignment_provider.dart';
 import '../../algorithms/core/algorithm_registry.dart';
 import '../../algorithms/core/graph_algorithm.dart';
+import '../../algorithms/graph_paths/ui/graph_path_colors.dart';
 import '../../algorithms/johnson/domain/services/johnson_validator.dart';
 import '../../algorithms/johnson/providers/johnson_provider.dart';
 import '../../algorithms/northwest/domain/services/northwest_problem_extractor.dart';
@@ -89,6 +90,8 @@ class AlgorithmSelectionDialog extends StatelessWidget {
     final assignment = registered[AlgorithmRegistry.assignmentId];
     final johnson = registered[AlgorithmRegistry.johnsonId];
     final northwest = registered[AlgorithmRegistry.northwestId];
+    final dijkstra = registered[AlgorithmRegistry.dijkstraId];
+    final kruskal = registered[AlgorithmRegistry.kruskalId];
     return [
       const _AlgorithmCatalogOption(
         id: 'free-mode',
@@ -124,6 +127,25 @@ class AlgorithmSelectionDialog extends StatelessWidget {
           accentColor: const Color(0xFFE54872),
           illustration: AlgorithmCatalogIllustration.northwest,
           algorithm: northwest,
+        ),
+      if (dijkstra != null)
+        _AlgorithmCatalogOption(
+          id: dijkstra.id,
+          title: 'Dijkstra',
+          description:
+              'Encuentra caminos mínimos y explora caminos máximos simples.',
+          accentColor: GraphPathColors.dijkstraAccent,
+          illustration: AlgorithmCatalogIllustration.dijkstra,
+          algorithm: dijkstra,
+        ),
+      if (kruskal != null)
+        _AlgorithmCatalogOption(
+          id: kruskal.id,
+          title: 'Kruskal',
+          description: 'Construye árboles de expansión mínimos y máximos.',
+          accentColor: GraphPathColors.kruskalAccent,
+          illustration: AlgorithmCatalogIllustration.kruskal,
+          algorithm: kruskal,
         ),
       const _AlgorithmCatalogOption(
         id: 'bst',
@@ -230,7 +252,8 @@ class AlgorithmSelectionDialog extends StatelessWidget {
 }
 
 class AlgorithmSelectionScreen extends ConsumerWidget {
-  const AlgorithmSelectionScreen({super.key});
+  final bool openedFromEditor;
+  const AlgorithmSelectionScreen({super.key, this.openedFromEditor = false});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -238,7 +261,15 @@ class AlgorithmSelectionScreen extends ConsumerWidget {
       for (final algorithm in ref.read(algorithmRegistryProvider))
         algorithm.id: algorithm,
     };
-    final options = AlgorithmSelectionDialog(ref: ref)._options(registered);
+    final options = AlgorithmSelectionDialog(ref: ref)
+        ._options(registered)
+        .where(
+          (option) =>
+              !openedFromEditor ||
+              (option.id != AlgorithmRegistry.dijkstraId &&
+                  option.id != AlgorithmRegistry.kruskalId),
+        )
+        .toList();
     final colors = Theme.of(context).colorScheme;
 
     return Scaffold(
@@ -286,6 +317,14 @@ class AlgorithmSelectionScreen extends ConsumerWidget {
     WidgetRef ref,
     _AlgorithmCatalogOption option,
   ) {
+    if (option.id == AlgorithmRegistry.dijkstraId ||
+        option.id == AlgorithmRegistry.kruskalId) {
+      ref.read(activeAlgorithmProvider.notifier).selectById(option.id);
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const GraphEditorScreen()),
+      );
+      return;
+    }
     if (option.id == 'bst') {
       Navigator.of(context)
           .push(MaterialPageRoute(builder: (_) => const BstLabScreen()));

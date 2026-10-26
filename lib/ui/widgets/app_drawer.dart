@@ -18,6 +18,7 @@ class AppDrawer extends ConsumerWidget {
   final VoidCallback onSaveJpg;
   final VoidCallback onOpenTutorial;
   final VoidCallback onOpenConfig;
+  final bool showAlgorithmSelector;
 
   const AppDrawer({
     super.key,
@@ -31,6 +32,7 @@ class AppDrawer extends ConsumerWidget {
     required this.onSaveJpg,
     required this.onOpenTutorial,
     required this.onOpenConfig,
+    this.showAlgorithmSelector = true,
   });
 
   @override
@@ -143,8 +145,10 @@ class AppDrawer extends ConsumerWidget {
                     },
                   ),
                   const Divider(),
-                  _buildAlgorithmSelectorSection(context, ref),
-                  const Divider(),
+                  if (showAlgorithmSelector) ...[
+                    _buildAlgorithmSelectorSection(context, ref),
+                    const Divider(),
+                  ],
                   Builder(
                     builder: (context) {
                       final activeAlgo = ref.watch(activeAlgorithmProvider);

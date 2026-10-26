@@ -17,6 +17,7 @@ class CustomAttributesSection extends StatelessWidget {
   final VoidCallback onValueChanged;
   final void Function(Atributo attr) onDeleteAttribute;
   final VoidCallback onAddAttribute;
+  final bool allowSignedValues;
 
   const CustomAttributesSection({
     super.key,
@@ -30,6 +31,7 @@ class CustomAttributesSection extends StatelessWidget {
     required this.onValueChanged,
     required this.onDeleteAttribute,
     required this.onAddAttribute,
+    this.allowSignedValues = false,
   });
 
   @override
@@ -73,6 +75,7 @@ class CustomAttributesSection extends StatelessWidget {
                     label: 'Valor',
                     colorScheme: colorScheme,
                     isNumeric: true,
+                    allowNegative: allowSignedValues,
                     onChanged: (_) => onValueChanged(),
                   ),
                 ),
@@ -122,6 +125,7 @@ class CustomAttributesSection extends StatelessWidget {
     required ColorScheme colorScheme,
     ValueChanged<String>? onChanged,
     bool isNumeric = false,
+    bool allowNegative = false,
   }) {
     return TextField(
       controller: controller,
@@ -134,10 +138,17 @@ class CustomAttributesSection extends StatelessWidget {
       style: TextStyle(color: colorScheme.onSurface, fontSize: 14),
       onChanged: onChanged,
       keyboardType: isNumeric
-          ? const TextInputType.numberWithOptions(decimal: true)
+          ? TextInputType.numberWithOptions(
+              decimal: true,
+              signed: allowNegative,
+            )
           : TextInputType.text,
       inputFormatters: isNumeric
-          ? [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))]
+          ? [
+              FilteringTextInputFormatter.allow(
+                RegExp(allowNegative ? r'^-?\d*\.?\d*' : r'^\d*\.?\d*'),
+              ),
+            ]
           : null,
       decoration: InputDecoration(
         filled: true,
