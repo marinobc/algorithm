@@ -7,11 +7,17 @@ import '../domain/bst_tree.dart';
 class BstTreeCanvas extends StatefulWidget {
   final BstTree tree;
   final List<int> insertionPath;
+  final List<int> traversalVisitedValues;
+  final int? traversalStep;
+  final int? traversalTotal;
 
   const BstTreeCanvas({
     super.key,
     required this.tree,
     this.insertionPath = const [],
+    this.traversalVisitedValues = const [],
+    this.traversalStep,
+    this.traversalTotal,
   });
 
   @override
@@ -147,46 +153,27 @@ class _BstTreeCanvasState extends State<BstTreeCanvas>
                             children: [
                               Icon(
                                 Icons.account_tree_outlined,
-                                size: 34,
-                                color: colors.primary,
+                                size: 30,
+                                color: colors.primary.withValues(alpha: .75),
                               ),
-                              const SizedBox(height: 10),
+                              const SizedBox(height: 12),
                               Text(
                                 'Construye tu primer árbol BST',
                                 textAlign: TextAlign.center,
                                 style: Theme.of(context).textTheme.titleMedium
                                     ?.copyWith(fontWeight: FontWeight.w700),
                               ),
-                              const SizedBox(height: 6),
+                              const SizedBox(height: 8),
                               ConstrainedBox(
                                 constraints: const BoxConstraints(
-                                  maxWidth: 390,
+                                  maxWidth: 310,
                                 ),
                                 child: Text(
-                                  'Introduce valores en el panel izquierdo. Los menores van a la izquierda y los mayores, a la derecha.',
+                                  'Introduce valores en el panel izquierdo para ver tu árbol.',
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                     color: colors.onSurfaceVariant,
                                     height: 1.45,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 7,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: colors.secondaryContainer,
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: Text(
-                                  'Ejemplo: 5, 3, 7, 1, 4',
-                                  style: TextStyle(
-                                    color: colors.onSecondaryContainer,
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 12,
                                   ),
                                 ),
                               ),
@@ -216,6 +203,33 @@ class _BstTreeCanvasState extends State<BstTreeCanvas>
                               Curves.easeOutCubic.transform(_transition.value),
                             )!;
                           }
+                          final visited = widget.traversalVisitedValues;
+                          final idByValue = {
+                            for (final node in _layout.nodes.values)
+                              node.value: node.id,
+                          };
+                          final traversedEdges = <String>{};
+                          for (var i = 1; i < visited.length; i++) {
+                            var from = idByValue[visited[i - 1]];
+                            var to = idByValue[visited[i]];
+                            if (from == null || to == null || from == to) {
+                              continue;
+                            }
+                            final fromAncestors = <String>{};
+                            String? ancestor = from;
+                            while (ancestor != null) {
+                              fromAncestors.add(ancestor);
+                              ancestor = _layout.parents[ancestor];
+                            }
+                            while (to != null && !fromAncestors.contains(to)) {
+                              traversedEdges.add(to);
+                              to = _layout.parents[to];
+                            }
+                            while (from != null && from != to) {
+                              traversedEdges.add(from);
+                              from = _layout.parents[from];
+                            }
+                          }
                           return SizedBox(
                             width: _layout.size.width,
                             height: _layout.size.height,
@@ -230,6 +244,7 @@ class _BstTreeCanvasState extends State<BstTreeCanvas>
                                       activeColor: colors.primary,
                                       activeValues: widget.insertionPath
                                           .toSet(),
+                                      traversalEdgeIds: traversedEdges,
                                       nodes: _layout.nodes,
                                     ),
                                   ),
@@ -250,6 +265,21 @@ class _BstTreeCanvasState extends State<BstTreeCanvas>
                                         active: widget.insertionPath.contains(
                                           entry.value.value,
                                         ),
+                                        visited: widget.traversalVisitedValues
+                                            .contains(entry.value.value),
+                                        visitNumber:
+                                            visited.indexOf(entry.value.value) +
+                                            1,
+                                        current:
+                                            widget
+                                                .traversalVisitedValues
+                                                .isNotEmpty &&
+                                            widget
+                                                    .traversalVisitedValues
+                                                    .last ==
+                                                entry.value.value,
+                                        traversalStep: widget.traversalStep,
+                                        traversalTotal: widget.traversalTotal,
                                       ),
                                     ),
                                   ),
@@ -351,6 +381,7 @@ class _TreeEdgePainter extends CustomPainter {
   final Map<String, String> parents;
   final Map<String, BstNode> nodes;
   final Set<int> activeValues;
+  final Set<String> traversalEdgeIds;
   final Color color;
   final Color activeColor;
 
@@ -359,6 +390,7 @@ class _TreeEdgePainter extends CustomPainter {
     required this.parents,
     required this.nodes,
     required this.activeValues,
+    required this.traversalEdgeIds,
     required this.color,
     required this.activeColor,
   });
@@ -371,11 +403,24 @@ class _TreeEdgePainter extends CustomPainter {
       final highlighted =
           activeValues.contains(nodes[entry.value]!.value) &&
           activeValues.contains(nodes[entry.key]!.value);
+      final traversed = traversalEdgeIds.contains(entry.key);
       final paint = Paint()
-        ..color = highlighted ? activeColor : color.withValues(alpha: 0.55)
-        ..strokeWidth = highlighted ? 2.8 : 2
+        ..color = traversed
+            ? const Color(0xFFFFC83D)
+            : highlighted
+            ? activeColor
+            : color.withValues(alpha: 0.55)
+        ..strokeWidth = traversed
+            ? 4
+            : highlighted
+            ? 2.8
+            : 2
         ..strokeCap = StrokeCap.round;
-      canvas.drawLine(parent.translate(0, 27), child.translate(0, -27), paint);
+      final direction = child - parent;
+      final distance = direction.distance;
+      if (distance <= 70) continue;
+      final inset = direction / distance * 35;
+      canvas.drawLine(parent + inset, child - inset, paint);
     }
   }
 
@@ -385,6 +430,7 @@ class _TreeEdgePainter extends CustomPainter {
       oldDelegate.parents != parents ||
       oldDelegate.nodes != nodes ||
       oldDelegate.activeValues != activeValues ||
+      oldDelegate.traversalEdgeIds != traversalEdgeIds ||
       oldDelegate.color != color ||
       oldDelegate.activeColor != activeColor;
 }
@@ -393,19 +439,34 @@ class _TreeNodeWidget extends StatelessWidget {
   final BstNode node;
   final bool isRoot;
   final bool active;
+  final bool visited;
+  final int visitNumber;
+  final bool current;
+  final int? traversalStep;
+  final int? traversalTotal;
 
   const _TreeNodeWidget({
     required this.node,
     required this.isRoot,
     required this.active,
+    required this.visited,
+    required this.visitNumber,
+    required this.current,
+    required this.traversalStep,
+    required this.traversalTotal,
   });
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    const traversalYellow = Color(0xFFFFC83D);
     return Semantics(
       label:
-          'Nodo ${node.value}, frecuencia ${node.frequency}${isRoot ? ', raíz' : ''}',
+          'Nodo ${node.value}, frecuencia ${node.frequency}${isRoot ? ', raíz' : ''}${current
+              ? ', paso $traversalStep de $traversalTotal'
+              : visited
+              ? ', ya visitado'
+              : ''}',
       excludeSemantics: true,
       child: SizedBox(
         width: 64,
@@ -413,17 +474,35 @@ class _TreeNodeWidget extends StatelessWidget {
         child: Stack(
           clipBehavior: Clip.none,
           children: [
-            Container(
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 180),
               width: 64,
               height: 64,
               padding: const EdgeInsets.all(9),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: isRoot ? colors.primary : colors.primaryContainer,
+                color: visited && !isRoot
+                    ? traversalYellow.withValues(alpha: .28)
+                    : isRoot
+                    ? colors.primary
+                    : colors.primaryContainer,
                 border: Border.all(
-                  color: active ? colors.tertiary : colors.primary,
-                  width: active ? 3 : 1.5,
+                  color: visited ? traversalYellow : colors.primary,
+                  width: current
+                      ? 4
+                      : active || visited
+                      ? 3
+                      : 1.5,
                 ),
+                boxShadow: current
+                    ? [
+                        BoxShadow(
+                          color: traversalYellow.withValues(alpha: .55),
+                          blurRadius: 14,
+                          spreadRadius: 5,
+                        ),
+                      ]
+                    : null,
               ),
               child: Center(
                 child: FittedBox(
@@ -441,6 +520,31 @@ class _TreeNodeWidget extends StatelessWidget {
                 ),
               ),
             ),
+            if (visited)
+              Positioned(
+                left: 48,
+                top: -12,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 3,
+                  ),
+                  decoration: BoxDecoration(
+                    color: traversalYellow,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    current && traversalStep != null && traversalTotal != null
+                        ? '$traversalStep/$traversalTotal'
+                        : '$visitNumber',
+                    style: TextStyle(
+                      color: const Color(0xFF302400),
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ),
             if (node.frequency > 1)
               Positioned(
                 right: -12,

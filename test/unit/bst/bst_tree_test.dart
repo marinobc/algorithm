@@ -50,6 +50,41 @@ void main() {
     }
   });
 
+  test('genera un BST compatible desde cada recorrido individual', () {
+    for (final (type, values) in [
+      (BstTraversal.preorder, preorder),
+      (BstTraversal.inorder, inorder),
+      (BstTraversal.postorder, postorder),
+    ]) {
+      final tree = BstTree.fromTraversal(type, values);
+      expect(tree.traverse(type), values);
+      expect(tree.traverse(BstTraversal.inorder), inorder);
+      expect(tree.totalCount, values.length);
+    }
+    final repeated = BstTree.fromTraversal(BstTraversal.inorder, [1, 2, 2, 3]);
+    expect(repeated.find(2)?.frequency, 2);
+    expect(repeated.traverse(BstTraversal.inorder), [1, 2, 2, 3]);
+  });
+
+  test('rechaza un recorrido individual imposible o vacío', () {
+    expect(
+      () => BstTree.fromTraversal(BstTraversal.preorder, [5, 7, 3]),
+      throwsFormatException,
+    );
+    expect(
+      () => BstTree.fromTraversal(BstTraversal.postorder, [7, 3, 5]),
+      throwsFormatException,
+    );
+    expect(
+      () => BstTree.fromTraversal(BstTraversal.inorder, [5, 3, 7]),
+      throwsFormatException,
+    );
+    expect(
+      () => BstTree.fromTraversal(BstTraversal.preorder, []),
+      throwsFormatException,
+    );
+  });
+
   test('rechaza recorridos incompatibles aunque compartan los valores', () {
     expect(
       () => BstTree.reconstruct(

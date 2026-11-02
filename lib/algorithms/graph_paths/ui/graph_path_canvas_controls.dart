@@ -43,8 +43,8 @@ class GraphPathCanvasControls extends ConsumerWidget {
       final selection = run.sourceIsManual || run.targetIsManual
           ? 'selección personalizada'
           : run.inferredFromTopology
-          ? 'detectados por grado'
-          : 'predeterminados por creación';
+          ? 'detectados por las flechas'
+          : 'selección automática provisional';
       status = 'Origen: $source → Destino: $target · $selection';
     }
 

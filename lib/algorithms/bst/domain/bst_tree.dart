@@ -154,6 +154,52 @@ class BstTree {
     return values;
   }
 
+  /// Builds a BST compatible with one traversal so another order can be shown.
+  /// Inorder alone is ambiguous; choose a balanced example deterministically.
+  static BstTree fromTraversal(BstTraversal type, List<int> values) {
+    if (values.isEmpty) {
+      throw const FormatException('Ingresa el primer recorrido.');
+    }
+
+    if (type == BstTraversal.inorder) {
+      for (var i = 1; i < values.length; i++) {
+        if (values[i] < values[i - 1]) {
+          throw const FormatException(
+            'Inorder debe ordenar los valores de menor a mayor.',
+          );
+        }
+      }
+      final frequencies = <int, int>{};
+      for (final value in values) {
+        frequencies.update(value, (count) => count + 1, ifAbsent: () => 1);
+      }
+      final keys = frequencies.keys.toList();
+      final insertionOrder = <int>[];
+      void addBalanced(int start, int end) {
+        if (start >= end) return;
+        final middle = start + (end - start) ~/ 2;
+        insertionOrder.addAll(
+          List.filled(frequencies[keys[middle]]!, keys[middle]),
+        );
+        addBalanced(start, middle);
+        addBalanced(middle + 1, end);
+      }
+
+      addBalanced(0, keys.length);
+      return BstTree.fromValues(insertionOrder);
+    }
+
+    final candidate = BstTree.fromValues(
+      type == BstTraversal.preorder ? values : values.reversed,
+    );
+    if (!_same(candidate.traverse(type), values)) {
+      throw FormatException(
+        '${type.label} no describe un BST válido. Revisa el orden de los valores.',
+      );
+    }
+    return candidate;
+  }
+
   static BstTree reconstruct({
     required BstTraversal firstType,
     required List<int> first,

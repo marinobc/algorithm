@@ -89,21 +89,37 @@ class GraphPathRunNotifier extends Notifier<GraphPathRunState> {
       }
       final endpoints = GraphPathEndpoints.suggest(next);
       final keepSource =
-          state.sourceIsManual && next.nodos.containsKey(state.sourceId);
+          next.nodos.containsKey(state.sourceId) &&
+          (state.sourceIsManual || !endpoints.inferredFromTopology);
+      // The only automatic endpoint that should move while still present is
+      // the provisional A→A target when a second vertex is first added.
+      final expandSingleNode =
+          previous != null &&
+          previous.nodos.length == 1 &&
+          next.nodos.length > 1 &&
+          state.sourceId == state.targetId &&
+          !state.targetIsManual;
       final keepTarget =
-          state.targetIsManual && next.nodos.containsKey(state.targetId);
+          next.nodos.containsKey(state.targetId) &&
+          !expandSingleNode &&
+          (state.targetIsManual || !endpoints.inferredFromTopology);
+      final source = keepSource ? state.sourceId : endpoints.sourceId;
+      final target = keepTarget ? state.targetId : endpoints.targetId;
       state = state.copyWith(
-        sourceId: keepSource ? state.sourceId : endpoints.sourceId,
-        targetId: keepTarget ? state.targetId : endpoints.targetId,
-        sourceIsManual: keepSource,
-        targetIsManual: keepTarget,
-        inferredFromTopology: endpoints.inferredFromTopology,
+        sourceId: source,
+        targetId: target,
+        sourceIsManual: keepSource && state.sourceIsManual,
+        targetIsManual: keepTarget && state.targetIsManual,
+        inferredFromTopology:
+            endpoints.inferredFromTopology &&
+            source == endpoints.sourceId &&
+            target == endpoints.targetId,
         clearComputation: true,
         clearError: true,
         stepIndex: 0,
         alternativeIndex: -1,
-        clearSource: !keepSource && endpoints.sourceId == null,
-        clearTarget: !keepTarget && endpoints.targetId == null,
+        clearSource: source == null,
+        clearTarget: target == null,
       );
     });
     return const GraphPathRunState();
@@ -120,6 +136,10 @@ class GraphPathRunNotifier extends Notifier<GraphPathRunState> {
     state = state.copyWith(
       sourceId: id ?? suggestion.sourceId,
       sourceIsManual: id != null,
+      inferredFromTopology:
+          suggestion.inferredFromTopology &&
+          (id ?? suggestion.sourceId) == suggestion.sourceId &&
+          state.targetId == suggestion.targetId,
       clearSource: id == null && suggestion.sourceId == null,
       clearComputation: true,
       clearError: true,
@@ -139,6 +159,10 @@ class GraphPathRunNotifier extends Notifier<GraphPathRunState> {
     state = state.copyWith(
       targetId: id ?? suggestion.targetId,
       targetIsManual: id != null,
+      inferredFromTopology:
+          suggestion.inferredFromTopology &&
+          state.sourceId == suggestion.sourceId &&
+          (id ?? suggestion.targetId) == suggestion.targetId,
       clearTarget: id == null && suggestion.targetId == null,
       clearComputation: true,
       clearError: true,
@@ -152,15 +176,25 @@ class GraphPathRunNotifier extends Notifier<GraphPathRunState> {
         mode == GraphPathMode.kruskalMinimum ||
         mode == GraphPathMode.kruskalMaximum;
     final suggestion = GraphPathEndpoints.suggest(ref.read(grafoProvider));
+    final source = state.sourceIsManual || !suggestion.inferredFromTopology
+        ? state.sourceId ?? suggestion.sourceId
+        : suggestion.sourceId;
+    final target = state.targetIsManual || !suggestion.inferredFromTopology
+        ? state.targetId ?? suggestion.targetId
+        : suggestion.targetId;
     state = state.copyWith(
       mode: mode,
-      sourceId: kruskal ? null : state.sourceId ?? suggestion.sourceId,
-      targetId: kruskal ? null : state.targetId ?? suggestion.targetId,
+      sourceId: kruskal ? null : source,
+      targetId: kruskal ? null : target,
       clearSource: kruskal,
       clearTarget: kruskal,
       sourceIsManual: kruskal ? false : state.sourceIsManual,
       targetIsManual: kruskal ? false : state.targetIsManual,
-      inferredFromTopology: suggestion.inferredFromTopology,
+      inferredFromTopology:
+          !kruskal &&
+          suggestion.inferredFromTopology &&
+          source == suggestion.sourceId &&
+          target == suggestion.targetId,
       clearComputation: true,
       clearError: true,
       stepIndex: 0,
@@ -173,18 +207,23 @@ class GraphPathRunNotifier extends Notifier<GraphPathRunState> {
     final suggestion = GraphPathEndpoints.suggest(graph);
     final keepSource =
         keepSelections &&
-        state.sourceIsManual &&
-        graph.nodos.containsKey(state.sourceId);
+        graph.nodos.containsKey(state.sourceId) &&
+        (state.sourceIsManual || !suggestion.inferredFromTopology);
     final keepTarget =
         keepSelections &&
-        state.targetIsManual &&
-        graph.nodos.containsKey(state.targetId);
+        graph.nodos.containsKey(state.targetId) &&
+        (state.targetIsManual || !suggestion.inferredFromTopology);
+    final source = keepSource ? state.sourceId : suggestion.sourceId;
+    final target = keepTarget ? state.targetId : suggestion.targetId;
     state = GraphPathRunState(
-      sourceId: keepSource ? state.sourceId : suggestion.sourceId,
-      targetId: keepTarget ? state.targetId : suggestion.targetId,
-      sourceIsManual: keepSource,
-      targetIsManual: keepTarget,
-      inferredFromTopology: suggestion.inferredFromTopology,
+      sourceId: source,
+      targetId: target,
+      sourceIsManual: keepSource && state.sourceIsManual,
+      targetIsManual: keepTarget && state.targetIsManual,
+      inferredFromTopology:
+          suggestion.inferredFromTopology &&
+          source == suggestion.sourceId &&
+          target == suggestion.targetId,
       mode: state.mode,
     );
   }
@@ -196,12 +235,14 @@ class GraphPathRunNotifier extends Notifier<GraphPathRunState> {
     final suggestion = GraphPathEndpoints.suggest(graph);
     final source = kruskal
         ? null
-        : state.sourceIsManual && graph.nodos.containsKey(state.sourceId)
+        : graph.nodos.containsKey(state.sourceId) &&
+              (state.sourceIsManual || !suggestion.inferredFromTopology)
         ? state.sourceId
         : suggestion.sourceId;
     final target = kruskal
         ? null
-        : state.targetIsManual && graph.nodos.containsKey(state.targetId)
+        : graph.nodos.containsKey(state.targetId) &&
+              (state.targetIsManual || !suggestion.inferredFromTopology)
         ? state.targetId
         : suggestion.targetId;
     state = state.copyWith(
@@ -215,7 +256,10 @@ class GraphPathRunNotifier extends Notifier<GraphPathRunState> {
           !kruskal &&
           state.targetIsManual &&
           graph.nodos.containsKey(state.targetId),
-      inferredFromTopology: suggestion.inferredFromTopology,
+      inferredFromTopology:
+          suggestion.inferredFromTopology &&
+          source == suggestion.sourceId &&
+          target == suggestion.targetId,
       clearSource: source == null,
       clearTarget: target == null,
     );

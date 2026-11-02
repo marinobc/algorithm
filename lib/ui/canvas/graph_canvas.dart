@@ -43,7 +43,7 @@ class GraphCanvas extends ConsumerStatefulWidget {
 }
 
 class GraphCanvasState extends ConsumerState<GraphCanvas>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   static const double nodeDiameter = CanvasCamera.nodeDiameter;
   static const double worldGridNodes = CanvasCamera.worldGridNodes;
   static const double baseViewNodes = CanvasCamera.baseViewNodes;
@@ -130,6 +130,9 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
   set _zoomLockoutTimer(Timer? val) => _gesture.zoomLockoutTimer = val;
 
   late AnimationController _snapBackController;
+  late AnimationController _edgeCurveController;
+  Map<String, double> _edgeCurveFrom = const {};
+  Map<String, double> _edgeCurveTo = const {};
   Animation<Offset>? _snapBackAnimation;
   String? _animatingNodeId;
 
@@ -158,6 +161,22 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
                 );
           }
         });
+    _edgeCurveController =
+        AnimationController(
+            vsync: this,
+            duration: const Duration(milliseconds: 240),
+          )
+          ..addListener(() {
+            if (mounted) setState(() {});
+          })
+          ..addStatusListener((status) {
+            if (status == AnimationStatus.completed && mounted) {
+              setState(() {
+                _edgeCurveFrom = const {};
+                _edgeCurveTo = const {};
+              });
+            }
+          });
   }
 
   @override
@@ -170,7 +189,50 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
     _singleTapEditTimer?.cancel();
     _zoomLockoutTimer?.cancel();
     _snapBackController.dispose();
+    _edgeCurveController.dispose();
     super.dispose();
+  }
+
+  Map<String, double> get _animatedEdgeOffsets {
+    if (_edgeCurveTo.isEmpty) return const {};
+    final progress = Curves.easeOutCubic.transform(_edgeCurveController.value);
+    return {
+      for (final entry in _edgeCurveTo.entries)
+        entry.key:
+            (_edgeCurveFrom[entry.key] ?? 0) +
+            (entry.value - (_edgeCurveFrom[entry.key] ?? 0)) * progress,
+    };
+  }
+
+  void _animateOppositeArcChange(Grafo previous, Grafo next) {
+    if (setEquals(
+      previous.conexiones.keys.toSet(),
+      next.conexiones.keys.toSet(),
+    )) {
+      return;
+    }
+    final before = GraphHitTester.connectionOffsetFactors(
+      previous,
+      distinguishOppositeDirected: true,
+    );
+    final after = GraphHitTester.connectionOffsetFactors(
+      next,
+      distinguishOppositeDirected: true,
+    );
+    final current = _animatedEdgeOffsets;
+    final from = <String, double>{};
+    final to = <String, double>{};
+    for (final entry in after.entries) {
+      final start = current[entry.key] ?? before[entry.key] ?? 0.0;
+      if ((start - entry.value).abs() > 0.001) {
+        from[entry.key] = start;
+        to[entry.key] = entry.value;
+      }
+    }
+    if (to.isEmpty) return;
+    _edgeCurveFrom = from;
+    _edgeCurveTo = to;
+    _edgeCurveController.forward(from: 0);
   }
 
   Matrix4 get transform => _camera.transform;
@@ -301,6 +363,14 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
         worldPos,
         grafo,
         _getXYScale(),
+        distinguishOppositeDirected:
+            ref.read(activeAlgorithmProvider)?.id ==
+            AlgorithmRegistry.dijkstraId,
+        animatedOffsets:
+            ref.read(activeAlgorithmProvider)?.id ==
+                AlgorithmRegistry.dijkstraId
+            ? _animatedEdgeOffsets
+            : const {},
       );
       if (touchedConn != null) {
         _draggedNodeId = null;
@@ -532,8 +602,6 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
           final activePath = ref.read(activeAlgorithmProvider)?.id;
           final pathDirection = activePath == AlgorithmRegistry.kruskalId
               ? Direccion.ninguna
-              : activePath == AlgorithmRegistry.dijkstraId
-              ? ref.read(configProvider).tipoConexionPorDefecto
               : Direccion.unidireccional;
           final policy = ref.read(activePolicyProvider);
           if (policy != null) {
@@ -549,17 +617,23 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
             }
           }
 
-          final createdConns = ref
-              .read(grafoProvider.notifier)
-              .agregarConexion(
-                startId,
-                targetNode.id,
-                activePath == AlgorithmRegistry.kruskalId ||
-                        activePath == AlgorithmRegistry.dijkstraId ||
-                        activePath == AlgorithmRegistry.northwestId
-                    ? pathDirection
-                    : null,
-              );
+          final graphNotifier = ref.read(grafoProvider.notifier);
+          final createdConns =
+              activePath == AlgorithmRegistry.dijkstraId &&
+                  pathDirection == Direccion.unidireccional
+              ? graphNotifier.agregarArcoDirigidoIndependiente(
+                  startId,
+                  targetNode.id,
+                )
+              : graphNotifier.agregarConexion(
+                  startId,
+                  targetNode.id,
+                  activePath == AlgorithmRegistry.kruskalId ||
+                          activePath == AlgorithmRegistry.dijkstraId ||
+                          activePath == AlgorithmRegistry.northwestId
+                      ? pathDirection
+                      : null,
+                );
           _singleTapEditTimer?.cancel();
           _lastTapNodeId = null;
           _lastTapTime = null;
@@ -717,6 +791,12 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
       worldPos,
       grafo,
       _getXYScale(),
+      distinguishOppositeDirected:
+          ref.read(activeAlgorithmProvider)?.id == AlgorithmRegistry.dijkstraId,
+      animatedOffsets:
+          ref.read(activeAlgorithmProvider)?.id == AlgorithmRegistry.dijkstraId
+          ? _animatedEdgeOffsets
+          : const {},
     );
     final totalHits = hitNodes.length + hitConns.length;
 
@@ -768,9 +848,7 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
 
         final activeId = ref.read(activeAlgorithmProvider)?.id;
         final pathLoop = activeId == AlgorithmRegistry.dijkstraId;
-        final loopDirection = pathLoop
-            ? ref.read(configProvider).tipoConexionPorDefecto
-            : null;
+        final loopDirection = pathLoop ? Direccion.unidireccional : null;
         if (pathLoop) {
           final check = policy!.canCreateConnection(
             grafo,
@@ -1031,6 +1109,10 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
       dragConnectingCurrentPos: _dragConnectingCurrentPos,
       dragConnectingTargetNodeId: _dragConnectingTargetNodeId,
       isDetectadoMode: isDetectadoMode,
+      distinguishOppositeDirected: activeId == AlgorithmRegistry.dijkstraId,
+      animatedOffsets: activeId == AlgorithmRegistry.dijkstraId
+          ? _animatedEdgeOffsets
+          : const {},
     );
   }
 
@@ -1073,6 +1155,11 @@ class GraphCanvasState extends ConsumerState<GraphCanvas>
   @override
   Widget build(BuildContext context) {
     ref.listen<Grafo>(grafoProvider, (previous, next) {
+      if (previous != null &&
+          ref.read(activeAlgorithmProvider)?.id ==
+              AlgorithmRegistry.dijkstraId) {
+        _animateOppositeArcChange(previous, next);
+      }
       if (previous != null && (previous.nodos.isEmpty && next.nodos.isEmpty)) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted) {

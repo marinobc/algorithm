@@ -228,7 +228,36 @@ class GrafoNotifier extends Notifier<Grafo> {
     Direccion? direccion,
     int? colorValue,
     List<AtributoValor>? atributos,
-  ]) {
+  ]) => _agregarConexion(
+    origenId,
+    destinoId,
+    direccion,
+    colorValue,
+    atributos,
+    allowOppositeDirected: false,
+  );
+
+  /// Dijkstra keeps each directed arc and its weight as an independent item.
+  List<Conexion> agregarArcoDirigidoIndependiente(
+    String origenId,
+    String destinoId,
+  ) => _agregarConexion(
+    origenId,
+    destinoId,
+    Direccion.unidireccional,
+    null,
+    null,
+    allowOppositeDirected: true,
+  );
+
+  List<Conexion> _agregarConexion(
+    String origenId,
+    String destinoId,
+    Direccion? direccion,
+    int? colorValue,
+    List<AtributoValor>? atributos, {
+    required bool allowOppositeDirected,
+  }) {
     final defaultDir = ref.read(configProvider).tipoConexionPorDefecto;
     final targetDireccion = direccion ?? defaultDir;
 
@@ -261,20 +290,30 @@ class GrafoNotifier extends Notifier<Grafo> {
       if (existingPair.length >= 2) {
         return [];
       } else if (existingPair.length == 1) {
-        // Connecting the same two nodes twice converts the relationship to bidirectional!
-        actualizarParejaConexiones(
-          nodeAId: origenId,
-          nodeBId: destinoId,
-          targetDirection: Direccion.bidireccional,
-        );
-        return state.conexiones.values
-            .where(
-              (c) =>
-                  (c.nodoOrigenId == origenId &&
-                      c.nodoDestinoId == destinoId) ||
-                  (c.nodoOrigenId == destinoId && c.nodoDestinoId == origenId),
-            )
-            .toList();
+        if (allowOppositeDirected) {
+          final other = existingPair.single;
+          if (targetDireccion != Direccion.unidireccional ||
+              other.direccion != Direccion.unidireccional ||
+              other.nodoOrigenId == origenId) {
+            return [];
+          }
+        } else {
+          // Preserve the existing conversion in the other graph editors.
+          actualizarParejaConexiones(
+            nodeAId: origenId,
+            nodeBId: destinoId,
+            targetDirection: Direccion.bidireccional,
+          );
+          return state.conexiones.values
+              .where(
+                (c) =>
+                    (c.nodoOrigenId == origenId &&
+                        c.nodoDestinoId == destinoId) ||
+                    (c.nodoOrigenId == destinoId &&
+                        c.nodoDestinoId == origenId),
+              )
+              .toList();
+        }
       }
     }
 

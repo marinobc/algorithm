@@ -112,9 +112,7 @@ class GraphPathPolicy extends GraphAlgorithmPolicy {
       );
     }
     if (grafo.conexiones.values.any(
-      (edge) =>
-          (edge.nodoOrigenId == origenId && edge.nodoDestinoId == destinoId) ||
-          (edge.nodoOrigenId == destinoId && edge.nodoDestinoId == origenId),
+      (edge) => _conflictsWith(edge, origenId, destinoId, direccion),
     )) {
       return const PolicyResult.deny(
         'Ya existe una arista entre estos vértices. Edita su peso o dirección desde el lienzo.',
@@ -169,21 +167,33 @@ class GraphPathPolicy extends GraphAlgorithmPolicy {
             : 'Dijkstra necesita un peso numérico finito mayor o igual que cero.',
       );
     }
-    final changedEndpoints =
-        current.nodoOrigenId != origenId || current.nodoDestinoId != destinoId;
-    if (changedEndpoints &&
-        grafo.conexiones.values.any(
-          (edge) =>
-              edge.id != current.id &&
-              ((edge.nodoOrigenId == origenId &&
-                      edge.nodoDestinoId == destinoId) ||
-                  (edge.nodoOrigenId == destinoId &&
-                      edge.nodoDestinoId == origenId)),
-        )) {
+    if (grafo.conexiones.values.any(
+      (edge) =>
+          edge.id != current.id &&
+          _conflictsWith(edge, origenId, destinoId, direccion),
+    )) {
       return const PolicyResult.deny(
         'Ya existe una arista entre esos vértices. Elige otra pareja o edita la existente.',
       );
     }
     return const PolicyResult.allow();
+  }
+
+  bool _conflictsWith(
+    Conexion edge,
+    String origenId,
+    String destinoId,
+    Direccion direccion,
+  ) {
+    final sameOrder =
+        edge.nodoOrigenId == origenId && edge.nodoDestinoId == destinoId;
+    final reverseOrder =
+        edge.nodoOrigenId == destinoId && edge.nodoDestinoId == origenId;
+    if (kruskal ||
+        direccion != Direccion.unidireccional ||
+        edge.direccion != Direccion.unidireccional) {
+      return sameOrder || reverseOrder;
+    }
+    return sameOrder;
   }
 }

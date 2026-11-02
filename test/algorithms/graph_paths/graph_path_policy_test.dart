@@ -94,6 +94,87 @@ void main() {
     );
   });
 
+  test('Dijkstra treats opposite directed arcs as independent', () {
+    final directed = graph.copyWith(
+      conexiones: {
+        'AB': graph.conexiones['AB']!.copyWith(
+          direccion: Direccion.unidireccional,
+        ),
+      },
+    );
+    expect(
+      dijkstra
+          .canCreateConnection(directed, 'B', 'A', Direccion.unidireccional)
+          .allowed,
+      isTrue,
+    );
+    expect(
+      dijkstra
+          .canCreateConnection(directed, 'A', 'B', Direccion.unidireccional)
+          .allowed,
+      isFalse,
+    );
+    expect(
+      dijkstra.canCreateConnection(directed, 'B', 'A', Direccion.ninguna).allowed,
+      isFalse,
+    );
+
+    final both = directed.copyWith(conexiones: {
+      ...directed.conexiones,
+      'BA': const Conexion(
+        id: 'BA',
+        nodoOrigenId: 'B',
+        nodoDestinoId: 'A',
+        colorValue: 0xFF7461AE,
+        direccion: Direccion.unidireccional,
+        atributos: [AtributoValor(atributoId: 'attr_valor', valor: '7')],
+      ),
+    });
+    expect(
+      dijkstra
+          .canUpdateConnection(
+            both,
+            both.conexiones['BA']!,
+            origenId: 'B',
+            destinoId: 'A',
+            direccion: Direccion.unidireccional,
+            weight: '9',
+          )
+          .allowed,
+      isTrue,
+    );
+    expect(
+      dijkstra
+          .canUpdateConnection(
+            both,
+            both.conexiones['BA']!,
+            origenId: 'A',
+            destinoId: 'B',
+            direccion: Direccion.unidireccional,
+            weight: '9',
+          )
+          .allowed,
+      isFalse,
+    );
+    expect(
+      dijkstra
+          .canUpdateConnection(
+            both,
+            both.conexiones['BA']!,
+            origenId: 'B',
+            destinoId: 'A',
+            direccion: Direccion.ninguna,
+            weight: '9',
+          )
+          .allowed,
+      isFalse,
+    );
+    expect(
+      kruskal.canCreateConnection(both, 'A', 'B', Direccion.ninguna).allowed,
+      isFalse,
+    );
+  });
+
   test(
     'shared edit panel policy preserves valid zero and negative weights',
     () {

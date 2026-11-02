@@ -5,12 +5,16 @@ import '../../domain/services/graph_storage_service.dart';
 
 /// Modal dialog for loading a saved graph slot.
 class LoadGraphDialog extends StatefulWidget {
-  const LoadGraphDialog({super.key});
+  final String? algorithmId;
+  const LoadGraphDialog({super.key, this.algorithmId});
 
-  static Future<SavedGraphItem?> show(BuildContext context) {
+  static Future<SavedGraphItem?> show(
+    BuildContext context, {
+    String? algorithmId,
+  }) {
     return showDialog<SavedGraphItem>(
       context: context,
-      builder: (_) => const LoadGraphDialog(),
+      builder: (_) => LoadGraphDialog(algorithmId: algorithmId),
     );
   }
 
@@ -31,7 +35,9 @@ class _LoadGraphDialogState extends State<LoadGraphDialog> {
 
   Future<void> _loadSavedGraphs() async {
     setState(() => _isLoading = true);
-    final items = await GraphStorageService.getSavedGraphs();
+    final items = await GraphStorageService.getSavedGraphs(
+      algorithmId: widget.algorithmId,
+    );
     if (mounted) {
       setState(() {
         _savedGraphs = items;

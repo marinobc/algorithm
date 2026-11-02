@@ -24,10 +24,14 @@ Future<SavedGraphItem?> showGraphNameDialog(
     return null;
   }
 
-  final items = await GraphStorageService.getSavedGraphs();
+  final algorithmId = currentGraphState?.tipoAlgoritmo;
+  final items = await GraphStorageService.getSavedGraphs(
+    algorithmId: algorithmId,
+  );
   final existingConflict = await GraphStorageService.findExistingGraphByName(
     requestedName,
     excludeId: currentId,
+    algorithmId: algorithmId,
   );
 
   if (existingConflict != null) {

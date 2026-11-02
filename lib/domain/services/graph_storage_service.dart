@@ -121,15 +121,32 @@ class GraphStorageService {
     return Grafo.fromJson(decoded);
   }
 
-  static Future<List<SavedGraphItem>> getSavedGraphs() async {
+  static String? algorithmIdFor(SavedGraphItem item) {
+    if (item.tipoAlgoritmo != null) return item.tipoAlgoritmo;
+    try {
+      final decoded = jsonDecode(item.jsonContent);
+      if (decoded is Map<String, dynamic>) {
+        return decoded['tipoAlgoritmo'] as String?;
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  static Future<List<SavedGraphItem>> getSavedGraphs({
+    String? algorithmId,
+  }) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final String? jsonStr = prefs.getString(_storageKey);
       if (jsonStr == null || jsonStr.isEmpty) return [];
 
       final List<dynamic> list = jsonDecode(jsonStr) as List<dynamic>;
-      return list
+      final items = list
           .map((item) => SavedGraphItem.fromJson(item as Map<String, dynamic>))
+          .toList();
+      if (algorithmId == null) return items;
+      return items
+          .where((item) => algorithmIdFor(item) == algorithmId)
           .toList();
     } catch (_) {
       return [];
@@ -166,7 +183,12 @@ class GraphStorageService {
   static Future<SavedGraphItem> saveGraphSlot(String name, Grafo graph) async {
     final prefs = await SharedPreferences.getInstance();
     final items = await getSavedGraphs();
-    final uniqueName = generateUniqueName(name, items);
+    final scopedItems = graph.tipoAlgoritmo == null
+        ? items
+        : items
+              .where((item) => algorithmIdFor(item) == graph.tipoAlgoritmo)
+              .toList();
+    final uniqueName = generateUniqueName(name, scopedItems);
 
     final now = DateTime.now();
     final dateStr =
@@ -207,7 +229,12 @@ class GraphStorageService {
   ) async {
     final prefs = await SharedPreferences.getInstance();
     final items = await getSavedGraphs();
-    final uniqueName = generateUniqueName(name, items, excludeId: id);
+    final scopedItems = graph.tipoAlgoritmo == null
+        ? items
+        : items
+              .where((item) => algorithmIdFor(item) == graph.tipoAlgoritmo)
+              .toList();
+    final uniqueName = generateUniqueName(name, scopedItems, excludeId: id);
 
     final now = DateTime.now();
     final dateStr =
@@ -215,6 +242,14 @@ class GraphStorageService {
 
     final index = items.indexWhere((item) => item.id == id);
     final existingItem = index != -1 ? items[index] : null;
+    if (existingItem != null &&
+        graph.tipoAlgoritmo != null &&
+        algorithmIdFor(existingItem) != null &&
+        algorithmIdFor(existingItem) != graph.tipoAlgoritmo) {
+      throw StateError(
+        'Este grafo pertenece a otro algoritmo y no se puede sobrescribir desde aquí.',
+      );
+    }
 
     final nextVersionNumber = (existingItem?.currentVersion ?? 0) + 1;
     final jsonStr = jsonEncode(graph.toJson());
@@ -270,8 +305,9 @@ class GraphStorageService {
   static Future<SavedGraphItem?> findExistingGraphByName(
     String name, {
     String? excludeId,
+    String? algorithmId,
   }) async {
-    final items = await getSavedGraphs();
+    final items = await getSavedGraphs(algorithmId: algorithmId);
     final clean = name.trim().toLowerCase();
     for (final item in items) {
       if (item.id != excludeId && item.nombre.trim().toLowerCase() == clean) {

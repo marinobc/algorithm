@@ -11,6 +11,52 @@ import 'package:nodos/domain/models/nodo.dart';
 
 void main() {
   test(
+    'detecta extremos al dibujar flechas sin depender del orden de nodos',
+    () {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      container
+          .read(grafoProvider.notifier)
+          .cargarGrafo(
+            Grafo(
+              nodos: {
+                for (final id in ['C', 'B', 'A'])
+                  id: Nodo(
+                    id: id,
+                    nombre: id,
+                    colorValue: 0xFF6754B2,
+                    x: 0,
+                    y: 0,
+                  ),
+              },
+            ),
+          );
+      container
+          .read(activeAlgorithmProvider.notifier)
+          .selectById(AlgorithmRegistry.dijkstraId);
+      final runner = container.read(graphPathRunProvider.notifier);
+      expect(container.read(graphPathRunProvider).sourceId, 'C');
+      container
+          .read(grafoProvider.notifier)
+          .agregarArcoDirigidoIndependiente('A', 'B');
+      container
+          .read(grafoProvider.notifier)
+          .agregarArcoDirigidoIndependiente('B', 'C');
+      expect(container.read(graphPathRunProvider).sourceId, 'A');
+      expect(container.read(graphPathRunProvider).targetId, 'C');
+      expect(container.read(graphPathRunProvider).inferredFromTopology, isTrue);
+
+      runner.setSource('B');
+      container
+          .read(grafoProvider.notifier)
+          .actualizarNodo('A', nombre: 'Inicio');
+      expect(container.read(graphPathRunProvider).sourceId, 'B');
+      expect(container.read(graphPathRunProvider).targetId, 'C');
+      expect(container.read(graphPathRunProvider).sourceIsManual, isTrue);
+    },
+  );
+
+  test(
     'ejecuta Dijkstra con extremos propuestos y conserva elecciones manuales',
     () {
       final container = ProviderContainer();
@@ -156,5 +202,75 @@ void main() {
     runner.run(container.read(grafoProvider));
     expect(container.read(graphPathRunProvider).computation?.value, 2);
     container.dispose();
+  });
+
+  test('el arco de regreso no mueve los extremos automáticos ni manuales', () {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+    container
+        .read(grafoProvider.notifier)
+        .cargarGrafo(
+          Grafo(
+            nodos: {
+              for (final id in ['A', 'B'])
+                id: Nodo(
+                  id: id,
+                  nombre: id,
+                  colorValue: 0xFF6754B2,
+                  x: 0,
+                  y: 0,
+                ),
+            },
+            conexiones: {
+              'AB': const Conexion(
+                id: 'AB',
+                nodoOrigenId: 'A',
+                nodoDestinoId: 'B',
+                colorValue: 0xFF6754B2,
+                direccion: Direccion.unidireccional,
+                atributos: [
+                  AtributoValor(atributoId: 'attr_valor', valor: '2'),
+                ],
+              ),
+            },
+          ),
+        );
+    container
+        .read(activeAlgorithmProvider.notifier)
+        .selectById(AlgorithmRegistry.dijkstraId);
+    final runner = container.read(graphPathRunProvider.notifier);
+    expect(container.read(graphPathRunProvider).sourceId, 'A');
+    expect(container.read(graphPathRunProvider).targetId, 'B');
+
+    final reverse = container
+        .read(grafoProvider.notifier)
+        .agregarArcoDirigidoIndependiente('B', 'A');
+    expect(reverse, hasLength(1));
+    expect(container.read(graphPathRunProvider).sourceId, 'A');
+    expect(container.read(graphPathRunProvider).targetId, 'B');
+    expect(container.read(graphPathRunProvider).inferredFromTopology, isFalse);
+    runner.run(container.read(grafoProvider));
+    expect(container.read(graphPathRunProvider).computation?.value, 2);
+
+    runner.setSource('B');
+    runner.setTarget('A');
+    container
+        .read(grafoProvider.notifier)
+        .actualizarConexion(
+          reverse.single.id,
+          atributos: [
+            const AtributoValor(atributoId: 'attr_valor', valor: '7'),
+          ],
+        );
+    expect(container.read(graphPathRunProvider).sourceId, 'B');
+    expect(container.read(graphPathRunProvider).targetId, 'A');
+    expect(container.read(graphPathRunProvider).sourceIsManual, isTrue);
+    expect(container.read(graphPathRunProvider).targetIsManual, isTrue);
+    runner.run(container.read(grafoProvider));
+    expect(container.read(graphPathRunProvider).computation?.value, 7);
+
+    container.read(grafoProvider.notifier).eliminarNodo('B');
+    expect(container.read(graphPathRunProvider).sourceId, 'A');
+    expect(container.read(graphPathRunProvider).sourceIsManual, isFalse);
   });
 }

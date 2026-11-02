@@ -3,10 +3,74 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:nodos/application/providers/creacion_provider.dart';
 import 'package:nodos/application/providers/grafo_provider.dart';
 import 'package:nodos/application/providers/modo_provider.dart';
+import 'package:nodos/domain/models/atributo.dart';
 import 'package:nodos/domain/models/direccion.dart';
 
 void main() {
   group('Application - GrafoNotifier Provider Tests', () {
+    test('Dijkstra creates and edits reverse arcs without merging them', () {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      final notifier = container.read(grafoProvider.notifier);
+      notifier.agregarNodo(0, 0, nombre: 'A');
+      notifier.agregarNodo(200, 0, nombre: 'B');
+      final ids = notifier.state.nodos.keys.toList();
+      final forward = notifier.agregarArcoDirigidoIndependiente(ids[0], ids[1]);
+      final backward = notifier.agregarArcoDirigidoIndependiente(
+        ids[1],
+        ids[0],
+      );
+      expect(forward, hasLength(1));
+      expect(backward, hasLength(1));
+      expect(forward.single.id, isNot(backward.single.id));
+      expect(
+        notifier.agregarArcoDirigidoIndependiente(ids[0], ids[1]),
+        isEmpty,
+      );
+      notifier.actualizarConexion(
+        forward.single.id,
+        atributos: [const AtributoValor(atributoId: 'attr_valor', valor: '2')],
+      );
+      notifier.actualizarConexion(
+        backward.single.id,
+        atributos: [const AtributoValor(atributoId: 'attr_valor', valor: '7')],
+      );
+      expect(
+        notifier.state.conexiones[forward.single.id]!.atributos.single.valor,
+        '2',
+      );
+      expect(
+        notifier.state.conexiones[backward.single.id]!.atributos.single.valor,
+        '7',
+      );
+      notifier.eliminarConexion(forward.single.id);
+      expect(notifier.state.conexiones.keys, [backward.single.id]);
+      expect(
+        notifier.state.conexiones[backward.single.id]!.direccion,
+        Direccion.unidireccional,
+      );
+    });
+
+    test('moving and undoing a deletion preserve independent reverse arcs', () {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      final notifier = container.read(grafoProvider.notifier);
+      final a = notifier.agregarNodo(0, 0, nombre: 'A');
+      final b = notifier.agregarNodo(200, 0, nombre: 'B');
+      final ba = notifier.agregarArcoDirigidoIndependiente(b.id, a.id).single;
+      final ab = notifier.agregarArcoDirigidoIndependiente(a.id, b.id).single;
+      notifier.moverNodo(a.id, 30, 50, recordUndo: true);
+      expect(notifier.state.conexiones.keys.toSet(), {ab.id, ba.id});
+
+      notifier.eliminarConexion(ba.id);
+      expect(notifier.state.conexiones.keys, [ab.id]);
+      expect(notifier.deshacer(), isTrue);
+      expect(notifier.state.conexiones.keys.toSet(), {ab.id, ba.id});
+      expect(notifier.state.nodos[a.id]!.x, 30);
+      expect(notifier.rehacer(), isTrue);
+      expect(notifier.state.conexiones.keys, [ab.id]);
+    });
+
     test('agregarConexion with Direccion.bidireccional creates 2 distinct lines with independent properties', () {
       final container = ProviderContainer();
       addTearDown(container.dispose);
@@ -231,27 +295,24 @@ void main() {
       );
     });
 
-    test(
-      'vaciarGrafo clears nodes and connections and resets undo history (new graph)',
-      () {
-        final container = ProviderContainer();
-        addTearDown(container.dispose);
+    test('vaciarGrafo clears nodes and connections and resets undo history (new graph)', () {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
 
-        final notifier = container.read(grafoProvider.notifier);
-        final n1 = notifier.agregarNodo(0, 0, nombre: 'A');
-        final n2 = notifier.agregarNodo(100, 100, nombre: 'B');
-        notifier.agregarConexion(n1.id, n2.id);
+      final notifier = container.read(grafoProvider.notifier);
+      final n1 = notifier.agregarNodo(0, 0, nombre: 'A');
+      final n2 = notifier.agregarNodo(100, 100, nombre: 'B');
+      notifier.agregarConexion(n1.id, n2.id);
 
-        expect(notifier.state.nodos.length, equals(2));
-        expect(notifier.state.conexiones.length, equals(1));
+      expect(notifier.state.nodos.length, equals(2));
+      expect(notifier.state.conexiones.length, equals(1));
 
-        // Vaciar grafo resets graph as a clean new canvas
-        notifier.vaciarGrafo();
+      // Vaciar grafo resets graph as a clean new canvas
+      notifier.vaciarGrafo();
 
-        expect(notifier.state.nodos, isEmpty);
-        expect(notifier.state.conexiones, isEmpty);
-        expect(notifier.puedeDeshacer, isFalse);
-      },
-    );
+      expect(notifier.state.nodos, isEmpty);
+      expect(notifier.state.conexiones, isEmpty);
+      expect(notifier.puedeDeshacer, isFalse);
+    });
   });
 }

@@ -51,7 +51,7 @@ class GraphPathAlgorithm extends GraphAlgorithm {
 
 1. Usa el mismo editor de grafos de Asignación y Johnson: toca el lienzo para crear vértices, arrástralos para moverlos y arrastra entre dos vértices para crear una arista. Toca un elemento para editarlo en el panel compartido.
 2. Cada arista necesita un peso finito. Para Dijkstra clásico debe ser **cero o positivo**. Una arista sin flecha se recorre en ambos sentidos.
-3. El laboratorio propone automáticamente origen y destino. Si el grafo dirigido tiene una única entrada y una única salida, las detecta por grado; en otros casos propone el primer y último vértice creados. Abre el menú contextual de un nodo o selecciónalo para cambiar sus extremos.
+3. El origen y el destino se detectan automáticamente cuando las flechas muestran una entrada y una salida únicas. Si el grafo aún es ambiguo, se usan extremos provisionales. Puedes fijarlos manualmente desde el menú de cada nodo.
 4. Elige **Camino mínimo** para Dijkstra o **Camino máximo simple** desde el control compacto del lienzo. Este último usa orden topológico en un DAG y DFS limitado en otros grafos.
 5. Pulsa **Calcular ruta** abajo a la derecha y usa Reproducir, Pausa, Anterior, Siguiente, Reiniciar, deslizador y velocidad para revisar cada decisión. La tabla y el grafo siguen el mismo paso.
 6. El menú principal contiene Nuevo, Guardar, Cargar y la matriz. Si editas el grafo, los pasos calculados se invalidan.

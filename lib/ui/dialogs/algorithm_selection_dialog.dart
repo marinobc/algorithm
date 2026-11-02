@@ -13,14 +13,12 @@ import '../../algorithms/northwest/domain/services/northwest_problem_extractor.d
 import '../../algorithms/northwest/providers/northwest_provider.dart';
 import '../../application/providers/grafo_provider.dart';
 import '../../domain/services/base_sorting_algorithm.dart';
-import '../../domain/services/graph_storage_service.dart';
 import '../../domain/services/sorting_registry.dart';
 import '../screens/graph_editor_screen.dart';
 import '../screens/sorting_visualizer_screen.dart';
 import '../screens/welcome_explanation_screen.dart';
 import '../widgets/algorithm_catalog_illustration.dart';
 import '../widgets/app_toast.dart';
-import 'load_graph_dialog.dart';
 
 class AlgorithmSelectionDialog extends StatelessWidget {
   final WidgetRef ref;
@@ -630,65 +628,6 @@ class _CatalogHeader extends ConsumerWidget {
               ),
             ],
           ),
-        ),
-        FutureBuilder<List<SavedGraphItem>>(
-          future: GraphStorageService.getSavedGraphs(),
-          builder: (context, snapshot) {
-            if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              return const SizedBox.shrink();
-            }
-            return Padding(
-              padding: const EdgeInsets.only(right: 8.0),
-              child: OutlinedButton.icon(
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-                icon: const Icon(Icons.folder_open_rounded, size: 18),
-                label: const Text(
-                  'Cargar Grafo Guardado',
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                ),
-                onPressed: () async {
-                  final loadedItem = await LoadGraphDialog.show(context);
-                  if (loadedItem != null && context.mounted) {
-                    final loadedGraph = GraphStorageService.importFromJson(
-                      loadedItem.jsonContent,
-                    );
-                    ref.read(grafoProvider.notifier).cargarGrafo(loadedGraph);
-                    ref
-                        .read(loadedGraphItemProvider.notifier)
-                        .setLoadedItem(loadedItem);
-
-                    final savedAlgoId =
-                        loadedGraph.tipoAlgoritmo ?? loadedItem.tipoAlgoritmo;
-                    if (savedAlgoId != null) {
-                      ref
-                          .read(activeAlgorithmProvider.notifier)
-                          .selectById(savedAlgoId);
-                    } else {
-                      ref.read(activeAlgorithmProvider.notifier).clear();
-                    }
-
-                    if (Navigator.of(context).canPop()) {
-                      Navigator.of(context).pop(true);
-                    } else {
-                      Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(
-                          builder: (_) => const GraphEditorScreen(),
-                        ),
-                      );
-                    }
-                  }
-                },
-              ),
-            );
-          },
         ),
         if (canDismiss)
           IconButton(

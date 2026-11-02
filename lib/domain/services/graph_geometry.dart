@@ -205,10 +205,7 @@ class GraphGeometry {
     final double effOffsetY;
 
     // Sub-linear logarithmic handle magnitude scaling preventing oversized curves on long distances
-    final adaptiveMagnitude = min(
-      rawDist * 0.40,
-      36.0 + 75.0 * log(1.0 + rawDist / 120.0),
-    );
+    final adaptiveMagnitude = curveOffsetMagnitude(rawDist);
 
     if (offsetControlX != null && offsetControlY != null) {
       // Smooth exponential dampening so extreme 2D drag distances maintain proportional curve elegance
@@ -256,6 +253,9 @@ class GraphGeometry {
       end: end,
     );
   }
+
+  static double curveOffsetMagnitude(double distance) =>
+      min(distance * 0.40, 36.0 + 75.0 * log(1.0 + distance / 120.0));
 
   static const double worldGridExtent = 2400.0; // [-2400.0, 2400.0]
   static const double maxNodeCoord =

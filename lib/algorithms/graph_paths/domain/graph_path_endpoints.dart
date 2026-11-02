@@ -35,11 +35,13 @@ class GraphPathEndpoints {
           outgoing[edge.nodoOrigenId] = outgoing[edge.nodoOrigenId]! + 1;
         }
       }
-      final sources = ids.where((id) => incoming[id] == 0).toList();
-      final targets = ids.where((id) => outgoing[id] == 0).toList();
-      if (sources.length == 1 &&
-          targets.length == 1 &&
-          (sources.single != targets.single || ids.length == 1)) {
+      final sources = ids
+          .where((id) => incoming[id] == 0 && outgoing[id]! > 0)
+          .toList();
+      final targets = ids
+          .where((id) => outgoing[id] == 0 && incoming[id]! > 0)
+          .toList();
+      if (sources.length == 1 && targets.length == 1) {
         return GraphPathEndpoints(
           sourceId: sources.single,
           targetId: targets.single,
@@ -50,7 +52,7 @@ class GraphPathEndpoints {
 
     return GraphPathEndpoints(
       sourceId: ids.first,
-      targetId: ids.last,
+      targetId: ids.length > 1 ? ids.last : ids.first,
       inferredFromTopology: false,
     );
   }

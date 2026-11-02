@@ -150,7 +150,13 @@ class _GraphEditorScreenState extends ConsumerState<GraphEditorScreen> {
     final rawGraph = ref.read(grafoProvider);
     final activeAlgo = ref.read(activeAlgorithmProvider);
     final graph = rawGraph.copyWith(tipoAlgoritmo: activeAlgo?.id);
-    final loadedItem = ref.read(loadedGraphItemProvider);
+    final loadedItemCandidate = ref.read(loadedGraphItemProvider);
+    final loadedItem =
+        loadedItemCandidate != null &&
+            GraphStorageService.algorithmIdFor(loadedItemCandidate) ==
+                activeAlgo?.id
+        ? loadedItemCandidate
+        : null;
 
     final graphNotifier = ref.read(grafoProvider.notifier);
     final edicionState = ref.read(estadoEdicionProvider);
@@ -242,7 +248,10 @@ class _GraphEditorScreenState extends ConsumerState<GraphEditorScreen> {
   }
 
   void _onCargarGraphSelected() async {
-    final selectedItem = await LoadGraphDialog.show(context);
+    final selectedItem = await LoadGraphDialog.show(
+      context,
+      algorithmId: ref.read(activeAlgorithmProvider)?.id,
+    );
     if (selectedItem == null || !mounted) return;
 
     final canProceed = await _promptUnsavedChanges();
@@ -318,6 +327,8 @@ class _GraphEditorScreenState extends ConsumerState<GraphEditorScreen> {
 
       _cleanAndUnloadAll();
     }
+
+    ref.read(loadedGraphItemProvider.notifier).setLoadedItem(null);
 
     if (targetAlgoId == null) {
       ref.read(activeAlgorithmProvider.notifier).clear();

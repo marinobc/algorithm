@@ -125,9 +125,17 @@ class GraphHitTester {
   static Conexion? hitTestConnection(
     Offset worldPos,
     Grafo grafo,
-    double scale,
-  ) {
-    final all = hitTestAllConnections(worldPos, grafo, scale);
+    double scale, {
+    bool distinguishOppositeDirected = false,
+    Map<String, double> animatedOffsets = const {},
+  }) {
+    final all = hitTestAllConnections(
+      worldPos,
+      grafo,
+      scale,
+      distinguishOppositeDirected: distinguishOppositeDirected,
+      animatedOffsets: animatedOffsets,
+    );
     return all.isNotEmpty ? all.first : null;
   }
 
@@ -135,29 +143,20 @@ class GraphHitTester {
   static List<Conexion> hitTestAllConnections(
     Offset worldPos,
     Grafo grafo,
-    double scale,
-  ) {
+    double scale, {
+    bool distinguishOppositeDirected = false,
+    Map<String, double> animatedOffsets = const {},
+  }) {
     final connDistances = <Conexion, double>{};
     // Tight stroke tolerance: 8.0 to 14.0 pixels in world coordinates
     final tolerance = (scale > 0 && scale.isFinite)
         ? max(8.0, 14.0 / scale)
         : 10.0;
 
-    final pairCounts = <String, int>{};
-    for (final c in grafo.conexiones.values) {
-      if (c.nodoOrigenId == 'nw_dummy_origin' ||
-          c.nodoOrigenId == 'nw_dummy_destination' ||
-          c.nodoDestinoId == 'nw_dummy_origin' ||
-          c.nodoDestinoId == 'nw_dummy_destination') {
-        continue;
-      }
-      final key = c.nodoOrigenId.compareTo(c.nodoDestinoId) < 0
-          ? '${c.nodoOrigenId}_${c.nodoDestinoId}'
-          : '${c.nodoDestinoId}_${c.nodoOrigenId}';
-      pairCounts[key] = (pairCounts[key] ?? 0) + 1;
-    }
-
-    final pairIndex = <String, int>{};
+    final offsets = connectionOffsetFactors(
+      grafo,
+      distinguishOppositeDirected: distinguishOppositeDirected,
+    );
 
     final sortedConns = grafo.conexiones.values.toList()
       ..sort((a, b) => a.id.compareTo(b.id));
@@ -173,21 +172,19 @@ class GraphHitTester {
       final destino = grafo.nodos[conn.nodoDestinoId];
       if (origen == null || destino == null) continue;
 
-      final pairKey = conn.nodoOrigenId.compareTo(conn.nodoDestinoId) < 0
-          ? '${conn.nodoOrigenId}_${conn.nodoDestinoId}'
-          : '${conn.nodoDestinoId}_${conn.nodoOrigenId}';
-
-      final totalInPair = pairCounts[pairKey] ?? 1;
-      final currentIdx = pairIndex[pairKey] ?? 0;
-      pairIndex[pairKey] = currentIdx + 1;
-
-      final offsetFactor = calculateOffsetFactor(conn, currentIdx, totalInPair);
+      final offsetFactor = animatedOffsets[conn.id] ?? offsets[conn.id] ?? 0.0;
 
       final curve = GraphGeometry.calculateBezierCurve(
         origen: origen,
         destino: destino,
         offsetFactor: offsetFactor,
-        customCurvatura: conn.curvatura,
+        customCurvatura:
+            conn.curvatura ??
+            (distinguishOppositeDirected &&
+                    conn.direccion == Direccion.unidireccional &&
+                    offsetFactor == 0
+                ? 0.0
+                : null),
         loopAngle: conn.loopAngle,
         offsetControlX: conn.offsetControlX,
         offsetControlY: conn.offsetControlY,
@@ -295,5 +292,54 @@ class GraphHitTester {
     final multiplier = (currentIdx / 2).floor() + 1.0;
     final side = (currentIdx % 2 == 0) ? 1.0 : -1.0;
     return baseSign * multiplier * side;
+  }
+
+  /// Shared geometry for painting and hit-testing. Only Dijkstra opts into
+  /// extra spacing for two independent, oppositely directed arcs.
+  static Map<String, double> connectionOffsetFactors(
+    Grafo graph, {
+    bool distinguishOppositeDirected = false,
+  }) {
+    final groups = <String, List<Conexion>>{};
+    for (final edge in graph.conexiones.values) {
+      if (edge.nodoOrigenId.startsWith('nw_dummy_') ||
+          edge.nodoDestinoId.startsWith('nw_dummy_')) {
+        continue;
+      }
+      final first = edge.nodoOrigenId.compareTo(edge.nodoDestinoId) < 0
+          ? edge.nodoOrigenId
+          : edge.nodoDestinoId;
+      final second = first == edge.nodoOrigenId
+          ? edge.nodoDestinoId
+          : edge.nodoOrigenId;
+      (groups['$first\u0000$second'] ??= []).add(edge);
+    }
+
+    final offsets = <String, double>{};
+    for (final group in groups.values) {
+      group.sort((a, b) => a.id.compareTo(b.id));
+      var separation = 1.0;
+      if (distinguishOppositeDirected &&
+          group.length == 2 &&
+          group.every((edge) => edge.direccion == Direccion.unidireccional) &&
+          group[0].nodoOrigenId == group[1].nodoDestinoId &&
+          group[0].nodoDestinoId == group[1].nodoOrigenId) {
+        final a = graph.nodos[group[0].nodoOrigenId];
+        final b = graph.nodos[group[0].nodoDestinoId];
+        if (a != null && b != null) {
+          final distance = sqrt(pow(a.x - b.x, 2) + pow(a.y - b.y, 2));
+          final magnitude = GraphGeometry.curveOffsetMagnitude(distance);
+          if (magnitude > 0) {
+            separation = (24.0 / (0.1875 * magnitude)).clamp(1.0, 3.0);
+          }
+        }
+      }
+      for (var index = 0; index < group.length; index++) {
+        final edge = group[index];
+        offsets[edge.id] =
+            calculateOffsetFactor(edge, index, group.length) * separation;
+      }
+    }
+    return offsets;
   }
 }

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -42,9 +43,13 @@ class _BstLabScreenState extends State<BstLabScreen> {
   String _lastManualText = '';
   List<int> _manualSequence = const [];
   List<int> _path = const [];
+  BstTraversal? _previewType;
+  int _previewStep = 0;
+  Timer? _previewTimer;
 
   @override
   void dispose() {
+    _previewTimer?.cancel();
     _manual.dispose();
     _quantity.dispose();
     _first.dispose();
@@ -104,12 +109,45 @@ class _BstLabScreenState extends State<BstLabScreen> {
   }
 
   void _applyTree(BstTree tree, {List<int> path = const []}) {
+    _previewTimer?.cancel();
     setState(() {
       _tree = tree;
       _path = path;
+      _previewType = null;
+      _previewStep = 0;
       _manualError = null;
       _reconstructionError = null;
       _reconstructionMessage = null;
+    });
+  }
+
+  void _toggleTraversalPreview(BstTraversal type) {
+    _previewTimer?.cancel();
+    if (_previewType == type) {
+      setState(() {
+        _previewType = null;
+        _previewStep = 0;
+      });
+      return;
+    }
+    final values = _tree.traverse(type);
+    if (values.isEmpty) return;
+    final reduceMotion = MediaQuery.disableAnimationsOf(context);
+    setState(() {
+      _previewType = type;
+      _previewStep = reduceMotion ? values.length - 1 : 0;
+    });
+    if (reduceMotion) return;
+    _previewTimer = Timer.periodic(const Duration(milliseconds: 700), (timer) {
+      if (!mounted || _previewType != type) {
+        timer.cancel();
+        return;
+      }
+      if (_previewStep + 1 >= values.length) {
+        timer.cancel();
+        return;
+      }
+      setState(() => _previewStep++);
     });
   }
 
@@ -214,6 +252,30 @@ class _BstLabScreenState extends State<BstLabScreen> {
         'BST reconstruido correctamente.',
         icon: Icons.account_tree_rounded,
       );
+    } on FormatException catch (error) {
+      setState(() {
+        _reconstructionError = error.message;
+        _reconstructionMessage = null;
+      });
+    }
+  }
+
+  void _generateSecondTraversal() {
+    try {
+      final first = BstTree.parseValues(_first.text);
+      final matchesCurrentTree =
+          !_tree.isEmpty && _sameSequence(_tree.traverse(_firstType), first);
+      final source = matchesCurrentTree
+          ? _tree
+          : BstTree.fromTraversal(_firstType, first);
+      _second.text = source.traverse(_secondType).join(', ');
+      setState(() {
+        _reconstructionError = null;
+        _reconstructionMessage =
+            _firstType == BstTraversal.inorder && !matchesCurrentTree
+            ? 'Segundo recorrido generado a partir de un BST posible. Inorder admite varias estructuras.'
+            : 'Segundo recorrido generado. Puedes revisarlo antes de reconstruir.';
+      });
     } on FormatException catch (error) {
       setState(() {
         _reconstructionError = error.message;
@@ -393,14 +455,14 @@ class _BstLabScreenState extends State<BstLabScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   SizedBox(
-                    width: wide ? 340 : 300,
+                    width: wide ? 340 : 308,
                     child: _sidePanel(_inputPanel()),
                   ),
                   const SizedBox(width: 14),
                   Expanded(child: _board()),
                   const SizedBox(width: 14),
                   SizedBox(
-                    width: wide ? 300 : 260,
+                    width: wide ? 300 : 268,
                     child: _sidePanel(_resultsPanel()),
                   ),
                 ],
@@ -457,10 +519,10 @@ class _BstLabScreenState extends State<BstLabScreen> {
     return DecoratedBox(
       decoration: BoxDecoration(
         color: colors.surfaceContainerLow,
-        border: Border.all(color: colors.outlineVariant),
-        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: colors.outlineVariant.withValues(alpha: .55)),
+        borderRadius: BorderRadius.circular(18),
       ),
-      child: Padding(padding: const EdgeInsets.all(16), child: child),
+      child: Padding(padding: const EdgeInsets.all(18), child: child),
     );
   }
 
@@ -470,12 +532,7 @@ class _BstLabScreenState extends State<BstLabScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _panelHeading(Icons.input_rounded, 'Construye tu BST'),
-        const SizedBox(height: 6),
-        Text(
-          'Agrega valores paso a paso o reconstruye el árbol con dos recorridos.',
-          style: TextStyle(color: colors.onSurfaceVariant, height: 1.4),
-        ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 18),
         SegmentedButton<_InputMode>(
           segments: const [
             ButtonSegment(
@@ -497,19 +554,13 @@ class _BstLabScreenState extends State<BstLabScreen> {
           }),
           showSelectedIcon: false,
         ),
-        const SizedBox(height: 6),
-        Text(
-          'Cambiar de modo conserva tus entradas y el árbol actual.',
-          style: TextStyle(color: colors.onSurfaceVariant, fontSize: 12),
-        ),
         const SizedBox(height: 18),
         if (_mode == _InputMode.manual) ...[
           Text(
-            'Entrada progresiva',
-            style: Theme.of(context).textTheme.titleSmall
-                ?.copyWith(fontWeight: FontWeight.w700),
+            'Escribe valores para insertarlos o genera un ejemplo.',
+            style: TextStyle(color: colors.onSurfaceVariant, height: 1.4),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 12),
           TextField(
             controller: _manual,
             minLines: 1,
@@ -535,7 +586,7 @@ class _BstLabScreenState extends State<BstLabScreen> {
               ),
               errorText: _manualError,
               helperMaxLines: 3,
-              helperText: 'Pulsa coma, espacio o Enter para insertar cada valor. También puedes pegar una lista completa.',
+              helperText: 'Coma, espacio o Enter confirman cada valor. Puedes pegar una lista.',
             ),
             onChanged: _onManualChanged,
           ),
@@ -551,15 +602,13 @@ class _BstLabScreenState extends State<BstLabScreen> {
               ),
             ),
           ),
-          const SizedBox(height: 22),
-          Divider(color: colors.outlineVariant),
-          const SizedBox(height: 16),
+          const SizedBox(height: 26),
           Text(
             'Generación aleatoria',
             style: Theme.of(context).textTheme.titleSmall
                 ?.copyWith(fontWeight: FontWeight.w700),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           TextField(
             controller: _quantity,
             keyboardType: TextInputType.number,
@@ -599,9 +648,9 @@ class _BstLabScreenState extends State<BstLabScreen> {
               ),
             ),
           ),
-          const SizedBox(height: 7),
+          const SizedBox(height: 8),
           Text(
-            'Cada valor estará entre 1 y 99; se permiten repetidos. Si ya existe un árbol, se pedirá confirmar antes de reemplazarlo.',
+            'Valores de 1 a 99; se permiten repetidos. Reemplazar un árbol requiere confirmación.',
             style: TextStyle(
               color: colors.onSurfaceVariant,
               fontSize: 12,
@@ -610,16 +659,10 @@ class _BstLabScreenState extends State<BstLabScreen> {
           ),
         ] else ...[
           Text(
-            'Reconstruye a partir de recorridos',
-            style: Theme.of(context).textTheme.titleSmall
-                ?.copyWith(fontWeight: FontWeight.w700),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            'Elige dos órdenes distintos e introduce todos los valores de cada uno. Ambos deben describir el mismo BST.',
+            'Elige dos órdenes distintos del mismo BST.',
             style: TextStyle(color: colors.onSurfaceVariant, height: 1.4),
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 12),
           _traversalInput(
             _first,
             _firstType,
@@ -641,6 +684,35 @@ class _BstLabScreenState extends State<BstLabScreen> {
             (type) => setState(() => _secondType = type),
             BstTraversal.values.where((item) => item != _firstType).toList(),
             fieldNumber: 2,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Separa los valores con comas o espacios.',
+            style: TextStyle(color: colors.onSurfaceVariant, fontSize: 12),
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: _generateSecondTraversal,
+              icon: const Icon(Icons.auto_fix_high_rounded),
+              label: const Text('Generar segundo recorrido'),
+              style: OutlinedButton.styleFrom(
+                minimumSize: const Size.fromHeight(44),
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton.icon(
+              onPressed: _reconstruct,
+              icon: const Icon(Icons.account_tree_outlined),
+              label: const Text('Reconstruir árbol'),
+              style: FilledButton.styleFrom(
+                minimumSize: const Size.fromHeight(46),
+              ),
+            ),
           ),
           if (_reconstructionError != null) ...[
             const SizedBox(height: 10),
@@ -670,18 +742,6 @@ class _BstLabScreenState extends State<BstLabScreen> {
               ),
             ),
           ],
-          const SizedBox(height: 14),
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton.icon(
-              onPressed: _reconstruct,
-              icon: const Icon(Icons.account_tree_outlined),
-              label: const Text('Reconstruir árbol'),
-              style: FilledButton.styleFrom(
-                minimumSize: const Size.fromHeight(46),
-              ),
-            ),
-          ),
         ],
       ],
     );
@@ -730,8 +790,6 @@ class _BstLabScreenState extends State<BstLabScreen> {
         decoration: InputDecoration(
           labelText: '${selected.label}: valores',
           hintText: fieldNumber == 1 ? '5, 3, 7' : '3, 5, 7',
-          helperText: 'Separa los valores con comas o espacios.',
-          helperMaxLines: 2,
           filled: true,
           fillColor: Theme.of(context).colorScheme.surfaceContainerLowest,
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
@@ -753,8 +811,8 @@ class _BstLabScreenState extends State<BstLabScreen> {
     return Container(
       decoration: BoxDecoration(
         color: colors.surfaceContainerLowest,
-        border: Border.all(color: colors.outlineVariant),
-        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: colors.outlineVariant.withValues(alpha: .7)),
+        borderRadius: BorderRadius.circular(18),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -795,9 +853,25 @@ class _BstLabScreenState extends State<BstLabScreen> {
               ],
             ),
           ),
-          Divider(height: 1, color: colors.outlineVariant),
+          Divider(
+            height: 1,
+            color: colors.outlineVariant.withValues(alpha: .6),
+          ),
           Expanded(
-            child: BstTreeCanvas(tree: _tree, insertionPath: _path),
+            child: BstTreeCanvas(
+              tree: _tree,
+              insertionPath: _previewType == null ? _path : const [],
+              traversalVisitedValues: _previewType == null
+                  ? const []
+                  : _tree
+                        .traverse(_previewType!)
+                        .take(_previewStep + 1)
+                        .toList(),
+              traversalStep: _previewType == null ? null : _previewStep + 1,
+              traversalTotal: _previewType == null
+                  ? null
+                  : _tree.traverse(_previewType!).length,
+            ),
           ),
           if (!_tree.isEmpty)
             Padding(
@@ -826,22 +900,13 @@ class _BstLabScreenState extends State<BstLabScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _panelHeading(Icons.format_list_numbered_rounded, 'Recorridos'),
-        const SizedBox(height: 12),
+        const SizedBox(height: 16),
         if (_tree.isEmpty)
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: colors.surfaceContainerLowest,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: colors.outlineVariant),
-            ),
-            child: Semantics(
-              liveRegion: true,
-              child: Text(
-                'Los recorridos aparecerán cuando construyas un árbol.',
-                style: TextStyle(color: colors.onSurfaceVariant, height: 1.45),
-              ),
+          Semantics(
+            liveRegion: true,
+            child: Text(
+              'Los recorridos aparecerán cuando construyas un árbol.',
+              style: TextStyle(color: colors.onSurfaceVariant, height: 1.45),
             ),
           )
         else ...[
@@ -858,8 +923,11 @@ class _BstLabScreenState extends State<BstLabScreen> {
             _traversalResult(type),
             if (type != BstTraversal.postorder)
               Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                child: Divider(height: 1, color: colors.outlineVariant),
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                child: Divider(
+                  height: 1,
+                  color: colors.outlineVariant.withValues(alpha: .55),
+                ),
               ),
           ],
         ],
@@ -869,6 +937,8 @@ class _BstLabScreenState extends State<BstLabScreen> {
 
   Widget _traversalResult(BstTraversal type) {
     final colors = Theme.of(context).colorScheme;
+    final values = _tree.traverse(type);
+    final isPreviewing = _previewType == type;
     final order = switch (type) {
       BstTraversal.preorder => 'Raíz → izquierda → derecha',
       BstTraversal.inorder => 'Izquierda → raíz → derecha',
@@ -877,10 +947,32 @@ class _BstLabScreenState extends State<BstLabScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          type.label,
-          style: Theme.of(context).textTheme.titleSmall
-              ?.copyWith(color: colors.primary, fontWeight: FontWeight.w700),
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                type.label,
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  color: colors.primary,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+            IconButton(
+              tooltip: isPreviewing
+                  ? 'Ocultar recorrido ${type.label}'
+                  : 'Ver recorrido ${type.label}',
+              onPressed: () => _toggleTraversalPreview(type),
+              icon: Icon(
+                isPreviewing
+                    ? Icons.visibility_off_outlined
+                    : Icons.visibility_outlined,
+                size: 19,
+              ),
+              color: isPreviewing ? colors.primary : colors.onSurfaceVariant,
+              visualDensity: VisualDensity.compact,
+            ),
+          ],
         ),
         const SizedBox(height: 3),
         Text(
@@ -889,13 +981,23 @@ class _BstLabScreenState extends State<BstLabScreen> {
         ),
         const SizedBox(height: 8),
         SelectableText(
-          _tree.traverse(type).join(' → '),
+          values.join(' → '),
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
             color: colors.onSurface,
             fontWeight: FontWeight.w700,
             height: 1.5,
           ),
         ),
+        if (isPreviewing) ...[
+          const SizedBox(height: 8),
+          Semantics(
+            liveRegion: true,
+            child: Text(
+              'Paso ${_previewStep + 1} de ${values.length}: ${values[_previewStep]}',
+              style: TextStyle(color: colors.primary, fontSize: 12),
+            ),
+          ),
+        ],
       ],
     );
   }

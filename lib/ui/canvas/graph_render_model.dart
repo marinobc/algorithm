@@ -142,6 +142,8 @@ class GraphRenderModel {
     Offset? dragConnectingCurrentPos,
     String? dragConnectingTargetNodeId,
     bool isDetectadoMode = false,
+    bool distinguishOppositeDirected = false,
+    Map<String, double> animatedOffsets = const {},
   }) {
     final rawNodes = <RenderNode>[];
     for (final n in grafo.nodos.values) {
@@ -226,21 +228,10 @@ class GraphRenderModel {
         : null;
 
     final renderConns = <RenderConnectionLine>[];
-    final pairCounts = <String, int>{};
-    for (final c in grafo.conexiones.values) {
-      if (c.nodoOrigenId == 'nw_dummy_origin' ||
-          c.nodoOrigenId == 'nw_dummy_destination' ||
-          c.nodoDestinoId == 'nw_dummy_origin' ||
-          c.nodoDestinoId == 'nw_dummy_destination') {
-        continue;
-      }
-      final key = c.nodoOrigenId.compareTo(c.nodoDestinoId) < 0
-          ? '${c.nodoOrigenId}_${c.nodoDestinoId}'
-          : '${c.nodoDestinoId}_${c.nodoOrigenId}';
-      pairCounts[key] = (pairCounts[key] ?? 0) + 1;
-    }
-
-    final pairIndex = <String, int>{};
+    final offsets = GraphHitTester.connectionOffsetFactors(
+      grafo,
+      distinguishOppositeDirected: distinguishOppositeDirected,
+    );
 
     final sortedConns = grafo.conexiones.values.toList()
       ..sort((a, b) => a.id.compareTo(b.id));
@@ -256,25 +247,19 @@ class GraphRenderModel {
       final destino = grafo.nodos[c.nodoDestinoId];
       if (origen == null || destino == null) continue;
 
-      final pairKey = c.nodoOrigenId.compareTo(c.nodoDestinoId) < 0
-          ? '${c.nodoOrigenId}_${c.nodoDestinoId}'
-          : '${c.nodoDestinoId}_${c.nodoOrigenId}';
-
-      final totalInPair = pairCounts[pairKey] ?? 1;
-      final currentIdx = pairIndex[pairKey] ?? 0;
-      pairIndex[pairKey] = currentIdx + 1;
-
-      final offsetFactor = GraphHitTester.calculateOffsetFactor(
-        c,
-        currentIdx,
-        totalInPair,
-      );
+      final offsetFactor = animatedOffsets[c.id] ?? offsets[c.id] ?? 0.0;
 
       final curve = GraphGeometry.calculateBezierCurve(
         origen: origen,
         destino: destino,
         offsetFactor: offsetFactor,
-        customCurvatura: c.curvatura,
+        customCurvatura:
+            c.curvatura ??
+            (distinguishOppositeDirected &&
+                    c.direccion == Direccion.unidireccional &&
+                    offsetFactor == 0
+                ? 0.0
+                : null),
         loopAngle: c.loopAngle,
         offsetControlX: c.offsetControlX,
         offsetControlY: c.offsetControlY,
@@ -381,7 +366,8 @@ class GraphRenderModel {
       final isConnSelected =
           !isSelectedNode &&
           (selectedItemId == c.id ||
-              (selectedConn != null &&
+              (!distinguishOppositeDirected &&
+                  selectedConn != null &&
                   ((c.nodoOrigenId == selectedConn.nodoOrigenId &&
                           c.nodoDestinoId == selectedConn.nodoDestinoId) ||
                       (c.nodoOrigenId == selectedConn.nodoDestinoId &&

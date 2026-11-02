@@ -73,6 +73,40 @@ void main() {
     expect(GraphPathSolver.dijkstra(g, 'C', 'A').value, isNull);
   });
 
+  test('opposite arcs keep their own cost, steps and highlighted edge IDs', () {
+    final g = graph(
+      ['A', 'B'],
+      [
+        ('AB', 'A', 'B', '2', Direccion.unidireccional),
+        ('BA', 'B', 'A', '7', Direccion.unidireccional),
+      ],
+    );
+    final forward = GraphPathSolver.dijkstra(g, 'A', 'B');
+    final backward = GraphPathSolver.dijkstra(g, 'B', 'A');
+    expect(forward.value, 2);
+    expect(forward.pathEdgeIds, ['AB']);
+    expect(backward.value, 7);
+    expect(backward.pathEdgeIds, ['BA']);
+    expect(
+      forward.steps.any(
+        (step) => step.title == 'Examinar A → B' &&
+            step.currentEdgeId == 'AB' &&
+            step.highlightedEdges.contains('AB'),
+      ),
+      isTrue,
+    );
+    expect(
+      backward.steps.any(
+        (step) => step.title == 'Examinar B → A' &&
+            step.currentEdgeId == 'BA' &&
+            step.highlightedEdges.contains('BA'),
+      ),
+      isTrue,
+    );
+    expect(GraphPathSolver.longestSimplePath(g, 'A', 'B').value, 2);
+    expect(GraphPathSolver.longestSimplePath(g, 'B', 'A').value, 7);
+  });
+
   test(
     'negative edge and missing weight are rejected with actionable errors',
     () {

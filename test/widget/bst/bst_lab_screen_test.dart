@@ -143,6 +143,115 @@ void main() {
     AppToast.dismiss();
   });
 
+  testWidgets('genera el recorrido inferior sin reemplazar el árbol', (
+    tester,
+  ) async {
+    await tester.pumpWidget(app());
+    await tester.tap(find.text('Recorridos').first);
+    await tester.pumpAndSettle();
+    await tester.enterText(field('Preorder: valores'), '5,3,7');
+    await tester.enterText(field('Inorder: valores'), '7,3,5');
+    await tester.ensureVisible(find.text('Generar segundo recorrido'));
+    await tester.tap(find.text('Generar segundo recorrido'));
+    await tester.pumpAndSettle();
+    expect(
+      tester.widget<TextField>(field('Preorder: valores')).controller!.text,
+      '5,3,7',
+    );
+    expect(
+      tester.widget<TextField>(field('Inorder: valores')).controller!.text,
+      '3, 5, 7',
+    );
+    expect(find.text('Árbol vacío'), findsOneWidget);
+    await tester.ensureVisible(find.text('Reconstruir árbol'));
+    await tester.tap(find.text('Reconstruir árbol'));
+    await tester.pumpAndSettle();
+    expect(find.text('Árbol reconstruido correctamente.'), findsOneWidget);
+    expect(results(tester), ['5 → 3 → 7', '3 → 5 → 7', '3 → 7 → 5']);
+    AppToast.dismiss();
+  });
+
+  testWidgets('previsualiza cada recorrido en su orden y permite ocultarlo', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1440, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+    await tester.pumpWidget(app());
+    await tester.enterText(field('Valores'), '5,3,7,1,4,');
+    await tester.pumpAndSettle();
+
+    Future<void> expectSteps(String type, List<int> expected) async {
+      await tester.tap(find.byTooltip('Ver recorrido $type'));
+      await tester.pump();
+      for (var index = 0; index < expected.length; index++) {
+        if (index > 0) await tester.pump(const Duration(milliseconds: 700));
+        expect(
+          find.text(
+            'Paso ${index + 1} de ${expected.length}: ${expected[index]}',
+          ),
+          findsOneWidget,
+        );
+        expect(find.text('${index + 1}/${expected.length}'), findsOneWidget);
+      }
+      await tester.tap(find.byTooltip('Ocultar recorrido $type'));
+      await tester.pump();
+      expect(find.textContaining('Paso '), findsNothing);
+    }
+
+    await expectSteps('Preorder', [5, 3, 1, 4, 7]);
+    await expectSteps('Inorder', [1, 3, 4, 5, 7]);
+    await expectSteps('Postorder', [1, 4, 3, 7, 5]);
+  });
+
+  testWidgets('repetidos se muestran en pasos independientes', (tester) async {
+    tester.view.physicalSize = const Size(1440, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+    await tester.pumpWidget(app());
+    await tester.enterText(field('Valores'), '5,3,3,7,');
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Ver recorrido Inorder'));
+    await tester.pump();
+    expect(find.text('Paso 1 de 4: 3'), findsOneWidget);
+    await tester.pump(const Duration(milliseconds: 700));
+    expect(find.text('Paso 2 de 4: 3'), findsOneWidget);
+    await tester.enterText(field('Valores'), '5,3,3,7,1,');
+    await tester.pump();
+    expect(find.byTooltip('Ver recorrido Inorder'), findsOneWidget);
+    expect(find.textContaining('Paso '), findsNothing);
+  });
+
+  testWidgets('movimiento reducido muestra el recorrido completo', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1440, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: MediaQuery(
+          data: MediaQueryData(disableAnimations: true),
+          child: BstLabScreen(),
+        ),
+      ),
+    );
+    await tester.enterText(field('Valores'), '5,3,7,');
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Ver recorrido Postorder'));
+    await tester.pump();
+    expect(find.text('Paso 3 de 3: 5'), findsOneWidget);
+  });
+
   testWidgets('guarda y carga un árbol dentro de la aplicación', (
     tester,
   ) async {
